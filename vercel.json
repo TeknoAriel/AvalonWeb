@@ -1,4 +1,0 @@
-{
-  "installCommand": "pnpm install",
-  "buildCommand": "pnpm --filter avalon-propiedades exec next build && rm -rf .next && cp -R apps/avalon-propiedades/.next .next"
-}

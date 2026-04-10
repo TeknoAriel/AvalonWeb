@@ -1,4 +1,4 @@
 {
   "installCommand": "cd ../.. && pnpm install",
-  "buildCommand": "cd ../.. && pnpm exec turbo build --filter=avalon-propiedades"
+  "buildCommand": "cd ../.. && pnpm --filter avalon-propiedades exec next build"
 }
