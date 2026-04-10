@@ -77,3 +77,4 @@ Cada app sirve sus assets desde `public/brand/`. Sustituí los PNG por las versi
 - TypeScript estricto en paquetes compartidos.
 - Listados y fichas alimentados por el modelo normalizado (`normalizeProperty`, `extractAmenities`, `extractMedia`).
 - SEO: `metadata`, `sitemap.ts`, `robots.ts` por app.
+# AvalonWeb
