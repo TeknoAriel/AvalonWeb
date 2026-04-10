@@ -64,7 +64,7 @@ export function hasPremierTag(raw: RawProperty): boolean {
     if (scanUnknownList(raw.categories)) return true;
   }
 
-  const extra = raw as Record<string, unknown>;
+  const extra = raw as unknown as Record<string, unknown>;
   for (const key of ['segment', 'collection', 'tier', 'class']) {
     const v = extra[key];
     if (typeof v === 'string' && equalsPremierToken(v)) return true;
