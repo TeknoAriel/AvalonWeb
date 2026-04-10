@@ -1,0 +1,4 @@
+{
+  "installCommand": "pnpm install",
+  "buildCommand": "pnpm exec turbo build --filter=avalon-propiedades && rm -rf .next && cp -R apps/avalon-propiedades/.next .next"
+}
