@@ -12,15 +12,14 @@ export const brandPalettes = {
     muted: '#5E6B7A',
     gold: '#C5A46D',
   },
+  /** Avalon Premier — paleta editorial internacional (prompt maestro) */
   premier: {
-    primary: '#0A2342',
-    primaryMid: '#103B73',
-    primaryLight: '#1B4E8C',
-    gold: '#C7A15A',
-    goldSoft: '#E6D5AF',
-    ivory: '#FAF7F2',
-    sand: '#F1ECE3',
-    charcoal: '#222833',
+    ink: '#0A0A0A',
+    paper: '#FFFFFF',
+    line: '#CFCFCF',
+    gold: '#C6A86B',
+    goldSoft: 'rgba(198, 168, 107, 0.35)',
+    wash: '#F5F5F5',
   },
 } as const;
 
@@ -44,15 +43,20 @@ export function brandCssVariables(site: SiteType): Record<string, string> {
   }
   const p = brandPalettes.premier;
   return {
-    '--color-brand-primary': p.primary,
-    '--color-brand-primary-mid': p.primaryMid,
-    '--color-brand-primary-light': p.primaryLight,
-    '--color-brand-surface': p.ivory,
-    '--color-brand-surface-alt': p.sand,
+    '--color-brand-primary': p.ink,
+    '--color-brand-primary-mid': p.ink,
+    '--color-brand-primary-light': '#2C2C2C',
+    '--color-brand-surface': p.paper,
+    '--color-brand-surface-alt': p.wash,
+    '--color-brand-muted': '#8A8A8A',
     '--color-brand-accent': p.gold,
     '--color-brand-accent-soft': p.goldSoft,
-    '--color-brand-text': p.charcoal,
-    '--color-brand-bg': p.ivory,
+    '--color-brand-text': p.ink,
+    '--color-brand-bg': p.paper,
+    '--color-premier-line': p.line,
+    '--color-premier-gold': p.gold,
+    '--color-premier-ink': p.ink,
+    '--color-premier-paper': p.paper,
   };
 }
 

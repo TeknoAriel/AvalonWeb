@@ -1,18 +1,18 @@
-import {
-  filterNormalizedProperties,
-  getSiteProperties,
-  propertyTypeLabel,
-  sortByFeaturedThenRecent,
-} from '@avalon/core';
+import { filterNormalizedProperties, propertyTypeLabel, sortByFeaturedThenRecent } from '@avalon/core';
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import { PropertyCardPremier } from '@/components/property-card-premier';
 import { PropertyFilters } from '@/components/property-filters';
+import { getPropertiesFromKitepropFeed } from '@/providers/kiteprop-feed';
 import { SITE } from '@/lib/site';
 
 export const metadata: Metadata = {
   title: 'Colección Premier',
-  description: 'Selección exclusiva de propiedades.',
+  description: 'Activos curados — Avalon Premier.',
 };
+
+/** ISR: regenerar listado periódicamente cuando el feed/API cambie. */
+export const revalidate = 3600;
 
 export default function PropertiesPage({
   searchParams,
@@ -24,7 +24,7 @@ export default function PropertiesPage({
   const city = typeof searchParams.city === 'string' ? searchParams.city : 'all';
   const q = typeof searchParams.q === 'string' ? searchParams.q : '';
 
-  const base = sortByFeaturedThenRecent(getSiteProperties(SITE));
+  const base = sortByFeaturedThenRecent(getPropertiesFromKitepropFeed(SITE));
   const filtered = filterNormalizedProperties(base, {
     operation: op as 'all' | 'sale' | 'rent' | 'temp',
     propertyType: type,
@@ -38,18 +38,29 @@ export default function PropertiesPage({
     .map((value) => ({ value, label: propertyTypeLabel(value) }));
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-16 md:px-6">
-      <header className="mb-12 text-center">
-        <p className="text-xs uppercase tracking-caps text-brand-accent">Premier</p>
-        <h1 className="mt-3 font-serif text-4xl font-semibold text-brand-primary">Colección</h1>
-        <p className="mt-3 text-sm text-brand-text/65">
-          {filtered.length} propiedad{filtered.length === 1 ? '' : 'es'}
+    <div className="animate-fade-in mx-auto max-w-6xl px-6 py-20 md:px-8 md:py-24">
+      <header className="mb-14 text-center">
+        <p className="text-[11px] font-medium uppercase tracking-caps text-brand-accent">Premier</p>
+        <h1 className="mt-4 font-serif text-4xl font-medium text-brand-primary md:text-5xl">Colección</h1>
+        <p className="mx-auto mt-5 max-w-xl text-sm leading-relaxed text-brand-text/60">
+          Listado curado del feed operativo. Los criterios de exposición siguen el posicionamiento
+          Premier: calidad de información y encaje patrimonial.
         </p>
+        <p className="mt-4 text-xs text-brand-text/45">
+          {filtered.length} activo{filtered.length === 1 ? '' : 's'} mostrado
+          {filtered.length === 1 ? '' : 's'}
+        </p>
+        <Link
+          href="/propiedades/comparar"
+          className="mt-6 inline-block border-b border-brand-accent/40 pb-0.5 text-xs uppercase tracking-caps text-brand-accent hover:border-brand-accent"
+        >
+          Ver comparación
+        </Link>
       </header>
       <PropertyFilters cities={cities} types={types} />
-      <div className="mt-12 grid gap-12 md:grid-cols-2">
+      <div className="mt-14 grid gap-14 md:grid-cols-2">
         {filtered.map((p) => (
-          <PropertyCardPremier key={p.id} property={p} />
+          <PropertyCardPremier key={p.id} property={p} site={SITE} />
         ))}
       </div>
       {filtered.length === 0 ? (

@@ -4,8 +4,8 @@ import Link from 'next/link';
 import { SITE } from '@/lib/site';
 
 export const metadata: Metadata = {
-  title: 'Nosotros',
-  description: 'Información institucional.',
+  title: 'Quiénes somos',
+  description: 'Avalon Propiedades — empresa inmobiliaria en Rosario.',
 };
 
 export default function InstitutionalPage() {
@@ -13,20 +13,51 @@ export default function InstitutionalPage() {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-14 md:px-6">
-      <h1 className="text-3xl font-bold text-brand-primary">Nosotros</h1>
-      <p className="mt-6 text-lg text-brand-muted">{brand.tagline}</p>
-      <div className="mt-8 space-y-4 text-brand-muted">
+      <h1 className="text-3xl font-bold text-brand-primary">Quiénes somos</h1>
+
+      <div className="mt-8 space-y-6 text-brand-muted">
         <p>
-          {brand.name} es una inmobiliaria orientada a brindar información clara, respaldo
-          profesional y acompañamiento en cada etapa de compra, venta o alquiler.
+          Somos una empresa inmobiliaria de la ciudad de Rosario con amplia trayectoria en el mercado
+          local. A lo largo de los años hemos construido una reputación basada en la confianza, la
+          transparencia y el conocimiento profundo del sector.
         </p>
         <p>
-          Responsable: {brand.contact.professionalName} — Mat. {brand.contact.licenseId}.
+          Trabajamos con un enfoque moderno e innovador, incorporando nuevas estrategias comerciales,
+          análisis de mercado y herramientas tecnológicas que nos permiten brindar un servicio eficiente
+          y orientado a resultados.
+        </p>
+        <p>Nos especializamos en la comercialización de proyectos inmobiliarios de alta rentabilidad, entre ellos:</p>
+        <ul className="list-disc space-y-2 pl-5">
+          <li>Barrios abiertos residenciales</li>
+          <li>
+            Barrios privados en entornos naturales, estratégicamente ubicados en zonas cercanas a
+            Rosario
+          </li>
+          <li>Edificios de departamentos listos para habitar</li>
+          <li>Fideicomisos de inversión en zonas consolidadas del micro y macrocentro</li>
+          <li>
+            Desarrollos de alta gama, con excelente calidad constructiva, ubicaciones privilegiadas y
+            vistas al río
+          </li>
+        </ul>
+        <p>
+          Además, contamos con una sólida experiencia en compra, venta, alquiler y tasación de todo
+          tipo de inmuebles.
+        </p>
+        <p>
+          Nuestro equipo está conformado por profesionales comprometidos, preparados para asesorarte en
+          cada etapa del proceso, con un objetivo claro: ayudarte a tomar decisiones seguras y concretar
+          operaciones exitosas.
         </p>
       </div>
+
+      <p className="mt-10 text-sm text-brand-muted">
+        {brand.contact.professionalName} — Mat. {brand.contact.licenseId}.
+      </p>
+
       <Link
         href={brand.urls.peerSite}
-        className="mt-10 inline-block text-sm font-semibold text-brand-primary underline"
+        className="mt-8 inline-block text-sm font-semibold text-brand-primary underline"
       >
         {brand.urls.peerCta}
       </Link>

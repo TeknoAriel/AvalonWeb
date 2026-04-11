@@ -39,8 +39,18 @@ export function SiteFooter() {
           </p>
         </div>
       </div>
-      <div className="border-t border-brand-primary/10 py-4 text-center text-xs text-brand-muted">
-        © {new Date().getFullYear()} {brand.legalName}. Todos los derechos reservados.
+      <div className="space-y-2 border-t border-brand-primary/10 py-4 text-center text-[11px] text-brand-muted">
+        <p>
+          Diseño <span className="font-semibold text-brand-primary">Tekno</span> powered by{' '}
+          <a
+            href="https://www.kiteprop.com"
+            className="text-brand-primary-mid underline hover:opacity-80"
+            rel="noopener noreferrer"
+          >
+            KiteProp
+          </a>
+        </p>
+        <p>© {new Date().getFullYear()} {brand.legalName}. Todos los derechos reservados.</p>
       </div>
     </footer>
   );

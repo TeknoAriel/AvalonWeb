@@ -33,7 +33,7 @@ export default function HomePage() {
         </div>
         <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {featured.map((p) => (
-            <PropertyCardAvalon key={p.id} property={p} />
+            <PropertyCardAvalon key={p.id} property={p} site={SITE} />
           ))}
         </div>
       </section>

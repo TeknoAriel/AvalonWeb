@@ -15,6 +15,11 @@ const nextConfig = {
         hostname: 'static.kiteprop.com',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+        pathname: '/**',
+      },
     ],
   },
 };

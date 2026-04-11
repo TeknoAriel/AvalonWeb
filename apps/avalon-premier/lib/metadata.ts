@@ -6,6 +6,7 @@ import { SITE } from './site';
 export function rootMetadata(): Metadata {
   const brand = getSiteBrandConfig(SITE);
   const base = brand.urls.base.replace(/\/$/, '');
+  const og = brandAssets[SITE].og;
   return {
     metadataBase: new URL(base),
     title: {
@@ -19,7 +20,7 @@ export function rootMetadata(): Metadata {
       siteName: brand.name,
       title: brand.name,
       description: brand.description,
-      images: [{ url: brandAssets.avalon.og }],
+      images: [{ url: og }],
     },
     icons: {
       icon: '/favicon.png',

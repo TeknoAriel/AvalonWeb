@@ -8,7 +8,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const base = brand.urls.base.replace(/\/$/, '');
   const properties = getSiteProperties(SITE);
 
-  const staticRoutes: MetadataRoute.Sitemap = ['', '/propiedades', '/contacto', '/institucional'].map(
+  const staticRoutes: MetadataRoute.Sitemap = [
+    '',
+    '/propiedades',
+    '/propiedades/comparar',
+    '/contacto',
+    '/institucional',
+  ].map(
     (path) => ({
       url: `${base}${path}`,
       lastModified: new Date(),

@@ -33,6 +33,11 @@ export function MobileNav(props: { peerHref: string; peerCta: string }) {
             </Link>
           </li>
           <li>
+            <Link href="/propiedades/comparar" onClick={() => setOpen(false)}>
+              Comparar
+            </Link>
+          </li>
+          <li>
             <Link href="/institucional" onClick={() => setOpen(false)}>
               Experiencia
             </Link>

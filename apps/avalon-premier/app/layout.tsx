@@ -1,7 +1,8 @@
 import { brandCssVariables } from '@avalon/branding';
 import { getSiteBrandConfig } from '@avalon/config';
 import type { Metadata } from 'next';
-import { Cormorant_Garamond, DM_Sans } from 'next/font/google';
+import { DM_Sans, Playfair_Display } from 'next/font/google';
+import { CompareDock } from '@avalon/ui';
 import { MobileNav } from '@/components/mobile-nav';
 import { SiteFooter } from '@/components/site-footer';
 import { SiteHeader } from '@/components/site-header';
@@ -15,10 +16,10 @@ const dmSans = DM_Sans({
   display: 'swap',
 });
 
-const cormorant = Cormorant_Garamond({
+const playfair = Playfair_Display({
   subsets: ['latin'],
   weight: ['400', '500', '600', '700'],
-  variable: '--font-cormorant',
+  variable: '--font-premier-serif',
   display: 'swap',
 });
 
@@ -27,11 +28,12 @@ export const metadata: Metadata = rootMetadata();
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const brand = getSiteBrandConfig(SITE);
   return (
-    <html lang="es" className={`${dmSans.variable} ${cormorant.variable}`}>
+    <html lang="es" className={`${dmSans.variable} ${playfair.variable}`}>
       <body style={brandCssVariables(SITE)}>
         <SiteHeader />
-        <main>{children}</main>
+        <main className="pb-20">{children}</main>
         <SiteFooter />
+        <CompareDock site={SITE} variant="premier" compareHref="/propiedades/comparar" />
         <MobileNav peerHref={brand.urls.peerSite} peerCta={brand.urls.peerCta} />
       </body>
     </html>

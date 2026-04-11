@@ -2,6 +2,7 @@ import { brandCssVariables } from '@avalon/branding';
 import { getSiteBrandConfig } from '@avalon/config';
 import type { Metadata } from 'next';
 import { DM_Sans } from 'next/font/google';
+import { CompareDock } from '@avalon/ui';
 import { MobileNav } from '@/components/mobile-nav';
 import { SiteFooter } from '@/components/site-footer';
 import { SiteHeader } from '@/components/site-header';
@@ -23,8 +24,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="es" className={dmSans.variable}>
       <body style={brandCssVariables(SITE)}>
         <SiteHeader />
-        <main>{children}</main>
+        <main className="pb-20">{children}</main>
         <SiteFooter />
+        <CompareDock site={SITE} variant="avalon" compareHref="/propiedades/comparar" />
         <MobileNav peerHref={brand.urls.peerSite} peerCta={brand.urls.peerCta} />
       </body>
     </html>

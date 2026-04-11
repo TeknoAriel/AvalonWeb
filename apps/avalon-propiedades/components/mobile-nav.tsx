@@ -39,6 +39,11 @@ export function MobileNav(props: {
             </Link>
           </li>
           <li>
+            <Link href="/propiedades/comparar" onClick={() => setOpen(false)}>
+              Comparar
+            </Link>
+          </li>
+          <li>
             <Link href="/institucional" onClick={() => setOpen(false)}>
               Nosotros
             </Link>

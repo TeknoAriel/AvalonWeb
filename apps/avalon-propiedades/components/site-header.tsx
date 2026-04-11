@@ -1,12 +1,18 @@
+'use client';
+
 import Image from 'next/image';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { getSiteBrandConfig } from '@avalon/config';
 import { getBrandAssetPaths } from '@avalon/branding';
+import { cn } from '@avalon/utils';
 import { SITE } from '@/lib/site';
 
 export function SiteHeader() {
   const brand = getSiteBrandConfig(SITE);
   const assets = getBrandAssetPaths(SITE);
+  const pathname = usePathname();
+  const isHome = pathname === '/';
 
   return (
     <header className="sticky top-0 z-40 border-b border-brand-primary/10 bg-brand-bg/95 backdrop-blur">
@@ -15,9 +21,12 @@ export function SiteHeader() {
           <Image
             src={assets.logoHeader}
             alt={brand.name}
-            width={200}
-            height={48}
-            className="h-10 w-auto md:h-11"
+            width={isHome ? 300 : 200}
+            height={isHome ? 72 : 48}
+            className={cn(
+              'w-auto transition-[height] duration-200',
+              isHome ? 'h-[3.75rem] md:h-[4.125rem]' : 'h-10 md:h-11'
+            )}
             priority
           />
         </Link>
