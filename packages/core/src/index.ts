@@ -20,4 +20,9 @@ export {
   getRelatedProperties,
   getRelatedPropertiesFromRaw,
 } from './site-properties';
+export {
+  fetchKitepropPropertyFeedAsRaw,
+  kitepropApiFeedConfigured,
+} from './kiteprop-api-feed';
+export { mapKitepropApiV1PropertyToRaw } from './kiteprop-api-mapper';
 export { isPubliclyListed } from './listing-rules';

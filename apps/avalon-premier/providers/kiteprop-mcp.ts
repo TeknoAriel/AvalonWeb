@@ -1,6 +1,13 @@
 /**
  * Puente futuro para MCP / asistente (lenguaje natural, recomendaciones).
- * No implementa servidor MCP aquí: solo contratos para no acoplar la UI.
+ *
+ * **Cursor — MCP remoto KiteProp:** en Ajustes → MCP podés añadir un servidor con URL
+ * `https://www.mcp.kiteprop.com` (transporte SSE/HTTP según indique KiteProp) y la misma API Key.
+ *
+ * **Cursor — MCP local (npm):** paquete publicado tipo `kiteprop-crm-mcp` (stdio) con variables
+ * de entorno que indique el README del paquete (suelen ser URL base + token/key).
+ *
+ * Este archivo no arranca el servidor MCP; solo define contratos para la app.
  */
 
 export type NaturalLanguageIntent =

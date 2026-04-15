@@ -32,7 +32,7 @@ La función `hasPremierTag` reconoce, entre otras:
 - Flags booleanos `premier` / `is_premier`, y strings en `segment`, `collection`, `tier`, `class`, `tag`, `tag_slug`.
 - Overrides por `PREMIER_PROPERTY_IDS` / `NEXT_PUBLIC_PREMIER_PROPERTY_IDS`.
 
-En **servidor**, si existe `KITEPROP_PROPERTIES_JSON_URL`, las apps Next cargan ese JSON (mismo esquema que `properties.json`) con revalidación; si no, usan el snapshot del repo.
+En **servidor**, el orden de carga es: `KITEPROP_PROPERTIES_JSON_URL` (JSON del export) → si no hay URL, **API** `GET …/properties` con `KITEPROP_API_KEY` / `KITEPROP_API_TOKEN` como **`X-API-Key`** (ver [docs API v1](https://www.kiteprop.com/docs/api/v1)) → si falla, snapshot `properties.json` del repo. El mapeo API→`RawProperty` vive en `@avalon/core` (`kiteprop-api-mapper`).
 
 ## Amenities
 

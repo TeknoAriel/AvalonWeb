@@ -1,24 +1,30 @@
-import { ALL_RAW_PROPERTIES } from '@avalon/core';
+import { ALL_RAW_PROPERTIES, fetchKitepropPropertyFeedAsRaw } from '@avalon/core';
 import type { RawProperty } from '@avalon/types';
 import { cache } from 'react';
 
+const nextRevalidate = { next: { revalidate: 900 } } as RequestInit & { next: { revalidate: number } };
+
 /**
- * Feed JSON (mismo esquema que `packages/core/data/properties.json`).
- * Si está definida, Next intenta usarla en servidor con revalidación ISR.
+ * Orden: 1) JSON plano remoto 2) API KiteProp v1 (X-API-Key) 3) snapshot del repo.
  */
 async function loadRawProperties(): Promise<RawProperty[]> {
   const url = process.env.KITEPROP_PROPERTIES_JSON_URL?.trim();
-  if (!url) return ALL_RAW_PROPERTIES;
-
-  try {
-    const res = await fetch(url, { next: { revalidate: 900 } });
-    if (!res.ok) return ALL_RAW_PROPERTIES;
-    const data: unknown = await res.json();
-    if (!Array.isArray(data) || data.length === 0) return ALL_RAW_PROPERTIES;
-    return data as RawProperty[];
-  } catch {
-    return ALL_RAW_PROPERTIES;
+  if (url) {
+    try {
+      const res = await fetch(url, nextRevalidate);
+      if (res.ok) {
+        const data: unknown = await res.json();
+        if (Array.isArray(data) && data.length > 0) return data as RawProperty[];
+      }
+    } catch {
+      /* fallback */
+    }
   }
+
+  const fromApi = await fetchKitepropPropertyFeedAsRaw(nextRevalidate);
+  if (fromApi?.length) return fromApi;
+
+  return ALL_RAW_PROPERTIES;
 }
 
 export const getCachedRawProperties = cache(loadRawProperties);

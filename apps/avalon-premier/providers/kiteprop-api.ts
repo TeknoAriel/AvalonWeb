@@ -2,15 +2,21 @@
  * Cliente REST hacia KiteProp API v1.
  * @see https://www.kiteprop.com/docs/api/v1
  *
- * Configuración (Vercel / .env):
- * - KITEPROP_API_BASE_URL — base sin slash final (ej. https://api.ejemplo.com/v1)
- * - KITEPROP_API_TOKEN — Bearer si el tenant lo exige
+ * Autenticación: cabecera `X-API-Key` (documentación oficial).
+ * Variables:
+ * - KITEPROP_API_BASE_URL — por defecto https://www.kiteprop.com/api/v1
+ * - KITEPROP_API_KEY — recomendado (misma clave que mostrás en KiteProp)
+ * - KITEPROP_API_TOKEN — alias opcional si ya lo tenías definido
  *
- * Hasta definir endpoints concretos del tenant, las funciones devuelven null y el feed local sigue siendo la fuente.
+ * Usuario/contraseña del panel (ej. api@avalon.com) no se envían en cada request REST:
+ * sirven para entrar a KiteProp y generar la API Key.
  */
 
-const BASE = process.env.KITEPROP_API_BASE_URL?.replace(/\/$/, '') ?? '';
-const TOKEN = process.env.KITEPROP_API_TOKEN ?? '';
+const BASE = (process.env.KITEPROP_API_BASE_URL || 'https://www.kiteprop.com/api/v1').replace(
+  /\/$/,
+  '',
+);
+const API_KEY = (process.env.KITEPROP_API_KEY || process.env.KITEPROP_API_TOKEN || '').trim();
 
 export type KitepropFetchResult<T> =
   | { ok: true; data: T }
@@ -20,11 +26,11 @@ export async function kitepropFetchJson<T>(
   path: string,
   init?: RequestInit & { next?: { revalidate?: number } }
 ): Promise<KitepropFetchResult<T>> {
-  if (!BASE) {
-    return { ok: false, status: 0, message: 'KITEPROP_API_BASE_URL no configurada' };
+  if (!API_KEY) {
+    return { ok: false, status: 0, message: 'KITEPROP_API_KEY (o KITEPROP_API_TOKEN) no configurada' };
   }
   const url = `${BASE}${path.startsWith('/') ? path : `/${path}`}`;
-  const { next: nextOpts, ...rest } = init ?? {};
+  const { next: nextOpts, headers: extraHeaders, ...rest } = init ?? {};
   const revalidate = nextOpts?.revalidate ?? 3600;
 
   try {
@@ -32,8 +38,8 @@ export async function kitepropFetchJson<T>(
       ...rest,
       headers: {
         Accept: 'application/json',
-        ...(TOKEN ? { Authorization: `Bearer ${TOKEN}` } : {}),
-        ...rest.headers,
+        'X-API-Key': API_KEY,
+        ...(extraHeaders as Record<string, string>),
       },
       next: { revalidate },
     });
@@ -48,7 +54,7 @@ export async function kitepropFetchJson<T>(
   }
 }
 
-/** Extensible: mapear respuesta API → RawProperty[] cuando se documente el contrato. */
+/** Prueba de conectividad (perfil / tenant). */
 export async function fetchKitepropPropertiesPreview(): Promise<KitepropFetchResult<unknown>> {
-  return kitepropFetchJson<unknown>('/properties', { next: { revalidate: 1800 } });
+  return kitepropFetchJson<unknown>('/profile', { next: { revalidate: 1800 } });
 }
