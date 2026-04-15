@@ -4,7 +4,7 @@ import {
   parsePropertySlugParam,
 } from '@avalon/core';
 import { getSiteBrandConfig } from '@avalon/config';
-import { PriceSummary, MediaGallery } from '@avalon/ui';
+import { PriceSummary, MediaGallery, PropertyConsultaForm } from '@avalon/ui';
 import { toYouTubeEmbedUrl } from '@avalon/utils';
 import type { Metadata } from 'next';
 import Link from 'next/link';
@@ -112,6 +112,10 @@ export default async function PropertyDetailPage({ params }: Props) {
               // eslint-disable-next-line react/no-danger
               dangerouslySetInnerHTML={{ __html: property.descriptionHtml }}
             />
+          </section>
+
+          <section>
+            <PropertyConsultaForm propertyId={property.id} variant="premier" />
           </section>
 
           {property.media.tour360Html ? (

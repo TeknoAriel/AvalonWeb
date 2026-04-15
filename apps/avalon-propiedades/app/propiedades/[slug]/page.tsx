@@ -4,7 +4,7 @@ import {
   parsePropertySlugParam,
 } from '@avalon/core';
 import { getSiteBrandConfig } from '@avalon/config';
-import { PriceSummary, MediaGallery } from '@avalon/ui';
+import { PriceSummary, MediaGallery, PropertyConsultaForm } from '@avalon/ui';
 import { toYouTubeEmbedUrl } from '@avalon/utils';
 import type { Metadata } from 'next';
 import Link from 'next/link';
@@ -113,6 +113,7 @@ export default async function PropertyDetailPage({ params }: Props) {
                 Llamar
               </a>
             </div>
+            <PropertyConsultaForm propertyId={property.id} variant="avalon" />
           </div>
           <div className="grid grid-cols-2 gap-3 text-sm">
             <div className="rounded-lg bg-brand-surface-alt p-3">

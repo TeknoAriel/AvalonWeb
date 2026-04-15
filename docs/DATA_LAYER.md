@@ -41,9 +41,11 @@ En **servidor**, el orden de carga es: `KITEPROP_PROPERTIES_JSON_URL` (JSON del 
 - **MCP** está pensado para **clientes con protocolo MCP** (p. ej. Cursor): herramientas para quien *desarrolla o opera* el CRM, no para que el navegador del público “se conecte” al MCP.
 - **Mejor UX para quien navega el sitio:** formularios y CTAs que llamen a **rutas API propias** (Next) que por detrás usen la **REST de KiteProp** con `X-API-Key` (consultas, leads, agendar) según los endpoints que documente [API v1](https://www.kiteprop.com/docs/api/v1/). Opcional: un asistente en la web que use *las mismas operaciones* que expondría el MCP, pero **solo vía tu backend** (nunca pegar la key en el cliente).
 
-## Push de consultas (próximo paso técnico)
+## Push de consultas
 
-Revisar en la documentación oficial el **POST** concreto (path + body) para crear contacto / mensaje / lead vinculado a `property_id`. Implementar `POST /api/...` en cada app que valide input, rate-limit y reenvíe al endpoint KiteProp con `X-API-Key` solo en servidor.
+- **Rutas Next:** `POST /api/consultas` en `avalon-propiedades` y `avalon-premier` (validación básica + honeypot en el formulario UI).
+- **Core:** `postConsultaToKiteprop` (`@avalon/core`) reenvía con `X-API-Key` a `KITEPROP_API_CONSULTA_URL` **o** `KITEPROP_API_BASE_URL` + `KITEPROP_API_CONSULTA_PATH`.
+- **Pendiente en tu entorno:** definir la URL/path y el **JSON exacto** que exija KiteProp para el POST (ajustar `kiteprop-consulta.ts` si los nombres de campo difieren de `full_name`, `email`, `phone`, `body`, `property_id`, `source`).
 
 ## Amenities
 
