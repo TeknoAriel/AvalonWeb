@@ -1,4 +1,6 @@
 import Image from 'next/image';
+import { buildYouTubeNoCookieEmbedUrl } from '@avalon/utils';
+import { parsePremierCoverVideos } from '@/lib/premier-cover-videos';
 
 const DESTINATIONS = [
   {
@@ -79,7 +81,7 @@ export function PremierDestinationsSection() {
 }
 
 export function PremierCoverVideosSection() {
-  const ids = parseVideoIds();
+  const videos = parsePremierCoverVideos(process.env.NEXT_PUBLIC_PREMIER_COVER_VIDEOS);
 
   return (
     <section className="mx-auto max-w-6xl px-4 py-20 md:px-6">
@@ -90,26 +92,36 @@ export function PremierCoverVideosSection() {
         </h2>
         <p className="mt-4 text-sm leading-relaxed text-brand-text/70">
           Espacio reservado para recorridos aéreos, presentaciones de propiedades y contenido editorial.
-          Configurá IDs de YouTube (separados por coma) en{' '}
-          <code className="rounded bg-black/5 px-1 text-xs">NEXT_PUBLIC_PREMIER_COVER_VIDEOS</code>.
+          Configurá entradas en{' '}
+          <code className="rounded bg-black/5 px-1 text-xs">NEXT_PUBLIC_PREMIER_COVER_VIDEOS</code>
+          : id, <code className="rounded bg-black/5 px-1 text-xs">id@5-30</code> (segundos inicio-fin) o
+          URL con <code className="rounded bg-black/5 px-1 text-xs">start</code> y{' '}
+          <code className="rounded bg-black/5 px-1 text-xs">end</code>. Varias separadas por coma.
         </p>
       </div>
       <div className="mt-12 grid gap-8 md:grid-cols-2">
-        {ids.length > 0
-          ? ids.map((id) => (
-              <div
-                key={id}
-                className="aspect-video overflow-hidden border border-brand-accent/15 bg-black/5 shadow-sm"
-              >
-                <iframe
-                  title={`Video ${id}`}
-                  src={`https://www.youtube-nocookie.com/embed/${id}`}
-                  className="h-full w-full"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                />
-              </div>
-            ))
+        {videos.length > 0
+          ? videos.map((v) => {
+              const src = buildYouTubeNoCookieEmbedUrl(v.videoId, {
+                start: v.start,
+                end: v.end,
+              });
+              const key = `${v.videoId}-${v.start ?? ''}-${v.end ?? ''}`;
+              return (
+                <div
+                  key={key}
+                  className="aspect-video overflow-hidden border border-brand-accent/15 bg-black/5 shadow-sm"
+                >
+                  <iframe
+                    title={`Video ${v.videoId}`}
+                    src={src}
+                    className="h-full w-full"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  />
+                </div>
+              );
+            })
           : [0, 1].map((i) => (
               <div
                 key={i}

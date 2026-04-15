@@ -20,7 +20,7 @@ export function stripHtml(html: string): string {
   return decoded.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
 }
 
-export { toYouTubeEmbedUrl } from './youtube';
+export { buildYouTubeNoCookieEmbedUrl, extractYouTubeVideoId, toYouTubeEmbedUrl } from './youtube';
 
 export function formatMoneyAmount(raw: string | null | undefined, currency: string): string | null {
   if (raw == null || raw === '') return null;
