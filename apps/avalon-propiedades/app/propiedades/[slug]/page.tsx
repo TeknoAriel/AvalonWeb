@@ -1,4 +1,8 @@
-import { getPropertyById, getRelatedProperties, parsePropertySlugParam } from '@avalon/core';
+import {
+  getPropertyByIdFromRaw,
+  getRelatedPropertiesFromRaw,
+  parsePropertySlugParam,
+} from '@avalon/core';
 import { getSiteBrandConfig } from '@avalon/config';
 import { PriceSummary, MediaGallery } from '@avalon/ui';
 import { toYouTubeEmbedUrl } from '@avalon/utils';
@@ -6,14 +10,16 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { PropertyCardAvalon } from '@/components/property-card-avalon';
+import { getCachedRawProperties } from '@/lib/raw-properties';
 import { SITE } from '@/lib/site';
 
 type Props = { params: { slug: string } };
 
-export function generateMetadata({ params }: Props): Metadata {
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const id = parsePropertySlugParam(params.slug);
   if (id == null) return { title: 'Propiedad' };
-  const p = getPropertyById(SITE, id);
+  const raw = await getCachedRawProperties();
+  const p = getPropertyByIdFromRaw(SITE, id, raw);
   if (!p) return { title: 'Propiedad' };
   return {
     title: p.title,
@@ -26,13 +32,14 @@ export function generateMetadata({ params }: Props): Metadata {
   };
 }
 
-export default function PropertyDetailPage({ params }: Props) {
+export default async function PropertyDetailPage({ params }: Props) {
   const id = parsePropertySlugParam(params.slug);
   if (id == null) notFound();
-  const property = getPropertyById(SITE, id);
+  const raw = await getCachedRawProperties();
+  const property = getPropertyByIdFromRaw(SITE, id, raw);
   if (!property) notFound();
 
-  const related = getRelatedProperties(SITE, property, 3);
+  const related = getRelatedPropertiesFromRaw(SITE, property, raw, 3);
   const brand = getSiteBrandConfig(SITE);
   const waDigits =
     property.agent.phone_whatsapp?.replace(/\D/g, '') || brand.contact.whatsapp || '';

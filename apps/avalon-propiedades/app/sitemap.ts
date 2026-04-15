@@ -1,12 +1,14 @@
 import { getSiteBrandConfig } from '@avalon/config';
-import { getSiteProperties } from '@avalon/core';
+import { getSitePropertiesFromRaw } from '@avalon/core';
 import type { MetadataRoute } from 'next';
+import { getCachedRawProperties } from '@/lib/raw-properties';
 import { SITE } from '@/lib/site';
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const brand = getSiteBrandConfig(SITE);
   const base = brand.urls.base.replace(/\/$/, '');
-  const properties = getSiteProperties(SITE);
+  const raw = await getCachedRawProperties();
+  const properties = getSitePropertiesFromRaw(SITE, raw);
 
   const staticRoutes: MetadataRoute.Sitemap = [
     '',

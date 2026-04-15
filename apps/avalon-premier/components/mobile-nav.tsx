@@ -17,7 +17,7 @@ export function MobileNav(props: { peerHref: string; peerCta: string }) {
         ☰
       </button>
       <div
-        className={cn('fixed inset-0 z-40 bg-black/50 md:hidden', open ? 'block' : 'hidden')}
+        className={cn('fixed inset-0 z-40 bg-brand-primary/55 md:hidden', open ? 'block' : 'hidden')}
         onClick={() => setOpen(false)}
       />
       <nav

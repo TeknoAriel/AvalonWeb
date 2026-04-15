@@ -1,13 +1,9 @@
-import {
-  filterNormalizedProperties,
-  getSiteProperties,
-  propertyTypeLabel,
-  sortByFeaturedThenRecent,
-} from '@avalon/core';
+import { filterNormalizedProperties, propertyTypeLabel, sortByFeaturedThenRecent } from '@avalon/core';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { PropertyCardAvalon } from '@/components/property-card-avalon';
 import { PropertyFilters } from '@/components/property-filters';
+import { loadSortedSiteProperties } from '@/lib/site-property-list';
 import { SITE } from '@/lib/site';
 
 export const metadata: Metadata = {
@@ -15,7 +11,7 @@ export const metadata: Metadata = {
   description: 'Listado de propiedades en venta y alquiler.',
 };
 
-export default function PropertiesPage({
+export default async function PropertiesPage({
   searchParams,
 }: {
   searchParams: Record<string, string | string[] | undefined>;
@@ -25,7 +21,7 @@ export default function PropertiesPage({
   const city = typeof searchParams.city === 'string' ? searchParams.city : 'all';
   const q = typeof searchParams.q === 'string' ? searchParams.q : '';
 
-  const base = sortByFeaturedThenRecent(getSiteProperties(SITE));
+  const base = await loadSortedSiteProperties();
   const filtered = filterNormalizedProperties(base, {
     operation: op as 'all' | 'sale' | 'rent' | 'temp',
     propertyType: type,

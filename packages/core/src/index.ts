@@ -13,8 +13,11 @@ export {
 } from './filters';
 export {
   getSiteProperties,
+  getSitePropertiesFromRaw,
   getAllNormalizedProperties,
   getPropertyById,
+  getPropertyByIdFromRaw,
   getRelatedProperties,
+  getRelatedPropertiesFromRaw,
 } from './site-properties';
 export { isPubliclyListed } from './listing-rules';

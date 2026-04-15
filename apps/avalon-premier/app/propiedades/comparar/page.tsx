@@ -1,6 +1,6 @@
-import { getSiteProperties } from '@avalon/core';
 import type { Metadata } from 'next';
 import { PropertyCompareView } from '@avalon/ui';
+import { getPropertiesFromKitepropFeed } from '@/providers/kiteprop-feed';
 import { SITE } from '@/lib/site';
 
 export const metadata: Metadata = {
@@ -8,8 +8,8 @@ export const metadata: Metadata = {
   description: 'Compará hasta 5 propiedades Premier.',
 };
 
-export default function ComparePage() {
-  const properties = getSiteProperties(SITE);
+export default async function ComparePage() {
+  const properties = await getPropertiesFromKitepropFeed(SITE);
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-16 md:px-6">

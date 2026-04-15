@@ -1,6 +1,7 @@
-import { getSiteProperties } from '@avalon/core';
+import { getSitePropertiesFromRaw } from '@avalon/core';
 import type { Metadata } from 'next';
 import { PropertyCompareView } from '@avalon/ui';
+import { getCachedRawProperties } from '@/lib/raw-properties';
 import { SITE } from '@/lib/site';
 
 export const metadata: Metadata = {
@@ -8,8 +9,9 @@ export const metadata: Metadata = {
   description: 'Compará hasta 5 propiedades lado a lado.',
 };
 
-export default function ComparePage() {
-  const properties = getSiteProperties(SITE);
+export default async function ComparePage() {
+  const raw = await getCachedRawProperties();
+  const properties = getSitePropertiesFromRaw(SITE, raw);
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10 md:px-6">

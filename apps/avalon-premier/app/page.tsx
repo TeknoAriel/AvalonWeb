@@ -1,6 +1,6 @@
 import { propertyTypeLabel, sortByFeaturedThenRecent } from '@avalon/core';
 import { getSiteBrandConfig } from '@avalon/config';
-import { pickHeroImage } from '@/components/hero-premier';
+import { pickHeroImageFromList } from '@/components/hero-premier';
 import { CinematicHero } from '@/components/cinematic-hero';
 import {
   PremierCoverVideosSection,
@@ -14,11 +14,11 @@ import { getPropertiesFromKitepropFeed } from '@/providers/kiteprop-feed';
 import Link from 'next/link';
 import { SITE } from '@/lib/site';
 
-export default function HomePage() {
+export default async function HomePage() {
   const brand = getSiteBrandConfig(SITE);
-  const all = sortByFeaturedThenRecent(getPropertiesFromKitepropFeed(SITE));
+  const all = sortByFeaturedThenRecent(await getPropertiesFromKitepropFeed(SITE));
   const featured = all.slice(0, 4);
-  const poster = pickHeroImage();
+  const poster = pickHeroImageFromList(all);
   const heroVideo = process.env.NEXT_PUBLIC_PREMIER_HERO_VIDEO_URL?.trim() || null;
 
   return (
@@ -44,10 +44,11 @@ export default function HomePage() {
           <div className="mx-auto mt-16 max-w-lg border border-premier-line/60 bg-brand-surface-alt/30 p-12 text-center">
             <p className="font-serif text-xl text-brand-primary">Colección en preparación</p>
             <p className="mt-4 text-sm text-brand-text/65">
-              Aún no hay activos con etiqueta Premier en el feed. Cuando el CRM asigne el tag,
-              aparecerán automáticamente. Podés usar{' '}
-              <code className="rounded bg-black/5 px-1 text-xs">PREMIER_PROPERTY_IDS</code> en entorno
-              para pruebas.
+              Aún no hay activos con etiqueta Premier en el feed remoto o en el JSON. Cuando el CRM
+              marque <code className="rounded bg-brand-primary/5 px-1 text-xs">premier</code> en
+              tags, labels o flags equivalentes, aparecerán automáticamente. Podés usar{' '}
+              <code className="rounded bg-brand-primary/5 px-1 text-xs">PREMIER_PROPERTY_IDS</code>{' '}
+              en entorno para pruebas.
             </p>
             <Link
               href={brand.urls.peerSite}

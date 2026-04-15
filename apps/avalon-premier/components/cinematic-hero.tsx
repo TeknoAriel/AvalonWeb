@@ -44,10 +44,13 @@ export function CinematicHero({
             sizes="100vw"
           />
         ) : (
-          <div className="h-full w-full bg-gradient-to-br from-neutral-900 via-premier-ink to-neutral-800" />
+          <div className="h-full w-full bg-gradient-to-br from-[#070d18] via-premier-ink to-[#1a2d4d]" />
         )}
       </div>
-      <div className="absolute inset-0 bg-black/55" aria-hidden />
+      <div
+        className="absolute inset-0 bg-gradient-to-b from-brand-primary/45 via-[#0c1528]/40 to-brand-primary/80"
+        aria-hidden
+      />
       <div className="relative z-10 flex min-h-[100dvh] flex-col justify-center px-6 pb-28 pt-28 md:px-12 md:pb-36 md:pt-32">
         <div className="mx-auto max-w-4xl text-center">
           <p className="text-[11px] font-medium uppercase tracking-caps text-premier-gold">

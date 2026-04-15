@@ -93,10 +93,10 @@ export function PremierCoverVideosSection() {
         <p className="mt-4 text-sm leading-relaxed text-brand-text/70">
           Espacio reservado para recorridos aéreos, presentaciones de propiedades y contenido editorial.
           Configurá entradas en{' '}
-          <code className="rounded bg-black/5 px-1 text-xs">NEXT_PUBLIC_PREMIER_COVER_VIDEOS</code>
-          : id, <code className="rounded bg-black/5 px-1 text-xs">id@5-30</code> (segundos inicio-fin) o
-          URL con <code className="rounded bg-black/5 px-1 text-xs">start</code> y{' '}
-          <code className="rounded bg-black/5 px-1 text-xs">end</code>. Varias separadas por coma.
+          <code className="rounded bg-brand-primary/5 px-1 text-xs">NEXT_PUBLIC_PREMIER_COVER_VIDEOS</code>
+          : id, <code className="rounded bg-brand-primary/5 px-1 text-xs">id@5-30</code> (segundos inicio-fin) o
+          URL con <code className="rounded bg-brand-primary/5 px-1 text-xs">start</code> y{' '}
+          <code className="rounded bg-brand-primary/5 px-1 text-xs">end</code>. Varias separadas por coma.
         </p>
       </div>
       <div className="mt-12 grid gap-8 md:grid-cols-2">
@@ -110,7 +110,7 @@ export function PremierCoverVideosSection() {
               return (
                 <div
                   key={key}
-                  className="aspect-video overflow-hidden border border-brand-accent/15 bg-black/5 shadow-sm"
+                  className="aspect-video overflow-hidden border border-brand-accent/15 bg-brand-primary/[0.04] shadow-sm"
                 >
                   <iframe
                     title={`Video ${v.videoId}`}

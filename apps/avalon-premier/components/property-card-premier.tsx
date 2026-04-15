@@ -14,7 +14,7 @@ export function PropertyCardPremier({
   return (
     <div className="overflow-hidden bg-brand-surface-alt/40 transition hover:bg-brand-surface-alt/70">
       <Link href={`/propiedades/${property.slug}`} className="group block">
-        <div className="relative aspect-[5/4] bg-black/5">
+        <div className="relative aspect-[5/4] bg-brand-primary/[0.06]">
           {img ? (
             <Image
               src={img.url}

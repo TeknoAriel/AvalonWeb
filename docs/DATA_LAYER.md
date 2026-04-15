@@ -25,11 +25,14 @@ Ejemplos en el lote completo: `active`, `inactive`, `suspended`, `sold`, `reserv
 
 ## Tags Premier
 
-El export inspeccionado **no incluye** `tags`. La función `hasPremierTag` está preparada para:
+La función `hasPremierTag` reconoce, entre otras:
 
-- Arrays de strings u objetos (`name`, `slug`, `label`…).
-- Flags booleanos `premier` / `is_premier`.
-- Overrides por `PREMIER_PROPERTY_IDS`.
+- `tags` / `labels` / `categories` como array, string (CSV o JSON stringificado), u objeto con `name`, `slug`, `label`, etc.
+- Claves adicionales típicas de CRM: `property_tags`, `tag_names`, `tag_list`, `kp_tags`, `groups`, `collections`.
+- Flags booleanos `premier` / `is_premier`, y strings en `segment`, `collection`, `tier`, `class`, `tag`, `tag_slug`.
+- Overrides por `PREMIER_PROPERTY_IDS` / `NEXT_PUBLIC_PREMIER_PROPERTY_IDS`.
+
+En **servidor**, si existe `KITEPROP_PROPERTIES_JSON_URL`, las apps Next cargan ese JSON (mismo esquema que `properties.json`) con revalidación; si no, usan el snapshot del repo.
 
 ## Amenities
 

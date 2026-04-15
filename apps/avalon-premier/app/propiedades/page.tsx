@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 /** ISR: regenerar listado periódicamente cuando el feed/API cambie. */
 export const revalidate = 3600;
 
-export default function PropertiesPage({
+export default async function PropertiesPage({
   searchParams,
 }: {
   searchParams: Record<string, string | string[] | undefined>;
@@ -24,7 +24,7 @@ export default function PropertiesPage({
   const city = typeof searchParams.city === 'string' ? searchParams.city : 'all';
   const q = typeof searchParams.q === 'string' ? searchParams.q : '';
 
-  const base = sortByFeaturedThenRecent(getPropertiesFromKitepropFeed(SITE));
+  const base = sortByFeaturedThenRecent(await getPropertiesFromKitepropFeed(SITE));
   const filtered = filterNormalizedProperties(base, {
     operation: op as 'all' | 'sale' | 'rent' | 'temp',
     propertyType: type,

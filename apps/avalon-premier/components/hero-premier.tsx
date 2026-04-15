@@ -1,5 +1,5 @@
 import { getSiteBrandConfig } from '@avalon/config';
-import { getSiteProperties, sortByFeaturedThenRecent } from '@avalon/core';
+import type { NormalizedProperty } from '@avalon/types';
 import Image from 'next/image';
 import Link from 'next/link';
 import { SITE } from '@/lib/site';
@@ -49,7 +49,6 @@ export function HeroPremier(props: { featuredImageUrl: string | null }) {
   );
 }
 
-export function pickHeroImage() {
-  const list = sortByFeaturedThenRecent(getSiteProperties(SITE));
+export function pickHeroImageFromList(list: NormalizedProperty[]) {
   return list[0]?.media.images[0]?.url ?? null;
 }
