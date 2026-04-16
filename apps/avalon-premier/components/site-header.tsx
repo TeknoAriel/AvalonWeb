@@ -16,7 +16,7 @@ export function SiteHeader() {
   const isHome = pathname === '/';
 
   return (
-    <header className="sticky top-0 z-40 border-b border-premier-line/45 bg-brand-bg/92 backdrop-blur-md">
+    <header className="sticky top-0 z-40 border-b border-premier-line/55 bg-brand-bg/99 shadow-[0_1px_2px_rgba(27,33,48,0.04)] backdrop-blur-sm">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-6 px-4 py-4 md:px-6 md:py-5">
         <Link href="/" className="flex max-h-[5.5rem] max-w-[min(100%,22rem)] items-center md:max-h-[6.25rem] md:max-w-[min(100%,26rem)]">
           <Image
