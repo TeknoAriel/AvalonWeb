@@ -51,8 +51,8 @@ export function brandCssVariables(site: SiteType): Record<string, string> {
       '--color-brand-accent': p.gold,
       '--color-brand-text': p.primaryDark,
       '--color-brand-bg': p.white,
-      /** Barra superior: marfil (papel) al 95% de opacidad — lectura sobre héroes oscuros */
-      '--color-site-header-bg': hexToRgba(p.paper, 0.95),
+      /** Barra superior: marfil (papel) al 85% de opacidad — lectura sobre héroes oscuros */
+      '--color-site-header-bg': hexToRgba(p.paper, 0.85),
     };
   }
   const p = brandPalettes.premier;
@@ -71,7 +71,7 @@ export function brandCssVariables(site: SiteType): Record<string, string> {
     '--color-premier-gold': p.gold,
     '--color-premier-ink': p.ink,
     '--color-premier-paper': p.paper,
-    '--color-site-header-bg': hexToRgba(p.paper, 0.95),
+    '--color-site-header-bg': hexToRgba(p.paper, 0.85),
   };
 }
 
