@@ -135,9 +135,10 @@ export function mapKitepropApiV1PropertyToRaw(p: Record<string, unknown>): RawPr
     link_360_iframe: p.link_360 != null ? str(p.link_360) : null,
     agency: emptyAgency,
     agent,
-    tags: p.tags,
-    labels: p.labels,
-    categories: p.categories,
+    /** API v1 a veces envía tags en alias distintos al export JSON. */
+    tags: p.tags ?? p.property_tags ?? p.kp_tags ?? p.tag_list ?? p.tag_names,
+    labels: p.labels ?? p.label_list,
+    categories: p.categories ?? p.collections,
     premier: typeof p.premier === 'boolean' ? p.premier : undefined,
     is_premier: typeof p.is_premier === 'boolean' ? p.is_premier : undefined,
   };

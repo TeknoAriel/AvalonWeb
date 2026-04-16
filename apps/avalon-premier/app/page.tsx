@@ -15,6 +15,8 @@ import { getPropertiesFromKitepropFeed } from '@/providers/kiteprop-feed';
 import Link from 'next/link';
 import { SITE } from '@/lib/site';
 
+export const dynamic = 'force-dynamic';
+
 export default async function HomePage() {
   const brand = getSiteBrandConfig(SITE);
   const all = sortByFeaturedThenRecent(await getPropertiesFromKitepropFeed(SITE));

@@ -5,7 +5,6 @@ import {
   sortByFeaturedThenRecent,
 } from '@avalon/core';
 import type { Metadata } from 'next';
-import Link from 'next/link';
 import { NaturalSearchBar, SavedSearchesToolbar } from '@avalon/ui';
 import { PropertyCardPremier } from '@/components/property-card-premier';
 import { PropertyFilters } from '@/components/property-filters';
@@ -17,7 +16,8 @@ export const metadata: Metadata = {
   description: 'Activos curados — Avalon Premier.',
 };
 
-export const revalidate = 3600;
+/** Feed en cada request (evita listado vacío por caché estático desalineado con JSON/API en vivo). */
+export const dynamic = 'force-dynamic';
 
 function first(v: string | string[] | undefined): string | undefined {
   if (Array.isArray(v)) return v[0];
@@ -52,6 +52,7 @@ export default async function PropertiesPage({
 
   const base = sortByFeaturedThenRecent(await getPropertiesFromKitepropFeed(SITE));
   const filtered = filterNormalizedProperties(base, filters);
+  const noPremierInventory = base.length === 0;
 
   const cities = Array.from(new Set(base.map((p) => p.location.city))).sort();
   const types = Array.from(new Set(base.map((p) => p.propertyType)))
@@ -81,9 +82,25 @@ export default async function PropertiesPage({
         ))}
       </div>
       {filtered.length === 0 ? (
-        <p className="mt-20 text-center text-sm text-brand-text/60">
-          No hay resultados con estos criterios.
-        </p>
+        <div className="mx-auto mt-16 max-w-lg text-center text-sm leading-relaxed text-brand-text/65">
+          {noPremierInventory ? (
+            <>
+              <p className="font-medium text-brand-primary">No hay activos en la colección Premier</p>
+              <p className="mt-3">
+                El listado solo incluye avisos del feed marcados como Premier (tags, labels, flags o IDs en{' '}
+                <code className="rounded bg-brand-primary/5 px-1 text-xs">PREMIER_PROPERTY_IDS</code>). No hay
+                Elasticsearch: es filtrado en servidor sobre el JSON/API de KiteProp.
+              </p>
+              <p className="mt-3 text-xs text-brand-text/50">
+                Si el feed remoto no trae etiquetas Premier, configurá la URL en{' '}
+                <code className="rounded bg-brand-primary/5 px-0.5">KITEPROP_PROPERTIES_JSON_URL</code> o los IDs
+                de prueba en entorno.
+              </p>
+            </>
+          ) : (
+            <p>No hay resultados con estos criterios. Probá limpiar filtros en la barra de búsqueda.</p>
+          )}
+        </div>
       ) : null}
     </div>
   );

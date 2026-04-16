@@ -6,10 +6,15 @@ function equalsPremierToken(value: string): boolean {
   return value.trim().toLowerCase() === PREMIER_NORMALIZED;
 }
 
+/** Etiquetas tipo "avalon-premier", "Colección Premier", slugs compuestos, etc. */
+function stringMentionsPremierWord(value: string): boolean {
+  return /\bpremier\b/i.test(value);
+}
+
 function scanUnknownList(value: unknown): boolean {
   if (!Array.isArray(value)) return false;
   for (const item of value) {
-    if (typeof item === 'string' && equalsPremierToken(item)) return true;
+    if (typeof item === 'string' && (equalsPremierToken(item) || stringMentionsPremierWord(item))) return true;
     if (item && typeof item === 'object') {
       const o = item as Record<string, unknown>;
       for (const k of ['name', 'slug', 'label', 'title', 'key']) {
@@ -67,6 +72,7 @@ export function hasPremierTag(raw: RawProperty): boolean {
   if (raw.tags !== undefined) {
     if (typeof raw.tags === 'string') {
       if (equalsPremierToken(raw.tags)) return true;
+      if (stringMentionsPremierWord(raw.tags)) return true;
       if (scanStringListCsv(raw.tags)) return true;
       if (scanMaybeJsonStringArray(raw.tags)) return true;
     } else if (scanUnknownList(raw.tags)) return true;
@@ -75,6 +81,7 @@ export function hasPremierTag(raw: RawProperty): boolean {
   if (raw.labels !== undefined) {
     if (typeof raw.labels === 'string') {
       if (equalsPremierToken(raw.labels)) return true;
+      if (stringMentionsPremierWord(raw.labels)) return true;
       if (scanStringListCsv(raw.labels)) return true;
       if (scanMaybeJsonStringArray(raw.labels)) return true;
     } else if (scanUnknownList(raw.labels)) return true;
@@ -83,6 +90,7 @@ export function hasPremierTag(raw: RawProperty): boolean {
   if (raw.categories !== undefined) {
     if (typeof raw.categories === 'string') {
       if (equalsPremierToken(raw.categories)) return true;
+      if (stringMentionsPremierWord(raw.categories)) return true;
       if (scanStringListCsv(raw.categories)) return true;
       if (scanMaybeJsonStringArray(raw.categories)) return true;
     } else if (scanUnknownList(raw.categories)) return true;
@@ -91,7 +99,7 @@ export function hasPremierTag(raw: RawProperty): boolean {
   const extra = raw as unknown as Record<string, unknown>;
   for (const key of ['segment', 'collection', 'tier', 'class', 'tag', 'tag_slug', 'tier_slug']) {
     const v = extra[key];
-    if (typeof v === 'string' && equalsPremierToken(v)) return true;
+    if (typeof v === 'string' && (equalsPremierToken(v) || stringMentionsPremierWord(v))) return true;
   }
 
   for (const key of [
@@ -106,7 +114,13 @@ export function hasPremierTag(raw: RawProperty): boolean {
     const v = extra[key];
     if (v === undefined) continue;
     if (typeof v === 'string') {
-      if (equalsPremierToken(v) || scanStringListCsv(v) || scanMaybeJsonStringArray(v)) return true;
+      if (
+        equalsPremierToken(v) ||
+        stringMentionsPremierWord(v) ||
+        scanStringListCsv(v) ||
+        scanMaybeJsonStringArray(v)
+      )
+        return true;
     } else if (scanUnknownList(v)) return true;
   }
 
