@@ -17,7 +17,7 @@ function scanUnknownList(value: unknown): boolean {
     if (typeof item === 'string' && (equalsPremierToken(item) || stringMentionsPremierWord(item))) return true;
     if (item && typeof item === 'object') {
       const o = item as Record<string, unknown>;
-      for (const k of ['name', 'slug', 'label', 'title', 'key']) {
+      for (const k of ['name', 'slug', 'label', 'title', 'key', 'code', 'value', 'keyword']) {
         const v = o[k];
         if (typeof v === 'string' && (equalsPremierToken(v) || stringMentionsPremierWord(v))) return true;
       }
@@ -108,6 +108,10 @@ export function hasPremierTag(raw: RawProperty): boolean {
     'tag_names',
     'tag_list',
     'kp_tags',
+    'difusion_tags',
+    'web_tags',
+    'public_tags',
+    'featured_tags',
     'groups',
     'collections',
   ]) {

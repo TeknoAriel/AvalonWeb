@@ -36,7 +36,7 @@ export function PropertyFilters(props: {
   );
 
   return (
-    <div>
+    <div key={sp.toString()}>
     <div className="grid gap-2 border border-brand-accent/15 bg-brand-surface-alt/30 p-3 md:grid-cols-4 md:gap-3 md:p-4">
       <label className="flex flex-col gap-1 text-[9px] font-medium uppercase tracking-caps text-brand-text/60">
         Operación

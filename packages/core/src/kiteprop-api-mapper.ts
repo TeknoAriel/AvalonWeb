@@ -20,6 +20,28 @@ function bool(v: unknown): boolean {
   return v === true;
 }
 
+/** API/CRM a veces manda 1/0 o strings en flags booleanos. */
+function coalesceOptionalBool(...vals: unknown[]): boolean | undefined {
+  for (const v of vals) {
+    if (v === undefined || v === null) continue;
+    if (v === true || v === 1) return true;
+    if (v === false || v === 0) return false;
+    if (typeof v === 'string') {
+      const s = v.trim().toLowerCase();
+      if (['1', 'true', 'yes', 'y', 'on', 'si', 'sí'].includes(s)) return true;
+      if (['0', 'false', 'no', 'off'].includes(s)) return false;
+    }
+  }
+  return undefined;
+}
+
+function isEmptyFeedShard(v: unknown): boolean {
+  if (v === undefined || v === null) return true;
+  if (Array.isArray(v) && v.length === 0) return true;
+  if (typeof v === 'string' && v.trim() === '') return true;
+  return false;
+}
+
 /**
  * El export JSON suele llevar `tags: ["premier"]`. La API a veces manda `tags: []` o `""` y el dato útil
  * está en `property_tags` / alias. `??` no sustituye arrays vacíos; por eso se elige el primer campo con contenido.
@@ -153,9 +175,42 @@ export function mapKitepropApiV1PropertyToRaw(p: Record<string, unknown>): RawPr
     tags: pickFirstNonEmpty(p, ['tags', 'property_tags', 'kp_tags', 'tag_list', 'tag_names']),
     labels: pickFirstNonEmpty(p, ['labels', 'label_list']),
     categories: pickFirstNonEmpty(p, ['categories', 'collections']),
-    premier: typeof p.premier === 'boolean' ? p.premier : undefined,
-    is_premier: typeof p.is_premier === 'boolean' ? p.is_premier : undefined,
+    premier: coalesceOptionalBool(p.premier, p.avalon_premier, p['premier_flag']),
+    is_premier: coalesceOptionalBool(p.is_premier, p.isPremier),
   };
 
   return raw;
+}
+
+/**
+ * Completa `tags`/`labels`/`categories` y flags Premier desde alias típicos del CRM cuando el export
+ * trae `tags: []` u omite el campo pero el dato vive en otra clave del mismo objeto.
+ */
+export function enrichRawPropertyFromKitepropAliases(raw: RawProperty): RawProperty {
+  const p = raw as unknown as Record<string, unknown>;
+  const next: RawProperty = { ...raw };
+
+  if (isEmptyFeedShard(raw.tags)) {
+    const t = pickFirstNonEmpty(p, ['tags', 'property_tags', 'kp_tags', 'tag_list', 'tag_names']);
+    if (t !== undefined) next.tags = t as RawProperty['tags'];
+  }
+  if (isEmptyFeedShard(raw.labels)) {
+    const t = pickFirstNonEmpty(p, ['labels', 'label_list']);
+    if (t !== undefined) next.labels = t as RawProperty['labels'];
+  }
+  if (isEmptyFeedShard(raw.categories)) {
+    const t = pickFirstNonEmpty(p, ['categories', 'collections']);
+    if (t !== undefined) next.categories = t as RawProperty['categories'];
+  }
+
+  if (raw.premier === undefined) {
+    const b = coalesceOptionalBool(p.premier, p.avalon_premier, p['premier_flag']);
+    if (b !== undefined) next.premier = b;
+  }
+  if (raw.is_premier === undefined) {
+    const b = coalesceOptionalBool(p.is_premier, p.isPremier);
+    if (b !== undefined) next.is_premier = b;
+  }
+
+  return next;
 }

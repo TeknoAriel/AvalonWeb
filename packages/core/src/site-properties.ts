@@ -1,6 +1,6 @@
 import type { NormalizedProperty, RawProperty, SiteType } from '@avalon/types';
 import { ALL_RAW_PROPERTIES } from './load';
-import { isPubliclyListed } from './listing-rules';
+import { isPubliclyListedForSite } from './listing-rules';
 import { normalizeProperty } from './normalize';
 import { passesPremierListingQualityGate } from './premier-curation';
 import { isPremierInventory } from './premier';
@@ -8,7 +8,7 @@ import { pickSmartRelated } from './related-scoring';
 
 /** Listado normalizado a partir de un lote raw (feed empaquetado, JSON remoto o snapshot). */
 export function getSitePropertiesFromRaw(site: SiteType, rawList: RawProperty[]): NormalizedProperty[] {
-  const listed = rawList.filter(isPubliclyListed);
+  const listed = rawList.filter((r) => isPubliclyListedForSite(r, site));
   const filtered =
     site === 'premier'
       ? listed.filter((r) => isPremierInventory(r))
@@ -35,7 +35,7 @@ export function getPropertyByIdFromRaw(
   rawList: RawProperty[],
 ): NormalizedProperty | undefined {
   const raw = rawList.find((r) => r.id === id);
-  if (!raw || !isPubliclyListed(raw)) return undefined;
+  if (!raw || !isPubliclyListedForSite(raw, site)) return undefined;
   const premier = isPremierInventory(raw);
   if (site === 'premier' && !premier) return undefined;
   if (site === 'avalon' && premier) return undefined;

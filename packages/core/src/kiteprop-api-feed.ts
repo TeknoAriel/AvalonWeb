@@ -1,5 +1,6 @@
 import type { RawProperty } from '@avalon/types';
-import { mapKitepropApiV1PropertyToRaw } from './kiteprop-api-mapper';
+import { extractKitepropPropertyFeedRows } from './kiteprop-feed-payload';
+import { enrichRawPropertyFromKitepropAliases, mapKitepropApiV1PropertyToRaw } from './kiteprop-api-mapper';
 
 function apiKey(): string {
   return (process.env.KITEPROP_API_KEY || process.env.KITEPROP_API_TOKEN || '').trim();
@@ -14,19 +15,6 @@ function authHeaders(): HeadersInit {
   const h: Record<string, string> = { Accept: 'application/json' };
   if (key) h['X-API-Key'] = key;
   return h;
-}
-
-function extractArray(payload: unknown): Record<string, unknown>[] {
-  if (Array.isArray(payload)) return payload as Record<string, unknown>[];
-  if (payload && typeof payload === 'object') {
-    const o = payload as Record<string, unknown>;
-    if (Array.isArray(o.data)) return o.data as Record<string, unknown>[];
-    const inner = o.data;
-    if (inner && typeof inner === 'object' && Array.isArray((inner as Record<string, unknown>).data)) {
-      return (inner as Record<string, unknown>).data as Record<string, unknown>[];
-    }
-  }
-  return [];
 }
 
 function extractPagination(payload: unknown): { lastPage: number; currentPage: number } {
@@ -93,10 +81,10 @@ export async function fetchKitepropPropertyFeedAsRaw(
     }
 
     const json: unknown = await res.json();
-    const rows = extractArray(json);
+    const rows = extractKitepropPropertyFeedRows(json);
     for (const row of rows) {
       const mapped = mapKitepropApiV1PropertyToRaw(row);
-      if (mapped) all.push(mapped);
+      if (mapped) all.push(enrichRawPropertyFromKitepropAliases(mapped));
     }
 
     const pag = extractPagination(json);

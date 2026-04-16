@@ -49,7 +49,19 @@ export function NaturalSearchBar(props: {
           });
         } else setHint(null);
         const qs = typeof data.query === 'string' ? data.query : '';
-        router.push(qs ? `${listPath}?${qs}` : listPath);
+        // No reemplazar la URL entera: el parseo suele devolver solo parte de los filtros;
+        // si no fusionamos, se pierden tipo/ciudad/op del desplegable (p. ej. Terrenos + NL "terreno").
+        const merged = new URLSearchParams(
+          typeof window !== 'undefined' ? window.location.search.slice(1) : '',
+        );
+        if (qs) {
+          const parsed = new URLSearchParams(qs);
+          parsed.forEach((value, key) => {
+            merged.set(key, value);
+          });
+        }
+        const out = merged.toString();
+        router.push(out ? `${listPath}?${out}` : listPath);
       } catch {
         setHint('No se pudo interpretar; probá con filtros manuales.');
       }

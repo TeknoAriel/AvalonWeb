@@ -1,6 +1,18 @@
-import type { RawProperty } from '@avalon/types';
+import type { RawProperty, SiteType } from '@avalon/types';
 
-/** Propiedades visibles en catálogo público (ajustar si el negocio publica otros estados) */
+function statusKey(raw: RawProperty): string {
+  return String(raw.status ?? '').trim().toLowerCase();
+}
+
+/** Catálogo Avalon estándar: solo `active` (valor del JSON/API KiteProp). */
 export function isPubliclyListed(raw: RawProperty): boolean {
-  return raw.status === 'active';
+  return statusKey(raw) === 'active';
+}
+
+/** Premier: activos publicados o borrador visible en CRM (`active_unpublished`). */
+export function isPubliclyListedForSite(raw: RawProperty, site: SiteType): boolean {
+  const st = statusKey(raw);
+  if (st === 'active') return true;
+  if (site === 'premier' && st === 'active_unpublished') return true;
+  return false;
 }

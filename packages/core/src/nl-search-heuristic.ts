@@ -39,12 +39,18 @@ export function interpretNaturalPropertySearch(
     understood.push('Apto crédito');
   }
 
-  if (/\bcasa\b/.test(q) && !filters.propertyType) {
-    filters.propertyType = 'houses';
-    understood.push('Tipo: casas');
-  } else if (/\b(depto|departamento|apto|apartamento)\b/.test(q)) {
+  if (/\b(depto|departamento|apto|apartamento)\b/.test(q)) {
     filters.propertyType = 'apartments';
     understood.push('Tipo: departamentos');
+  } else if (/\b(terreno|terrenos|lote|lotes|parcela)\b/.test(q)) {
+    filters.propertyType = 'residential_lands';
+    understood.push('Tipo: terrenos');
+  } else if (/\b(campo|chacra)\b/.test(q)) {
+    filters.propertyType = 'farms';
+    understood.push('Tipo: campos / chacras');
+  } else if (/\bcasa\b/.test(q) && !filters.propertyType) {
+    filters.propertyType = 'houses';
+    understood.push('Tipo: casas');
   }
 
   if (/\b(venta|comprar|compra)\b/.test(q)) {

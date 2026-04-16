@@ -1,6 +1,9 @@
+export { KITEPROP_PROPERTY_FEED_TAG } from './kiteprop-cache-tag';
+export { loadKitepropCatalogMerged } from './kiteprop-catalog-load';
 export { ALL_RAW_PROPERTIES } from './load';
 export { normalizeProperty } from './normalize';
 export { hasPremierTag, isPremierInventory } from './premier';
+export { mergePremierMetadataFromRepoSnapshot } from './premier-snapshot-merge';
 export { extractAmenities } from './amenities';
 export { extractMedia } from './media';
 export { buildPropertySlug, parsePropertySlugParam } from './slug';
@@ -24,10 +27,11 @@ export {
   fetchKitepropPropertyFeedAsRaw,
   kitepropApiFeedConfigured,
 } from './kiteprop-api-feed';
-export { mapKitepropApiV1PropertyToRaw } from './kiteprop-api-mapper';
+export { extractKitepropPropertyFeedRows, parseKitepropPropertyFeedJsonPayload } from './kiteprop-feed-payload';
+export { enrichRawPropertyFromKitepropAliases, mapKitepropApiV1PropertyToRaw } from './kiteprop-api-mapper';
 export { postConsultaToKiteprop, type KitepropConsultaInput, type KitepropConsultaResult } from './kiteprop-consulta';
 export { submitWebConsulta, type WebConsultaSource } from './consultas-submission';
-export { isPubliclyListed } from './listing-rules';
+export { isPubliclyListed, isPubliclyListedForSite } from './listing-rules';
 export {
   parseListingSalePriceAmount,
   parseTotalM2,
