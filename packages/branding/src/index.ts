@@ -25,6 +25,18 @@ export const brandPalettes = {
 
 export type BrandPalette = (typeof brandPalettes)[SiteType];
 
+/** Hex #RRGGBB → `rgba(r,g,b,a)` para fondos con opacidad fiable (evita fallos de Tailwind /opacity sobre vars). */
+function hexToRgba(hex: string, alpha: number): string {
+  const h = hex.replace('#', '');
+  if (h.length !== 6) return `rgba(255,255,255,${alpha})`;
+  const n = Number.parseInt(h, 16);
+  if (!Number.isFinite(n)) return `rgba(255,255,255,${alpha})`;
+  const r = (n >> 16) & 255;
+  const g = (n >> 8) & 255;
+  const b = n & 255;
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+
 /** Genera estilo inline para :root en layout */
 export function brandCssVariables(site: SiteType): Record<string, string> {
   if (site === 'avalon') {
@@ -39,6 +51,8 @@ export function brandCssVariables(site: SiteType): Record<string, string> {
       '--color-brand-accent': p.gold,
       '--color-brand-text': p.primaryDark,
       '--color-brand-bg': p.white,
+      /** Barra superior: marfil (papel) al 95% de opacidad — lectura sobre héroes oscuros */
+      '--color-site-header-bg': hexToRgba(p.paper, 0.95),
     };
   }
   const p = brandPalettes.premier;
@@ -57,6 +71,7 @@ export function brandCssVariables(site: SiteType): Record<string, string> {
     '--color-premier-gold': p.gold,
     '--color-premier-ink': p.ink,
     '--color-premier-paper': p.paper,
+    '--color-site-header-bg': hexToRgba(p.paper, 0.95),
   };
 }
 
