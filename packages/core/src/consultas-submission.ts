@@ -30,6 +30,10 @@ export async function submitWebConsulta(
   const email = typeof body.email === 'string' ? body.email.trim() : '';
   const phone = typeof body.phone === 'string' ? body.phone.trim() : undefined;
   const message = typeof body.message === 'string' ? body.message.trim() : '';
+  const leadIntent =
+    typeof body.leadIntent === 'string' && body.leadIntent.trim().length <= 120
+      ? body.leadIntent.trim()
+      : undefined;
   const propertyId = parsePropertyId(body);
 
   if (name.length < 2 || name.length > 120) {
@@ -49,6 +53,7 @@ export async function submitWebConsulta(
     message,
     propertyId,
     source,
+    leadIntent,
   };
 
   const result: KitepropConsultaResult = await postConsultaToKiteprop(input);

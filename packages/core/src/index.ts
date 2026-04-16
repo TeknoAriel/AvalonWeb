@@ -28,3 +28,25 @@ export { mapKitepropApiV1PropertyToRaw } from './kiteprop-api-mapper';
 export { postConsultaToKiteprop, type KitepropConsultaInput, type KitepropConsultaResult } from './kiteprop-consulta';
 export { submitWebConsulta, type WebConsultaSource } from './consultas-submission';
 export { isPubliclyListed } from './listing-rules';
+export {
+  parseListingSalePriceAmount,
+  parseTotalM2,
+  parseCoveredM2,
+  hasAmenity,
+  pricePerM2,
+} from './property-metrics';
+export { pickSmartRelated } from './related-scoring';
+export { passesPremierListingQualityGate } from './premier-curation';
+export { buildCompareInsights, type CompareInsight } from './compare-insights';
+export {
+  serializeSavedSearch,
+  parseSavedSearch,
+  SAVED_SEARCH_SCHEMA_VERSION,
+  type SavedSearchRecord,
+} from './saved-search';
+export { interpretNaturalPropertySearch, type NaturalSearchInterpretation } from './nl-search-heuristic';
+export { resolveNaturalSearchInterpretation, type ResolvedNaturalSearch } from './ai-resolve-search';
+export { invokeKitepropMcpTool, type McpToolName, type McpInvokeResult } from './mcp-kiteprop-bridge';
+export { buildLocalPropertyQaAnswer } from './property-qa-local';
+export { buildMarketSummaryForCity, type MarketSummaryLocal } from './market-summary-local';
+export { propertyListFiltersToQuery, queryToPropertyListFilters } from './list-filters-url';

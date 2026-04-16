@@ -2,7 +2,9 @@ import type { NormalizedProperty, RawProperty, SiteType } from '@avalon/types';
 import { ALL_RAW_PROPERTIES } from './load';
 import { isPubliclyListed } from './listing-rules';
 import { normalizeProperty } from './normalize';
+import { passesPremierListingQualityGate } from './premier-curation';
 import { isPremierInventory } from './premier';
+import { pickSmartRelated } from './related-scoring';
 
 /** Listado normalizado a partir de un lote raw (feed empaquetado, JSON remoto o snapshot). */
 export function getSitePropertiesFromRaw(site: SiteType, rawList: RawProperty[]): NormalizedProperty[] {
@@ -12,7 +14,11 @@ export function getSitePropertiesFromRaw(site: SiteType, rawList: RawProperty[])
       ? listed.filter((r) => isPremierInventory(r))
       : listed.filter((r) => !isPremierInventory(r));
 
-  return filtered.map(normalizeProperty);
+  const normalized = filtered.map(normalizeProperty);
+  if (site === 'premier') {
+    return normalized.filter(passesPremierListingQualityGate);
+  }
+  return normalized;
 }
 
 export function getSiteProperties(site: SiteType): NormalizedProperty[] {
@@ -47,20 +53,7 @@ export function getRelatedPropertiesFromRaw(
   limit = 4,
 ): NormalizedProperty[] {
   const pool = getSitePropertiesFromRaw(site, rawList).filter((p) => p.id !== current.id);
-  const sameZone = pool.filter(
-    (p) => p.location.zone === current.location.zone && p.propertyType === current.propertyType,
-  );
-  const sameCity = pool.filter((p) => p.location.city === current.location.city);
-  const merged = [...sameZone, ...sameCity, ...pool];
-  const seen = new Set<number>();
-  const out: NormalizedProperty[] = [];
-  for (const p of merged) {
-    if (seen.has(p.id)) continue;
-    seen.add(p.id);
-    out.push(p);
-    if (out.length >= limit) break;
-  }
-  return out;
+  return pickSmartRelated(current, pool, limit);
 }
 
 export function getRelatedProperties(

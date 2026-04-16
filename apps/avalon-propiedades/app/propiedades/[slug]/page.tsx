@@ -1,11 +1,20 @@
 import {
+  buildMarketSummaryForCity,
   getPropertyByIdFromRaw,
   getRelatedPropertiesFromRaw,
+  getSitePropertiesFromRaw,
   parsePropertySlugParam,
 } from '@avalon/core';
-import { getSiteBrandConfig } from '@avalon/config';
-import { PriceSummary, MediaGallery, PropertyConsultaForm } from '@avalon/ui';
-import { toYouTubeEmbedUrl } from '@avalon/utils';
+import { getSiteBrandConfig, isFeatureEnabled } from '@avalon/config';
+import {
+  MediaGallery,
+  PriceSummary,
+  PropertyAskWidget,
+  PropertyConsultaForm,
+  PropertyFavoriteToggle,
+  PropertyViewTracker,
+  RecentPropertiesStrip,
+} from '@avalon/ui';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
@@ -40,6 +49,13 @@ export default async function PropertyDetailPage({ params }: Props) {
   if (!property) notFound();
 
   const related = getRelatedPropertiesFromRaw(SITE, property, raw, 3);
+  const siteList = getSitePropertiesFromRaw(SITE, raw);
+  const market =
+    isFeatureEnabled('market_summary') && property.location.city
+      ? buildMarketSummaryForCity(property.location.city, siteList)
+      : null;
+  const bucket =
+    market && market.sampleSize >= 5 ? market.bucketForProperty(property) : null;
   const brand = getSiteBrandConfig(SITE);
   const waDigits =
     property.agent.phone_whatsapp?.replace(/\D/g, '') || brand.contact.whatsapp || '';
@@ -53,6 +69,7 @@ export default async function PropertyDetailPage({ params }: Props) {
 
   return (
     <article className="mx-auto max-w-6xl px-4 py-10 md:px-6">
+      <PropertyViewTracker site={SITE} property={property} />
       <nav className="text-sm text-brand-muted">
         <Link href="/propiedades" className="hover:text-brand-primary">
           Propiedades
@@ -60,6 +77,9 @@ export default async function PropertyDetailPage({ params }: Props) {
         <span className="mx-2">/</span>
         <span className="text-brand-text">{property.title}</span>
       </nav>
+      <div className="mt-4 flex justify-end">
+        <PropertyFavoriteToggle site={SITE} property={property} variant="avalon" />
+      </div>
 
       <div className="mt-8 grid gap-10 lg:grid-cols-[1.2fr_0.8fr]">
         <div>
@@ -186,9 +206,14 @@ export default async function PropertyDetailPage({ params }: Props) {
         )}
       </section>
 
+      <RecentPropertiesStrip site={SITE} variant="avalon" propertyPathPrefix="/propiedades" />
+
       {related.length > 0 ? (
         <section className="mt-16">
           <h2 className="text-xl font-bold text-brand-primary">Propiedades relacionadas</h2>
+          <p className="mt-2 text-sm text-brand-muted">
+            Sugerencias según zona, precio, tipo y amenities disponibles en el feed.
+          </p>
           <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {related.map((p) => (
               <PropertyCardAvalon key={p.id} property={p} site={SITE} />

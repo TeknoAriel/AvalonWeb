@@ -1,5 +1,5 @@
 import type { NormalizedProperty, SiteType } from '@avalon/types';
-import { CompareToggle, PriceSummary } from '@avalon/ui';
+import { CompareToggle, PriceSummary, PropertyFavoriteToggle } from '@avalon/ui';
 import Image from 'next/image';
 import Link from 'next/link';
 
@@ -24,6 +24,9 @@ export function PropertyCardPremier({
               sizes="(max-width:768px) 100vw, 50vw"
             />
           ) : null}
+          <div className="absolute right-2 top-2 z-10">
+            <PropertyFavoriteToggle site={site} property={property} variant="premier" />
+          </div>
         </div>
         <div className="space-y-3 px-1 py-6 md:px-2">
           <p className="text-[11px] font-medium uppercase tracking-caps text-brand-accent">

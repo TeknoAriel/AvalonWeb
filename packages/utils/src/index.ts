@@ -22,6 +22,25 @@ export function stripHtml(html: string): string {
 
 export { buildYouTubeNoCookieEmbedUrl, extractYouTubeVideoId, toYouTubeEmbedUrl } from './youtube';
 
+export { trackAvalonEvent } from './analytics';
+export {
+  addSavedSearch,
+  ENGAGEMENT_FAVORITES_EVENT,
+  ENGAGEMENT_RECENTS_EVENT,
+  ENGAGEMENT_SAVED_EVENT,
+  isFavorite,
+  readFavoriteSnapshots,
+  readRecentSnapshots,
+  readSavedSearches,
+  recordPropertyView,
+  toggleFavoriteSnapshot,
+  writeFavoriteSnapshots,
+  writeSavedSearches,
+  type FavoriteSnapshot,
+  type RecentSnapshot,
+  type SavedSearchSnapshot,
+} from './engagement';
+
 export function formatMoneyAmount(raw: string | null | undefined, currency: string): string | null {
   if (raw == null || raw === '') return null;
   const n = Number.parseFloat(raw);

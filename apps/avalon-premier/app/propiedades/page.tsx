@@ -1,6 +1,12 @@
-import { filterNormalizedProperties, propertyTypeLabel, sortByFeaturedThenRecent } from '@avalon/core';
+import {
+  filterNormalizedProperties,
+  propertyTypeLabel,
+  queryToPropertyListFilters,
+  sortByFeaturedThenRecent,
+} from '@avalon/core';
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { NaturalSearchBar, SavedSearchesToolbar } from '@avalon/ui';
 import { PropertyCardPremier } from '@/components/property-card-premier';
 import { PropertyFilters } from '@/components/property-filters';
 import { getPropertiesFromKitepropFeed } from '@/providers/kiteprop-feed';
@@ -11,26 +17,41 @@ export const metadata: Metadata = {
   description: 'Activos curados — Avalon Premier.',
 };
 
-/** ISR: regenerar listado periódicamente cuando el feed/API cambie. */
 export const revalidate = 3600;
+
+function first(v: string | string[] | undefined): string | undefined {
+  if (Array.isArray(v)) return v[0];
+  return v;
+}
 
 export default async function PropertiesPage({
   searchParams,
 }: {
   searchParams: Record<string, string | string[] | undefined>;
 }) {
-  const op = typeof searchParams.op === 'string' ? searchParams.op : 'all';
-  const type = typeof searchParams.type === 'string' ? searchParams.type : 'all';
-  const city = typeof searchParams.city === 'string' ? searchParams.city : 'all';
-  const q = typeof searchParams.q === 'string' ? searchParams.q : '';
+  const sp = new URLSearchParams();
+  for (const key of [
+    'op',
+    'type',
+    'city',
+    'zone',
+    'q',
+    'minSale',
+    'maxSale',
+    'beds',
+    'baths',
+    'minM2',
+    'maxM2',
+    'parking',
+    'credit',
+  ] as const) {
+    const v = first(searchParams[key]);
+    if (v) sp.set(key, v);
+  }
+  const filters = queryToPropertyListFilters(sp);
 
   const base = sortByFeaturedThenRecent(await getPropertiesFromKitepropFeed(SITE));
-  const filtered = filterNormalizedProperties(base, {
-    operation: op as 'all' | 'sale' | 'rent' | 'temp',
-    propertyType: type,
-    city,
-    q,
-  });
+  const filtered = filterNormalizedProperties(base, filters);
 
   const cities = Array.from(new Set(base.map((p) => p.location.city))).sort();
   const types = Array.from(new Set(base.map((p) => p.propertyType)))
@@ -57,6 +78,8 @@ export default async function PropertiesPage({
           Ver comparación
         </Link>
       </header>
+      <NaturalSearchBar variant="premier" cities={cities} siteKey="premier" listPath="/propiedades" />
+      <SavedSearchesToolbar variant="premier" siteKey="premier" />
       <PropertyFilters cities={cities} types={types} />
       <div className="mt-14 grid gap-14 md:grid-cols-2">
         {filtered.map((p) => (

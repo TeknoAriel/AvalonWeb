@@ -2,6 +2,7 @@
 
 - **Producto y alcance:** `docs/BRIEF_MAESTRO_OPERATIVO.md`
 - **KiteProp (env, REST, consultas, qué tocar en código):** `docs/KITEPROP.md` — **prioridad** antes de inventar URLs o cuerpos de POST.
+- **Mejoras funcionales (favoritos, NL, MCP bridge, flags):** `docs/avalon-functional-enhancements.md` y `docs/avalon-product-rationale.md`.
 - **Campos del JSON de propiedades:** `docs/DATA_LAYER.md`
 - **Variables locales:** `.env.example`
 

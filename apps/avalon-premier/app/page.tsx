@@ -1,5 +1,6 @@
 import { propertyTypeLabel, sortByFeaturedThenRecent } from '@avalon/core';
 import { getSiteBrandConfig } from '@avalon/config';
+import { RecentPropertiesStrip } from '@avalon/ui';
 import { pickHeroImageFromList } from '@/components/hero-premier';
 import { CinematicHero } from '@/components/cinematic-hero';
 import {
@@ -64,6 +65,7 @@ export default async function HomePage() {
             ))}
           </div>
         )}
+        <RecentPropertiesStrip site={SITE} variant="premier" propertyPathPrefix="/propiedades" />
       </section>
 
       <DifferentiatorsSection />

@@ -1,10 +1,20 @@
 import {
+  buildMarketSummaryForCity,
   getPropertyByIdFromRaw,
   getRelatedPropertiesFromRaw,
+  getSitePropertiesFromRaw,
   parsePropertySlugParam,
 } from '@avalon/core';
-import { getSiteBrandConfig } from '@avalon/config';
-import { PriceSummary, MediaGallery, PropertyConsultaForm } from '@avalon/ui';
+import { getSiteBrandConfig, isFeatureEnabled } from '@avalon/config';
+import {
+  MediaGallery,
+  PriceSummary,
+  PropertyAskWidget,
+  PropertyConsultaForm,
+  PropertyFavoriteToggle,
+  PropertyViewTracker,
+  RecentPropertiesStrip,
+} from '@avalon/ui';
 import { toYouTubeEmbedUrl } from '@avalon/utils';
 import type { Metadata } from 'next';
 import Link from 'next/link';
@@ -41,6 +51,13 @@ export default async function PropertyDetailPage({ params }: Props) {
   if (!property) notFound();
 
   const related = getRelatedPropertiesFromRaw(SITE, property, raw, 3);
+  const siteList = getSitePropertiesFromRaw(SITE, raw);
+  const market =
+    isFeatureEnabled('market_summary') && property.location.city
+      ? buildMarketSummaryForCity(property.location.city, siteList)
+      : null;
+  const bucket =
+    market && market.sampleSize >= 5 ? market.bucketForProperty(property) : null;
   const brand = getSiteBrandConfig(SITE);
   const waDigits =
     property.agent.phone_whatsapp?.replace(/\D/g, '') || brand.contact.whatsapp || '';
@@ -62,6 +79,7 @@ export default async function PropertyDetailPage({ params }: Props) {
 
   return (
     <article className="pb-28 md:pb-0">
+      <PropertyViewTracker site={SITE} property={property} />
       <nav className="mx-auto max-w-7xl px-6 py-8 text-[10px] uppercase tracking-caps text-brand-text/45 md:px-8">
         <Link href="/propiedades" className="transition hover:text-brand-accent">
           Colección
@@ -69,6 +87,9 @@ export default async function PropertyDetailPage({ params }: Props) {
         <span className="mx-2 text-premier-line">/</span>
         <span className="text-brand-text/70">{property.title}</span>
       </nav>
+      <div className="mx-auto flex max-w-7xl justify-end px-6 md:px-8">
+        <PropertyFavoriteToggle site={SITE} property={property} variant="premier" />
+      </div>
 
       {property.media.youtubeUrl ? (
         <div className="border-b border-premier-line/30 bg-brand-primary">
@@ -116,6 +137,7 @@ export default async function PropertyDetailPage({ params }: Props) {
 
           <section>
             <PropertyConsultaForm propertyId={property.id} variant="premier" />
+            <PropertyAskWidget propertyId={property.id} variant="premier" siteKey="premier" />
           </section>
 
           {property.media.tour360Html ? (
@@ -172,6 +194,14 @@ export default async function PropertyDetailPage({ params }: Props) {
               property={property}
               className="font-serif text-2xl font-medium leading-snug text-brand-primary"
             />
+            {bucket && market?.medianPricePerM2 != null ? (
+              <p className="mt-6 text-[11px] leading-relaxed text-brand-text/55">
+                Referencia en {property.location.city} ({market.sampleSize} avisos venta con datos): precio
+                /m² mediano ~{Math.round(market.medianPricePerM2).toLocaleString('es-AR')}. Esta ficha queda
+                en rango {bucket === 'low' ? 'inferior' : bucket === 'high' ? 'superior' : 'intermedio'}{' '}
+                (orientativo).
+              </p>
+            ) : null}
             <div className="mt-8 flex flex-col gap-3">
               <a
                 href={waInfo}
@@ -205,10 +235,22 @@ export default async function PropertyDetailPage({ params }: Props) {
         </aside>
       </div>
 
+      <div className="mx-auto max-w-7xl px-6 pb-8 md:px-8">
+        <RecentPropertiesStrip
+          site={SITE}
+          variant="premier"
+          propertyPathPrefix="/propiedades"
+          title="Vistos recientemente"
+        />
+      </div>
+
       {related.length > 0 ? (
         <section className="border-t border-premier-line/40 bg-brand-surface-alt/25 py-20 md:py-24">
           <div className="mx-auto max-w-7xl px-6 md:px-8">
             <h2 className="font-serif text-2xl text-brand-primary md:text-3xl">Activos relacionados</h2>
+            <p className="mt-3 max-w-2xl text-sm text-brand-text/55">
+              Alternativas ordenadas por similitud de zona, precio y tipo según el feed.
+            </p>
             <div className="mt-12 grid gap-12 md:grid-cols-2">
               {related.map((p) => (
                 <PropertyCardPremier key={p.id} property={p} site={SITE} />

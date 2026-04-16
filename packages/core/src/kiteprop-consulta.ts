@@ -11,6 +11,8 @@ export type KitepropConsultaInput = {
   propertyId?: number;
   /** Origen CRM (ej. avalon-propiedades / avalon-premier / Web Avalon) */
   source?: string;
+  /** Etiqueta corta de intención (se antepone al cuerpo del mensaje en el CRM) */
+  leadIntent?: string;
 };
 
 export type KitepropConsultaResult =
@@ -81,12 +83,16 @@ export async function postConsultaToKiteprop(
   }
 
   const legacyUrl = process.env.KITEPROP_API_CONSULTA_URL?.trim();
+  const intentPrefix = input.leadIntent?.trim()
+    ? `[Intención: ${input.leadIntent.trim()}]\n\n`
+    : '';
+
   if (legacyUrl) {
     const body = {
       full_name: input.name.trim(),
       email: input.email.trim(),
       phone: (input.phone ?? '').trim(),
-      body: input.message.trim(),
+      body: `${intentPrefix}${input.message.trim()}`,
       property_id: input.propertyId ?? null,
       source: input.source ?? 'avalon_web',
     };
@@ -105,7 +111,7 @@ export async function postConsultaToKiteprop(
     ]
       .filter(Boolean)
       .join(' · ');
-    const bodyText = `${input.message.trim()}\n\n— ${footer}`;
+    const bodyText = `${intentPrefix}${input.message.trim()}\n\n— ${footer}`;
     return postJson(`${root}/api/v1/messages`, key, {
       email: input.email.trim(),
       body: bodyText,
@@ -117,7 +123,7 @@ export async function postConsultaToKiteprop(
   const payload: Record<string, unknown> = {
     first_name,
     email: input.email.trim(),
-    summary: input.message.trim(),
+    summary: `${intentPrefix}${input.message.trim()}`,
     source: input.source ?? 'Web Avalon',
   };
   if (last_name) payload.last_name = last_name;

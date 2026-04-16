@@ -1,5 +1,7 @@
 import type { SiteBrandConfig, SiteType } from '@avalon/types';
 
+export { isFeatureEnabled, type AvalonFeatureId } from './features';
+
 function env(name: string, fallback = ''): string {
   if (typeof process !== 'undefined' && process.env[name]) {
     return process.env[name] as string;

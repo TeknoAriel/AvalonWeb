@@ -1,4 +1,5 @@
 import type { NormalizedProperty } from '@avalon/types';
+import { hasAmenity, parseListingSalePriceAmount, parseTotalM2, parseCoveredM2 } from './property-metrics';
 
 export type OperationFilter = 'all' | 'sale' | 'rent' | 'temp';
 
@@ -8,6 +9,17 @@ export interface PropertyListFilters {
   city?: string;
   zone?: string;
   q?: string;
+  /** Precio venta mínimo (valor numérico del feed, misma moneda que el listado) */
+  minSalePrice?: number;
+  maxSalePrice?: number;
+  minBedrooms?: number;
+  minBathrooms?: number;
+  minTotalM2?: number;
+  maxTotalM2?: number;
+  /** true = solo con al menos una cochera */
+  hasParking?: boolean;
+  /** true = solo con amenity apto crédito inferida */
+  fitCredit?: boolean;
 }
 
 export function filterNormalizedProperties(
@@ -38,6 +50,28 @@ export function filterNormalizedProperties(
       const hay = `${p.title} ${p.plainDescription} ${p.location.address} ${p.location.zone} ${p.location.city}`.toLowerCase();
       if (!hay.includes(needle)) return false;
     }
+    const sale = parseListingSalePriceAmount(p);
+    if (f.minSalePrice != null && Number.isFinite(f.minSalePrice)) {
+      if (sale == null || sale < f.minSalePrice) return false;
+    }
+    if (f.maxSalePrice != null && Number.isFinite(f.maxSalePrice)) {
+      if (sale == null || sale > f.maxSalePrice) return false;
+    }
+    if (f.minBedrooms != null && Number.isFinite(f.minBedrooms)) {
+      if (p.rooms.bedrooms < f.minBedrooms) return false;
+    }
+    if (f.minBathrooms != null && Number.isFinite(f.minBathrooms)) {
+      if (p.rooms.bathrooms < f.minBathrooms) return false;
+    }
+    const m2 = parseTotalM2(p) ?? parseCoveredM2(p);
+    if (f.minTotalM2 != null && Number.isFinite(f.minTotalM2)) {
+      if (m2 == null || m2 < f.minTotalM2) return false;
+    }
+    if (f.maxTotalM2 != null && Number.isFinite(f.maxTotalM2)) {
+      if (m2 == null || m2 > f.maxTotalM2) return false;
+    }
+    if (f.hasParking === true && p.building.parkings <= 0) return false;
+    if (f.fitCredit === true && !hasAmenity(p, 'credit')) return false;
     return true;
   });
 }

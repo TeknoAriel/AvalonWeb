@@ -1,5 +1,6 @@
 import { propertyTypeLabel } from '@avalon/core';
 import { getSiteBrandConfig } from '@avalon/config';
+import { RecentPropertiesStrip } from '@avalon/ui';
 import { HeroAvalon, pickHeroImageFromList } from '@/components/hero-avalon';
 import { PropertyCardAvalon } from '@/components/property-card-avalon';
 import Link from 'next/link';
@@ -69,6 +70,7 @@ export default async function HomePage() {
             <PropertyCardAvalon key={p.id} property={p} site={SITE} />
           ))}
         </div>
+        <RecentPropertiesStrip site={SITE} variant="avalon" propertyPathPrefix="/propiedades" />
       </section>
 
       <section className="bg-brand-surface-alt py-14">

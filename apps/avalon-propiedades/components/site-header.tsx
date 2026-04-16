@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { getSiteBrandConfig } from '@avalon/config';
 import { getBrandAssetPaths } from '@avalon/branding';
 import { cn } from '@avalon/utils';
+import { HeaderEngagementLinks } from '@avalon/ui';
 import { SITE } from '@/lib/site';
 
 export function SiteHeader() {
@@ -31,6 +32,7 @@ export function SiteHeader() {
           />
         </Link>
         <nav className="hidden items-center gap-8 text-sm font-medium text-brand-primary md:flex">
+          <HeaderEngagementLinks site={SITE} variant="avalon" />
           <Link href="/propiedades" className="hover:text-brand-primary-mid">
             Propiedades
           </Link>

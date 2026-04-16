@@ -1,5 +1,7 @@
 'use client';
 
+import { buildCompareInsights, type CompareInsight } from '@avalon/core';
+import { isFeatureEnabled } from '@avalon/config';
 import type { NormalizedProperty, SiteType } from '@avalon/types';
 import { cn, formatMoneyAmount } from '@avalon/utils';
 import Image from 'next/image';
@@ -72,6 +74,11 @@ export function PropertyCompareView({
     return ids.map((id) => map.get(id)).filter((p): p is NormalizedProperty => Boolean(p));
   }, [ids, properties]);
 
+  const insights: CompareInsight[] = useMemo(() => {
+    if (!isFeatureEnabled('compare_insights')) return [];
+    return buildCompareInsights(selected);
+  }, [selected]);
+
   if (!mounted) {
     return (
       <p className={variant === 'avalon' ? 'text-brand-muted' : 'text-brand-text/60'}>
@@ -131,6 +138,23 @@ export function PropertyCompareView({
           Vaciar lista
         </button>
       </div>
+
+      {insights.length > 0 ? (
+        <ul
+          className={cn(
+            'space-y-2 rounded-lg border p-3 text-sm',
+            variant === 'avalon'
+              ? 'border-brand-primary/10 bg-brand-surface-alt/50 text-brand-muted'
+              : 'border-premier-line/40 bg-brand-bg/60 text-brand-text/70',
+          )}
+        >
+          {insights.map((i) => (
+            <li key={i.id}>
+              <span className="font-semibold text-brand-primary">{i.label}:</span> {i.detail}
+            </li>
+          ))}
+        </ul>
+      ) : null}
 
       <div className="-mx-4 overflow-x-auto md:mx-0">
         <table className={cn('w-full min-w-[640px] border-collapse md:min-w-0', variant === 'premier' && 'border-brand-accent/10')}>

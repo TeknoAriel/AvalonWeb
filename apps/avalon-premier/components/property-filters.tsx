@@ -1,5 +1,6 @@
 'use client';
 
+import { isFeatureEnabled } from '@avalon/config';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useTransition } from 'react';
 
@@ -17,6 +18,7 @@ export function PropertyFilters(props: {
   const router = useRouter();
   const sp = useSearchParams();
   const [pending, start] = useTransition();
+  const advanced = isFeatureEnabled('extended_filters');
 
   const setParam = useCallback(
     (key: string, value: string) => {
@@ -31,6 +33,7 @@ export function PropertyFilters(props: {
   );
 
   return (
+    <div>
     <div className="grid gap-4 border border-brand-accent/15 bg-brand-surface-alt/30 p-6 md:grid-cols-4">
       <label className="flex flex-col gap-2 text-[10px] font-medium uppercase tracking-caps text-brand-text/60">
         Operación
@@ -94,6 +97,105 @@ export function PropertyFilters(props: {
           }}
         />
       </label>
+    </div>
+
+    {advanced ? (
+      <details className="mt-3 border border-brand-accent/15 bg-brand-bg/40 p-4 text-sm">
+        <summary className="cursor-pointer text-[10px] font-medium uppercase tracking-caps text-brand-text/60">
+          Más filtros
+        </summary>
+        <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <label className="flex flex-col gap-1 text-[10px] uppercase tracking-caps text-brand-text/55">
+            Zona
+            <input
+              type="text"
+              className="border-b border-brand-primary/20 bg-transparent py-2 text-sm"
+              defaultValue={sp.get('zone') ?? ''}
+              disabled={pending}
+              onBlur={(e) => setParam('zone', e.target.value)}
+            />
+          </label>
+          <label className="flex flex-col gap-1 text-[10px] uppercase tracking-caps text-brand-text/55">
+            Precio venta mín.
+            <input
+              type="number"
+              className="border-b border-brand-primary/20 bg-transparent py-2 text-sm"
+              defaultValue={sp.get('minSale') ?? ''}
+              disabled={pending}
+              onBlur={(e) => setParam('minSale', e.target.value)}
+            />
+          </label>
+          <label className="flex flex-col gap-1 text-[10px] uppercase tracking-caps text-brand-text/55">
+            Precio venta máx.
+            <input
+              type="number"
+              className="border-b border-brand-primary/20 bg-transparent py-2 text-sm"
+              defaultValue={sp.get('maxSale') ?? ''}
+              disabled={pending}
+              onBlur={(e) => setParam('maxSale', e.target.value)}
+            />
+          </label>
+          <label className="flex flex-col gap-1 text-[10px] uppercase tracking-caps text-brand-text/55">
+            Dormitorios mín.
+            <input
+              type="number"
+              className="border-b border-brand-primary/20 bg-transparent py-2 text-sm"
+              defaultValue={sp.get('beds') ?? ''}
+              disabled={pending}
+              onBlur={(e) => setParam('beds', e.target.value)}
+            />
+          </label>
+          <label className="flex flex-col gap-1 text-[10px] uppercase tracking-caps text-brand-text/55">
+            Baños mín.
+            <input
+              type="number"
+              className="border-b border-brand-primary/20 bg-transparent py-2 text-sm"
+              defaultValue={sp.get('baths') ?? ''}
+              disabled={pending}
+              onBlur={(e) => setParam('baths', e.target.value)}
+            />
+          </label>
+          <label className="flex flex-col gap-1 text-[10px] uppercase tracking-caps text-brand-text/55">
+            Superficie mín. m²
+            <input
+              type="number"
+              className="border-b border-brand-primary/20 bg-transparent py-2 text-sm"
+              defaultValue={sp.get('minM2') ?? ''}
+              disabled={pending}
+              onBlur={(e) => setParam('minM2', e.target.value)}
+            />
+          </label>
+          <label className="flex flex-col gap-1 text-[10px] uppercase tracking-caps text-brand-text/55">
+            Superficie máx. m²
+            <input
+              type="number"
+              className="border-b border-brand-primary/20 bg-transparent py-2 text-sm"
+              defaultValue={sp.get('maxM2') ?? ''}
+              disabled={pending}
+              onBlur={(e) => setParam('maxM2', e.target.value)}
+            />
+          </label>
+          <label className="flex items-center gap-2 pt-6 text-xs text-brand-text/65">
+            <input
+              type="checkbox"
+              defaultChecked={sp.get('parking') === '1'}
+              disabled={pending}
+              onChange={(e) => setParam('parking', e.target.checked ? '1' : '')}
+            />
+            Cochera
+          </label>
+          <label className="flex items-center gap-2 pt-6 text-xs text-brand-text/65">
+            <input
+              type="checkbox"
+              defaultChecked={sp.get('credit') === '1'}
+              disabled={pending}
+              onChange={(e) => setParam('credit', e.target.checked ? '1' : '')}
+            />
+            Apto crédito
+          </label>
+        </div>
+      </details>
+    ) : null}
     </div>
   );
 }

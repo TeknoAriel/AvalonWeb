@@ -1,9 +1,18 @@
 'use client';
 
-import { cn } from '@avalon/utils';
+import { isFeatureEnabled } from '@avalon/config';
+import { cn, trackAvalonEvent } from '@avalon/utils';
 import { useState } from 'react';
 
 type Variant = 'avalon' | 'premier';
+
+const LEAD_INTENTS: { id: string; label: string }[] = [
+  { id: 'visita', label: 'Coordinar visita' },
+  { id: 'contacto', label: 'Que me contacten' },
+  { id: 'similar', label: 'Busco algo similar' },
+  { id: 'zona', label: 'Invertir en esta zona' },
+  { id: 'tasacion', label: 'Tasar una propiedad parecida' },
+];
 
 export function PropertyConsultaForm(props: { propertyId?: number; variant: Variant }) {
   const [name, setName] = useState('');
@@ -13,6 +22,7 @@ export function PropertyConsultaForm(props: { propertyId?: number; variant: Vari
   const [hp, setHp] = useState('');
   const [status, setStatus] = useState<'idle' | 'loading' | 'ok' | 'err'>('idle');
   const [errMsg, setErrMsg] = useState('');
+  const [leadIntent, setLeadIntent] = useState<string | undefined>();
 
   const isPremier = props.variant === 'premier';
   const isProperty =
@@ -23,6 +33,15 @@ export function PropertyConsultaForm(props: { propertyId?: number; variant: Vari
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (hp) return;
+    let effectiveMessage = message.trim();
+    const intentLabel = LEAD_INTENTS.find((x) => x.id === leadIntent)?.label;
+    if (effectiveMessage.length < 5 && intentLabel) {
+      effectiveMessage = `${intentLabel}. ${effectiveMessage}`.trim();
+    }
+    if (effectiveMessage.length < 5) {
+      setErrMsg('El mensaje es demasiado corto.');
+      return;
+    }
     setStatus('loading');
     setErrMsg('');
     try {
@@ -33,8 +52,9 @@ export function PropertyConsultaForm(props: { propertyId?: number; variant: Vari
           name,
           email,
           phone,
-          message,
+          message: effectiveMessage,
           ...(isProperty ? { propertyId: props.propertyId } : {}),
+          ...(intentLabel ? { leadIntent: intentLabel } : {}),
         }),
       });
       const data = (await res.json().catch(() => ({}))) as { ok?: boolean; message?: string };
@@ -49,6 +69,10 @@ export function PropertyConsultaForm(props: { propertyId?: number; variant: Vari
       }
       setStatus('ok');
       setMessage('');
+      trackAvalonEvent(
+        'consultation_created',
+        isProperty ? { property_id: props.propertyId! } : { scope: 'general' },
+      );
     } catch {
       setStatus('err');
       setErrMsg('Error de red.');
@@ -84,6 +108,36 @@ export function PropertyConsultaForm(props: { propertyId?: number; variant: Vari
           Respondemos a la brevedad. Los datos no se publican en la web.
         </p>
       </div>
+
+      {isProperty && isFeatureEnabled('lead_intent') ? (
+        <div className="flex flex-wrap gap-2">
+          <span className={cn('w-full text-[11px] font-semibold', isPremier ? 'text-brand-text/55' : 'text-brand-muted')}>
+            Motivo (opcional)
+          </span>
+          {LEAD_INTENTS.map((it) => (
+            <button
+              key={it.id}
+              type="button"
+              onClick={() => {
+                setLeadIntent((cur) => (cur === it.id ? undefined : it.id));
+                trackAvalonEvent('lead_intent_selected', { intent: it.id });
+              }}
+              className={cn(
+                'rounded-full border px-2.5 py-1 text-[11px] font-medium transition',
+                leadIntent === it.id
+                  ? isPremier
+                    ? 'border-brand-accent bg-brand-accent/15 text-brand-primary'
+                    : 'border-brand-primary bg-brand-primary/10 text-brand-primary'
+                  : isPremier
+                    ? 'border-premier-line/40 text-brand-text/70 hover:border-brand-accent/50'
+                    : 'border-brand-primary/15 text-brand-muted hover:border-brand-primary/35',
+              )}
+            >
+              {it.label}
+            </button>
+          ))}
+        </div>
+      ) : null}
 
       <input
         type="text"
