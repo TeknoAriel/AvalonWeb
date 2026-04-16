@@ -12,6 +12,10 @@ function env(name: string, fallback = ''): string {
 const defaultAvalonUrl = 'http://localhost:3000';
 const defaultPremierUrl = 'http://localhost:3001';
 
+/** Sitio hermano en producción (Vercel); usado como fallback de enlaces cruzados si no hay env. */
+const publicAvalonSite = 'https://avalonweb.vercel.app';
+const publicPremierSite = 'https://avalon-premier.vercel.app';
+
 export function getSiteBrandConfig(site: SiteType): SiteBrandConfig {
   const isAvalon = site === 'avalon';
 
@@ -19,7 +23,10 @@ export function getSiteBrandConfig(site: SiteType): SiteBrandConfig {
   const premierBase = env('NEXT_PUBLIC_PREMIER_URL', defaultPremierUrl);
 
   const base = isAvalon ? env('NEXT_PUBLIC_SITE_URL', avalonBase) : env('NEXT_PUBLIC_SITE_URL', premierBase);
-  const peerSite = isAvalon ? premierBase : avalonBase;
+  /** Enlace a la otra marca: override total, o URL explícita de la otra app, o producción Vercel. */
+  const peerSiteDefault = isAvalon
+    ? env('NEXT_PUBLIC_PREMIER_URL', publicPremierSite)
+    : env('NEXT_PUBLIC_AVALON_URL', publicAvalonSite);
 
   return {
     site,
@@ -40,7 +47,7 @@ export function getSiteBrandConfig(site: SiteType): SiteBrandConfig {
     },
     urls: {
       base,
-      peerSite: env('NEXT_PUBLIC_PEER_SITE_URL', peerSite),
+      peerSite: env('NEXT_PUBLIC_PEER_SITE_URL', peerSiteDefault),
       peerLabel: isAvalon ? 'Avalon Premier' : 'Avalon Propiedades',
       peerCta: isAvalon ? 'Ver Avalon Premier' : 'Explorar Avalon Propiedades',
     },
