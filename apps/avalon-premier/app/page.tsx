@@ -28,21 +28,21 @@ export default async function HomePage() {
 
       <BrandPositioningSection />
 
-      <section className="mx-auto max-w-6xl px-6 py-28 md:px-8 md:py-32">
+      <section className="mx-auto max-w-6xl px-6 pb-20 pt-10 md:px-8 md:pb-24 md:pt-12">
         <div className="mx-auto max-w-2xl text-center">
           <p className="text-[11px] font-medium uppercase tracking-caps text-brand-accent/90">
             Propiedades destacadas
           </p>
-          <h2 className="mt-6 font-serif text-3xl font-normal tracking-tight text-brand-primary md:text-4xl">
+          <h2 className="mt-4 font-serif text-3xl font-normal tracking-tight text-brand-primary md:text-4xl">
             Selección actual
           </h2>
-          <p className="mt-6 text-sm font-light leading-relaxed text-brand-text/62 md:text-base">
+          <p className="mt-4 text-sm font-light leading-relaxed text-brand-text/62 md:text-base">
             Piezas curadas del feed operativo. Cada ficha cumple criterios de calidad, documentación y
             encaje con el posicionamiento Premier.
           </p>
         </div>
         {featured.length === 0 ? (
-          <div className="mx-auto mt-20 max-w-lg border border-premier-line/50 bg-brand-surface-alt/50 p-14 text-center md:p-16">
+          <div className="mx-auto mt-10 max-w-lg border border-premier-line/50 bg-brand-surface-alt/50 p-10 text-center md:p-12">
             <p className="font-serif text-xl font-normal text-brand-primary">Colección en preparación</p>
             <p className="mt-5 text-sm font-light text-brand-text/62">
               Aún no hay activos con etiqueta Premier en el feed remoto o en el JSON. Cuando el CRM
@@ -59,7 +59,7 @@ export default async function HomePage() {
             </Link>
           </div>
         ) : (
-          <div className="mt-16 grid gap-6 sm:grid-cols-2 lg:grid-cols-3 lg:gap-7">
+          <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3 lg:gap-7">
             {featured.map((p) => (
               <PropertyCardPremier key={p.id} property={p} site={SITE} />
             ))}
