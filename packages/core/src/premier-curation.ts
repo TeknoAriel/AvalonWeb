@@ -18,12 +18,12 @@ function parseExcludeIds(): Set<number> {
 /**
  * Filtro de calidad opcional para listado Premier (no cambia tags; refina la colección).
  * Configuración por env (todo opcional):
- * - `PREMIER_MIN_GALLERY_IMAGES` (default 1)
+ * - `PREMIER_MIN_GALLERY_IMAGES` (default 0 = no excluir por galería; usar `1` para modo estricto)
  * - `PREMIER_MIN_TOTAL_M2` (default 0 = sin mínimo)
  * - `PREMIER_EXCLUDE_PROPERTY_IDS` — IDs separados por coma o espacio
  */
 export function passesPremierListingQualityGate(p: NormalizedProperty): boolean {
-  const minPhotos = parseEnvInt('PREMIER_MIN_GALLERY_IMAGES', 1);
+  const minPhotos = parseEnvInt('PREMIER_MIN_GALLERY_IMAGES', 0);
   if (p.media.images.length < minPhotos) return false;
 
   const minM2 = parseEnvInt('PREMIER_MIN_TOTAL_M2', 0);

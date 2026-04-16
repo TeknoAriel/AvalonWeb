@@ -59,29 +59,23 @@ export default async function PropertiesPage({
     .map((value) => ({ value, label: propertyTypeLabel(value) }));
 
   return (
-    <div className="animate-fade-in mx-auto max-w-6xl px-6 py-20 md:px-8 md:py-24">
-      <header className="mb-14 text-center">
-        <p className="text-[11px] font-medium uppercase tracking-caps text-brand-accent">Premier</p>
-        <h1 className="mt-4 font-serif text-4xl font-medium text-brand-primary md:text-5xl">Colección</h1>
-        <p className="mx-auto mt-5 max-w-xl text-sm leading-relaxed text-brand-text/60">
+    <div className="animate-fade-in mx-auto max-w-6xl px-5 py-12 md:px-7 md:py-16">
+      <header className="mb-8 text-center md:mb-10">
+        <p className="text-[10px] font-medium uppercase tracking-caps text-brand-accent">Premier</p>
+        <h1 className="mt-2 font-serif text-3xl font-medium text-brand-primary md:text-4xl">Colección</h1>
+        <p className="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-brand-text/60">
           Listado curado del feed operativo. Los criterios de exposición siguen el posicionamiento
           Premier: calidad de información y encaje patrimonial.
         </p>
-        <p className="mt-4 text-xs text-brand-text/45">
+        <p className="mt-2 text-xs text-brand-text/45">
           {filtered.length} activo{filtered.length === 1 ? '' : 's'} mostrado
           {filtered.length === 1 ? '' : 's'}
         </p>
-        <Link
-          href="/propiedades/comparar"
-          className="mt-6 inline-block border-b border-brand-accent/40 pb-0.5 text-xs uppercase tracking-caps text-brand-accent hover:border-brand-accent"
-        >
-          Ver comparación
-        </Link>
       </header>
       <NaturalSearchBar variant="premier" cities={cities} siteKey="premier" listPath="/propiedades" />
       <SavedSearchesToolbar variant="premier" siteKey="premier" />
       <PropertyFilters cities={cities} types={types} />
-      <div className="mt-14 grid gap-14 md:grid-cols-2">
+      <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3 lg:gap-7">
         {filtered.map((p) => (
           <PropertyCardPremier key={p.id} property={p} site={SITE} />
         ))}

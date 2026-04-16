@@ -33,7 +33,8 @@ export function CompareDock({ site, variant, compareHref }: CompareDockProps) {
       className={cn(
         'fixed bottom-0 left-0 right-0 z-50 border-t px-4 py-3 shadow-lg md:px-6',
         variant === 'avalon' && 'border-brand-primary/15 bg-white/95 backdrop-blur',
-        variant === 'premier' && 'border-brand-accent/20 bg-brand-surface-alt/95 backdrop-blur-md'
+        variant === 'premier' &&
+          'border-brand-text/10 bg-brand-surface/95 shadow-[0_-4px_24px_rgba(27,33,48,0.06)] backdrop-blur-md'
       )}
     >
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">

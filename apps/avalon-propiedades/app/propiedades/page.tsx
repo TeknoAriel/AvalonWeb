@@ -5,7 +5,6 @@ import {
   sortByFeaturedThenRecent,
 } from '@avalon/core';
 import type { Metadata } from 'next';
-import Link from 'next/link';
 import { NaturalSearchBar, SavedSearchesToolbar } from '@avalon/ui';
 import { PropertyCardAvalon } from '@/components/property-card-avalon';
 import { PropertyFilters } from '@/components/property-filters';
@@ -57,25 +56,17 @@ export default async function PropertiesPage({
     .map((value) => ({ value, label: propertyTypeLabel(value) }));
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-10 md:px-6">
-      <header className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-brand-primary">Propiedades</h1>
-          <p className="mt-2 text-brand-muted">
-            {filtered.length} resultado{filtered.length === 1 ? '' : 's'}
-          </p>
-        </div>
-        <Link
-          href="/propiedades/comparar"
-          className="inline-flex w-fit items-center rounded-md border border-brand-primary/25 px-4 py-2 text-sm font-semibold text-brand-primary hover:border-brand-primary/50"
-        >
-          Ver comparación
-        </Link>
+    <div className="mx-auto max-w-6xl px-4 py-6 md:px-6 md:py-8">
+      <header className="mb-4">
+        <h1 className="text-2xl font-bold text-brand-primary md:text-3xl">Propiedades</h1>
+        <p className="mt-1 text-sm text-brand-muted">
+          {filtered.length} resultado{filtered.length === 1 ? '' : 's'}
+        </p>
       </header>
       <NaturalSearchBar variant="avalon" cities={cities} siteKey="avalon" listPath="/propiedades" />
       <SavedSearchesToolbar variant="avalon" siteKey="avalon" />
       <PropertyFilters cities={cities} types={types} />
-      <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {filtered.map((p) => (
           <PropertyCardAvalon key={p.id} property={p} site={SITE} />
         ))}

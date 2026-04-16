@@ -11,7 +11,7 @@ export { RecentPropertiesStrip } from './recent-properties-strip';
 export { NaturalSearchBar } from './natural-search-bar';
 export { SavedSearchesToolbar } from './saved-searches-toolbar';
 export { PropertyAskWidget } from './property-ask-widget';
-export { HeaderEngagementLinks } from './header-engagement-links';
+export { HeaderEngagementLinks, HeaderCompareLink } from './header-engagement-links';
 export {
   COMPARE_MAX,
   compareStorageKey,

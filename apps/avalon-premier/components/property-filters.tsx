@@ -1,7 +1,7 @@
 'use client';
 
 import { isFeatureEnabled } from '@avalon/config';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useTransition } from 'react';
 
 const OPS = [
@@ -16,6 +16,7 @@ export function PropertyFilters(props: {
   types: { value: string; label: string }[];
 }) {
   const router = useRouter();
+  const pathname = usePathname();
   const sp = useSearchParams();
   const [pending, start] = useTransition();
   const advanced = isFeatureEnabled('extended_filters');
@@ -26,19 +27,21 @@ export function PropertyFilters(props: {
         const next = new URLSearchParams(sp.toString());
         if (!value || value === 'all') next.delete(key);
         else next.set(key, value);
-        router.push(`?${next.toString()}`);
+        const path = pathname || '/propiedades';
+        const qs = next.toString();
+        router.push(qs ? `${path}?${qs}` : path);
       });
     },
-    [router, sp]
+    [router, pathname, sp]
   );
 
   return (
     <div>
-    <div className="grid gap-4 border border-brand-accent/15 bg-brand-surface-alt/30 p-6 md:grid-cols-4">
-      <label className="flex flex-col gap-2 text-[10px] font-medium uppercase tracking-caps text-brand-text/60">
+    <div className="grid gap-2 border border-brand-accent/15 bg-brand-surface-alt/30 p-3 md:grid-cols-4 md:gap-3 md:p-4">
+      <label className="flex flex-col gap-1 text-[9px] font-medium uppercase tracking-caps text-brand-text/60">
         Operación
         <select
-          className="border-b border-brand-primary/20 bg-transparent py-2 text-sm font-normal text-brand-text"
+          className="border-b border-brand-primary/20 bg-transparent py-1.5 text-sm font-normal text-brand-text"
           defaultValue={sp.get('op') ?? 'all'}
           disabled={pending}
           onChange={(e) => setParam('op', e.target.value)}
@@ -50,10 +53,10 @@ export function PropertyFilters(props: {
           ))}
         </select>
       </label>
-      <label className="flex flex-col gap-2 text-[10px] font-medium uppercase tracking-caps text-brand-text/60">
+      <label className="flex flex-col gap-1 text-[9px] font-medium uppercase tracking-caps text-brand-text/60">
         Tipo
         <select
-          className="border-b border-brand-primary/20 bg-transparent py-2 text-sm font-normal text-brand-text"
+          className="border-b border-brand-primary/20 bg-transparent py-1.5 text-sm font-normal text-brand-text"
           defaultValue={sp.get('type') ?? 'all'}
           disabled={pending}
           onChange={(e) => setParam('type', e.target.value)}
@@ -66,10 +69,10 @@ export function PropertyFilters(props: {
           ))}
         </select>
       </label>
-      <label className="flex flex-col gap-2 text-[10px] font-medium uppercase tracking-caps text-brand-text/60">
+      <label className="flex flex-col gap-1 text-[9px] font-medium uppercase tracking-caps text-brand-text/60">
         Ciudad
         <select
-          className="border-b border-brand-primary/20 bg-transparent py-2 text-sm font-normal text-brand-text"
+          className="border-b border-brand-primary/20 bg-transparent py-1.5 text-sm font-normal text-brand-text"
           defaultValue={sp.get('city') ?? 'all'}
           disabled={pending}
           onChange={(e) => setParam('city', e.target.value)}
@@ -82,11 +85,11 @@ export function PropertyFilters(props: {
           ))}
         </select>
       </label>
-      <label className="flex flex-col gap-2 text-[10px] font-medium uppercase tracking-caps text-brand-text/60">
+      <label className="flex flex-col gap-1 text-[9px] font-medium uppercase tracking-caps text-brand-text/60">
         Palabra clave
         <input
           type="search"
-          className="border-b border-brand-primary/20 bg-transparent py-2 text-sm outline-none"
+          className="border-b border-brand-primary/20 bg-transparent py-1.5 text-sm outline-none"
           placeholder="Buscar…"
           defaultValue={sp.get('q') ?? ''}
           disabled={pending}
@@ -100,11 +103,11 @@ export function PropertyFilters(props: {
     </div>
 
     {advanced ? (
-      <details className="mt-3 border border-brand-accent/15 bg-brand-bg/40 p-4 text-sm">
-        <summary className="cursor-pointer text-[10px] font-medium uppercase tracking-caps text-brand-text/60">
+      <details className="mt-2 border border-brand-accent/15 bg-brand-bg/40 p-2.5 text-sm md:p-3">
+        <summary className="cursor-pointer text-[9px] font-medium uppercase tracking-caps text-brand-text/60">
           Más filtros
         </summary>
-        <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
           <label className="flex flex-col gap-1 text-[10px] uppercase tracking-caps text-brand-text/55">
             Zona
             <input

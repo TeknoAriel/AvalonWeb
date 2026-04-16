@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 import { getSiteBrandConfig } from '@avalon/config';
 import { getBrandAssetPaths } from '@avalon/branding';
 import { cn } from '@avalon/utils';
-import { HeaderEngagementLinks } from '@avalon/ui';
+import { HeaderCompareLink, HeaderEngagementLinks } from '@avalon/ui';
 import { SITE } from '@/lib/site';
 
 export function SiteHeader() {
@@ -22,20 +22,24 @@ export function SiteHeader() {
           <Image
             src={assets.logoHeader}
             alt={brand.name}
-            width={isHome ? 300 : 200}
-            height={isHome ? 72 : 48}
+            width={isHome ? 450 : 300}
+            height={isHome ? 108 : 72}
             className={cn(
               'w-auto transition-[height] duration-200',
-              isHome ? 'h-[3.75rem] md:h-[4.125rem]' : 'h-10 md:h-11'
+              isHome ? 'h-[5.625rem] md:h-[6.1875rem]' : 'h-[3.75rem] md:h-[4.125rem]'
             )}
             priority
           />
         </Link>
-        <nav className="hidden items-center gap-8 text-sm font-medium text-brand-primary md:flex">
-          <HeaderEngagementLinks site={SITE} variant="avalon" />
+        <nav className="hidden flex-wrap items-center justify-end gap-x-6 gap-y-2 text-sm font-medium text-brand-primary md:flex">
+          <Link href="/" className="hover:text-brand-primary-mid">
+            Inicio
+          </Link>
           <Link href="/propiedades" className="hover:text-brand-primary-mid">
             Propiedades
           </Link>
+          <HeaderEngagementLinks site={SITE} variant="avalon" />
+          <HeaderCompareLink variant="avalon" />
           <Link href="/institucional" className="hover:text-brand-primary-mid">
             Nosotros
           </Link>

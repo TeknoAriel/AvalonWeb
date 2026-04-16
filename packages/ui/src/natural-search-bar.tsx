@@ -57,10 +57,10 @@ export function NaturalSearchBar(props: {
   }
 
   return (
-    <div className="mb-4 rounded-xl border border-brand-primary/10 bg-white p-3 md:p-4">
-      <label className="block text-[11px] font-semibold uppercase tracking-wide text-brand-muted">
+    <div className="mb-2 rounded-lg border border-brand-primary/10 bg-white p-2.5 md:p-3">
+      <label className="block text-[10px] font-semibold uppercase tracking-wide text-brand-muted">
         Búsqueda en lenguaje natural
-        <div className="mt-2 flex flex-col gap-2 sm:flex-row">
+        <div className="mt-1.5 flex flex-col gap-1.5 sm:flex-row sm:items-stretch">
           <input
             value={q}
             onChange={(e) => setQ(e.target.value)}
@@ -72,7 +72,7 @@ export function NaturalSearchBar(props: {
                 : 'Ej.: casa con pileta en Funes, hasta 200 mil…'
             }
             className={cn(
-              'min-h-[44px] flex-1 rounded-md border px-3 py-2 text-sm outline-none',
+              'min-h-[40px] flex-1 rounded-md border px-2.5 py-1.5 text-sm outline-none',
               isPremier
                 ? 'border-premier-line/50 bg-brand-bg text-brand-text'
                 : 'border-brand-primary/20 text-brand-text',
@@ -83,7 +83,7 @@ export function NaturalSearchBar(props: {
             disabled={pending}
             onClick={apply}
             className={cn(
-              'min-h-[44px] shrink-0 rounded-md px-4 text-sm font-semibold',
+              'min-h-[40px] shrink-0 rounded-md px-3 text-sm font-semibold sm:self-auto',
               isPremier
                 ? 'border border-brand-primary text-brand-primary hover:bg-brand-primary/5'
                 : 'bg-brand-primary text-white hover:bg-brand-primary-mid',
@@ -93,7 +93,7 @@ export function NaturalSearchBar(props: {
           </button>
         </div>
       </label>
-      {hint ? <p className="mt-2 text-xs text-brand-muted">Entendimos: {hint}</p> : null}
+      {hint ? <p className="mt-1.5 text-xs text-brand-muted">Entendimos: {hint}</p> : null}
     </div>
   );
 }

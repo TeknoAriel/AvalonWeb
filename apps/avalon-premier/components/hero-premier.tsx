@@ -52,3 +52,19 @@ export function HeroPremier(props: { featuredImageUrl: string | null }) {
 export function pickHeroImageFromList(list: NormalizedProperty[]) {
   return list[0]?.media.images[0]?.url ?? null;
 }
+
+/** URLs distintas para carrusel / hero (fachadas e interiores del inventario). */
+export function pickHeroImageUrlsFromList(list: NormalizedProperty[], max = 8): string[] {
+  const urls: string[] = [];
+  const seen = new Set<string>();
+  for (const p of list) {
+    for (const im of p.media.images) {
+      const u = im.url?.trim();
+      if (!u || seen.has(u)) continue;
+      seen.add(u);
+      urls.push(u);
+      if (urls.length >= max) return urls;
+    }
+  }
+  return urls;
+}

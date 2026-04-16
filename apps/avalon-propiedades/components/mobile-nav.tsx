@@ -34,8 +34,18 @@ export function MobileNav(props: {
       >
         <ul className="space-y-3 text-center font-medium text-brand-primary">
           <li>
+            <Link href="/" onClick={() => setOpen(false)}>
+              Inicio
+            </Link>
+          </li>
+          <li>
             <Link href="/propiedades" onClick={() => setOpen(false)}>
               Propiedades
+            </Link>
+          </li>
+          <li>
+            <Link href="/favoritos" onClick={() => setOpen(false)}>
+              Favoritos
             </Link>
           </li>
           <li>

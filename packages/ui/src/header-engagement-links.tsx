@@ -14,8 +14,8 @@ export function HeaderEngagementLinks(props: { site: SiteType; variant: Variant 
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    if (!favOn) return;
     setMounted(true);
+    if (!favOn) return;
     setN(readFavoriteSnapshots(props.site).length);
     const h = (e: Event) => {
       const ce = e as CustomEvent<{ site: SiteType }>;
@@ -25,9 +25,8 @@ export function HeaderEngagementLinks(props: { site: SiteType; variant: Variant 
     return () => window.removeEventListener(ENGAGEMENT_FAVORITES_EVENT, h);
   }, [favOn, props.site]);
 
-  if (!favOn || !mounted) return null;
-
   const isPremier = props.variant === 'premier';
+  const countSuffix = favOn && mounted && n > 0 ? ` (${n})` : '';
 
   return (
     <Link
@@ -37,7 +36,24 @@ export function HeaderEngagementLinks(props: { site: SiteType; variant: Variant 
         isPremier ? 'text-brand-text/70 hover:text-brand-accent' : 'text-brand-primary hover:text-brand-primary-mid',
       )}
     >
-      Favoritos{n > 0 ? ` (${n})` : ''}
+      Favoritos{countSuffix}
+    </Link>
+  );
+}
+
+/** Enlace al comparador (misma ruta en ambas apps). En Premier va estilo pill compacto junto a Inicio. */
+export function HeaderCompareLink(props: { variant: Variant }) {
+  const isPremier = props.variant === 'premier';
+  return (
+    <Link
+      href="/propiedades/comparar"
+      className={cn(
+        isPremier
+          ? 'rounded-sm border border-premier-line/60 px-2 py-1.5 text-[10px] font-semibold uppercase tracking-wide text-brand-primary hover:border-brand-accent/50 hover:text-brand-accent'
+          : 'text-sm font-medium text-brand-primary hover:text-brand-primary-mid',
+      )}
+    >
+      Comparar
     </Link>
   );
 }

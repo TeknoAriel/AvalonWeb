@@ -9,8 +9,8 @@ export function SiteFooter() {
   const assets = getBrandAssetPaths(SITE);
 
   return (
-    <footer className="border-t border-brand-accent/15 bg-brand-surface-alt/50">
-      <div className="mx-auto grid max-w-6xl gap-12 px-4 py-16 md:grid-cols-2 md:px-6">
+    <footer className="border-t border-premier-line/50 bg-brand-surface-alt">
+      <div className="mx-auto grid max-w-6xl gap-14 px-4 py-20 md:grid-cols-2 md:px-6">
         <div className="space-y-6">
           <Image
             src={assets.logoFooter}
@@ -19,10 +19,12 @@ export function SiteFooter() {
             height={70}
             className="h-auto w-full max-w-[9.5rem] opacity-95"
           />
-          <p className="max-w-sm font-serif text-lg text-brand-text/80">{brand.tagline}</p>
+          <p className="max-w-sm font-serif text-lg font-light leading-relaxed text-brand-text/78">
+            {brand.tagline}
+          </p>
         </div>
-        <div className="flex flex-col justify-center space-y-4 text-sm text-brand-text/80">
-          <p className="font-medium text-brand-primary">{brand.contact.professionalName}</p>
+        <div className="flex flex-col justify-center space-y-4 text-sm leading-relaxed text-brand-text/72">
+          <p className="font-medium tracking-tight text-brand-primary">{brand.contact.professionalName}</p>
           <p>Mat. {brand.contact.licenseId}</p>
           <p>
             <a className="border-b border-brand-accent/40 hover:border-brand-accent" href={`tel:${brand.contact.phoneTel}`}>
@@ -34,7 +36,7 @@ export function SiteFooter() {
           </Link>
         </div>
       </div>
-      <div className="space-y-2 border-t border-brand-accent/10 py-6 text-center text-[11px] text-brand-text/55">
+      <div className="space-y-2 border-t border-premier-line/40 py-8 text-center text-[11px] text-brand-text/50">
         <p className="normal-case">
           Diseño <span className="font-semibold text-brand-primary">Tekno</span> powered by{' '}
           <a
