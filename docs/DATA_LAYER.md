@@ -1,5 +1,7 @@
 # Capa de datos — relevamiento JSON Kiteprop (externalsite)
 
+**Condición crítica (inventario Premier, mapper API, reglas de descarte):** ver **`docs/PREMIER_INVENTORY_INVARIANT.md`** — obligatorio antes de cambiar `premier.ts`, `site-properties.ts`, `kiteprop-api-mapper.ts` o la carga del feed en Premier.
+
 Fuente analizada: array de propiedades con **57 claves** de primer nivel en el export actual.
 
 ## Campos principales

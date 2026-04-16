@@ -35,13 +35,14 @@ Documentación:
 
 - **KiteProp (env, consultas CRM, seguridad de la key):** [`docs/KITEPROP.md`](docs/KITEPROP.md) — referencia principal para no duplicar reglas.
 - **Esquema del JSON de difusión:** [`docs/DATA_LAYER.md`](docs/DATA_LAYER.md).
+- **Invariante crítico Premier (tag, feed, mapper API — no romper):** [`docs/PREMIER_INVENTORY_INVARIANT.md`](docs/PREMIER_INVENTORY_INVARIANT.md).
 - API pública: [KiteProp API v1](https://www.kiteprop.com/docs/api/v1).
 
 ### Regla Premier
 
-- `hasPremierTag(raw)` revisa `tags`, `labels`, `categories`, flags `premier` / `is_premier`, y variables de entorno `PREMIER_PROPERTY_IDS` / `NEXT_PUBLIC_PREMIER_PROPERTY_IDS`.
+- `hasPremierTag(raw)` revisa `tags`, `labels`, `categories`, flags `premier` / `is_premier`, y variables de entorno `PREMIER_PROPERTY_IDS` / `NEXT_PUBLIC_PREMIER_PROPERTY_IDS`. Detalle y checklist en **`docs/PREMIER_INVENTORY_INVARIANT.md`**.
 - **Catálogo público**: solo propiedades con `status === "active"`.
-- En el JSON actual **no hay campo `tags`**; hasta que el CRM lo envíe, el listado Premier puede estar vacío salvo IDs forzados por env (ver `.env.example`).
+- El mapper de la **API** debe usar `pickFirstNonEmpty` para tags (no solo `??`): si `tags` viene `[]` y el premier está en `property_tags`, sin eso el listado Premier queda vacío.
 
 ## Scripts
 

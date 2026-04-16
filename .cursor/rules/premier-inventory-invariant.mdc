@@ -1,0 +1,19 @@
+---
+description: Condición crítica — inventario Avalon Premier (tag premier, feed, mapper API)
+alwaysApply: true
+---
+
+# Invariante Avalon Premier (muy importante)
+
+## Regla de producto
+
+- **Avalon Premier** solo lista propiedades cuyo `RawProperty` cumple **`hasPremierTag`** (tag `premier` u equivalentes documentados en `docs/DATA_LAYER.md` y `docs/PREMIER_INVENTORY_INVARIANT.md`).
+- El resto **no** entra al listado Premier; no hay Elasticsearch: el filtro es **en servidor** sobre el JSON/API/snapshot.
+
+## No romper al tocar código
+
+1. **Mapper API** (`packages/core/src/kiteprop-api-mapper.ts`): **nunca** reemplazar `pickFirstNonEmpty` por `p.tags ?? p.property_tags ?? …` solo con `??` — los arrays vacíos `[]` y strings `""` hacen que se ignore el alias donde viene `premier` y el listado Premier queda **vacío**.
+2. **`hasPremierTag` / `getSitePropertiesFromRaw`**: cambios aquí afectan **toda** la colección Premier; revisar `docs/PREMIER_INVENTORY_INVARIANT.md` antes de mergear.
+3. **NL / UI**: búsqueda en lenguaje natural solo arma query params; **no** sustituye la regla del tag.
+
+Si hay duda, leer **`docs/PREMIER_INVENTORY_INVARIANT.md`** (fuente canónica ampliada).
