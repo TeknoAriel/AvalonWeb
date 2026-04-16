@@ -1,4 +1,5 @@
 import { getSiteBrandConfig } from '@avalon/config';
+import { PropertyConsultaForm } from '@avalon/ui';
 import type { Metadata } from 'next';
 import { SITE } from '@/lib/site';
 
@@ -37,9 +38,9 @@ export default function ContactPage() {
             </a>
           </p>
         ) : null}
-        <p className="text-sm text-brand-muted">
-          Formulario web: próximamente. Por ahora usá teléfono o WhatsApp para consultas inmediatas.
-        </p>
+      </div>
+      <div className="mt-10">
+        <PropertyConsultaForm variant="avalon" />
       </div>
     </div>
   );

@@ -5,7 +5,7 @@ import { useState } from 'react';
 
 type Variant = 'avalon' | 'premier';
 
-export function PropertyConsultaForm(props: { propertyId: number; variant: Variant }) {
+export function PropertyConsultaForm(props: { propertyId?: number; variant: Variant }) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -15,6 +15,10 @@ export function PropertyConsultaForm(props: { propertyId: number; variant: Varia
   const [errMsg, setErrMsg] = useState('');
 
   const isPremier = props.variant === 'premier';
+  const isProperty =
+    typeof props.propertyId === 'number' &&
+    Number.isFinite(props.propertyId) &&
+    props.propertyId > 0;
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -30,7 +34,7 @@ export function PropertyConsultaForm(props: { propertyId: number; variant: Varia
           email,
           phone,
           message,
-          propertyId: props.propertyId,
+          ...(isProperty ? { propertyId: props.propertyId } : {}),
         }),
       });
       const data = (await res.json().catch(() => ({}))) as { ok?: boolean; message?: string };
@@ -68,7 +72,13 @@ export function PropertyConsultaForm(props: { propertyId: number; variant: Varia
             isPremier ? 'font-serif text-sm text-brand-primary' : 'text-sm text-brand-primary',
           )}
         >
-          {isPremier ? 'Consulta por esta propiedad' : 'Enviá tu consulta'}
+          {isProperty
+            ? isPremier
+              ? 'Consulta por esta propiedad'
+              : 'Enviá tu consulta'
+            : isPremier
+              ? 'Consulta general'
+              : 'Escribinos'}
         </p>
         <p className={cn('mt-1 text-xs', isPremier ? 'text-brand-text/50' : 'text-brand-muted')}>
           Respondemos a la brevedad. Los datos no se publican en la web.

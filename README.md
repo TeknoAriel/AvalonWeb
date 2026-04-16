@@ -31,7 +31,11 @@ curl -sL -o packages/core/data/properties.json \
   "https://static.kiteprop.com/kp/difusions/4b3c894a10d905c82e85b35c410d7d4099551504/externalsite-2-9e4f284e1578b24afa155c578d05821ac4c56baa.json"
 ```
 
-Documentación de API: [Kiteprop API v1](https://www.kiteprop.com/docs/api/v1).
+Documentación:
+
+- **KiteProp (env, consultas CRM, seguridad de la key):** [`docs/KITEPROP.md`](docs/KITEPROP.md) — referencia principal para no duplicar reglas.
+- **Esquema del JSON de difusión:** [`docs/DATA_LAYER.md`](docs/DATA_LAYER.md).
+- API pública: [KiteProp API v1](https://www.kiteprop.com/docs/api/v1).
 
 ### Regla Premier
 
@@ -77,4 +81,3 @@ Cada app sirve sus assets desde `public/brand/`. Sustituí los PNG por las versi
 - TypeScript estricto en paquetes compartidos.
 - Listados y fichas alimentados por el modelo normalizado (`normalizeProperty`, `extractAmenities`, `extractMedia`).
 - SEO: `metadata`, `sitemap.ts`, `robots.ts` por app.
-# AvalonWeb

@@ -1,15 +1,6 @@
 /**
- * Cliente REST hacia KiteProp API v1.
+ * Cliente REST KiteProp v1 (`X-API-Key`). Variables y flujo de consultas: `docs/KITEPROP.md`.
  * @see https://www.kiteprop.com/docs/api/v1
- *
- * Autenticación: cabecera `X-API-Key` (documentación oficial).
- * Variables:
- * - KITEPROP_API_BASE_URL — por defecto https://www.kiteprop.com/api/v1
- * - KITEPROP_API_KEY — recomendado (misma clave que mostrás en KiteProp)
- * - KITEPROP_API_TOKEN — alias opcional si ya lo tenías definido
- *
- * Usuario/contraseña del panel (ej. api@avalon.com) no se envían en cada request REST:
- * sirven para entrar a KiteProp y generar la API Key.
  */
 
 const BASE = (process.env.KITEPROP_API_BASE_URL || 'https://www.kiteprop.com/api/v1').replace(

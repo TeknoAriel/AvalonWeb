@@ -26,4 +26,5 @@ export {
 } from './kiteprop-api-feed';
 export { mapKitepropApiV1PropertyToRaw } from './kiteprop-api-mapper';
 export { postConsultaToKiteprop, type KitepropConsultaInput, type KitepropConsultaResult } from './kiteprop-consulta';
+export { submitWebConsulta, type WebConsultaSource } from './consultas-submission';
 export { isPubliclyListed } from './listing-rules';

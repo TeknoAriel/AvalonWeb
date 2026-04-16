@@ -8,6 +8,7 @@
  * de entorno que indique el README del paquete (suelen ser URL base + token/key).
  *
  * Este archivo no arranca el servidor MCP; solo define contratos para la app.
+ * Consultas del sitio web → `docs/KITEPROP.md` (REST vía Next, no MCP en el navegador).
  */
 
 export type NaturalLanguageIntent =

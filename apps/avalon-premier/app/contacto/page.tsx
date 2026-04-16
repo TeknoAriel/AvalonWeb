@@ -1,4 +1,5 @@
 import { getSiteBrandConfig } from '@avalon/config';
+import { PropertyConsultaForm } from '@avalon/ui';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { SITE } from '@/lib/site';
@@ -50,6 +51,9 @@ export default function ContactPage() {
               WhatsApp
             </a>
           ) : null}
+        </div>
+        <div className="mt-12">
+          <PropertyConsultaForm variant="premier" />
         </div>
         <p className="mt-12 text-center text-xs leading-relaxed text-brand-text/50">
           Respondemos en horario comercial. Para mandatos sensibles podemos acordar ventanas de

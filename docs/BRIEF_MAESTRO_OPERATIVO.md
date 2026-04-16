@@ -35,6 +35,7 @@ Prioridad de producto: **fotos y video con protagonismo**, fichas claras, excele
 - **JSON de difusión (referencia estructural):**  
   `https://static.kiteprop.com/kp/difusions/4b3c894a10d905c82e85b35c410d7d4099551504/externalsite-2-9e4f284e1578b24afa155c578d05821ac4c56baa.json`
 - **Documentación API:** [Kiteprop API v1](https://www.kiteprop.com/docs/api/v1)
+- **Variables y consultas CRM en este repo:** [`docs/KITEPROP.md`](KITEPROP.md) (fuente canónica; no duplicar reglas en otros .md salvo enlace).
 
 > **Nota sobre el archivo local de muestra:** la copia guardada en uploads puede venir **truncada** por límite de tamaño. Para tipado y pruebas usar siempre el **JSON completo** desde la URL anterior o respuestas reales de la API. Validar en producción el campo exacto del tag **Premier** (p. ej. `tags`, categorías o equivalente en el esquema vigente).
 

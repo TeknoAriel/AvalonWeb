@@ -52,10 +52,7 @@ function num(v: unknown): number {
   return 1;
 }
 
-/**
- * Descarga todas las páginas de GET /properties (o ruta en KITEPROP_API_PROPERTIES_PATH) y mapea a RawProperty[].
- * Requiere KITEPROP_API_KEY (o KITEPROP_API_TOKEN) con el valor de X-API-Key.
- */
+/** GET paginado de propiedades → `RawProperty[]`. Variables: `docs/KITEPROP.md`. */
 export async function fetchKitepropPropertyFeedAsRaw(
   fetchInit?: RequestInit & { next?: { revalidate?: number } },
 ): Promise<RawProperty[] | null> {
