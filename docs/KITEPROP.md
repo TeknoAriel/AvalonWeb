@@ -12,6 +12,19 @@ Documento canónico para **variables de entorno**, **lectura de catálogo** y **
 - La **API key** solo en **servidor** (Vercel / `.env.local`). Nunca en el cliente ni en `NEXT_PUBLIC_*`.
 - El navegador llama a **`/api/consultas`** de la app; Next valida y llama a KiteProp con `X-API-Key`.
 
+## Autenticación REST (API v1 oficial)
+
+Resumen tomado del **apidoc publicado** por KiteProp (misma fuente que alimenta [API v1 — documentación](https://www.kiteprop.com/docs/api/v1); JSON: `https://www.kiteprop.com/docs/api/v1/api_data.json`, bloque *API Key Auth* / `ApiKeyAuth`):
+
+- **Modo recomendado para integraciones (sitios web, terceros):** clave permanente **API Key** generada en el panel (**API Keys**), asociada a un usuario de la organización; los permisos de cada request son los de ese usuario.
+- **Cómo enviarla:** incluir la cabecera HTTP **`X-API-Key`**. La documentación indica explícitamente que **no** hace falta login ni **Bearer token** para este flujo.
+- **Formato de la clave:** permanente, prefijo típico **`kp_`** (ejemplo en la doc oficial).
+- **Login email + contraseña** (`POST /api/v1/auth/login`): figura como **DEPRECATED**; la doc dirige a usar API Key vía **`X-API-Key`** para integraciones permanentes.
+
+No aparece en esa especificación un mecanismo paralelo tipo “enviar la misma secret como `client` en el cuerpo” para sustituir a **`X-API-Key`** en REST: el contrato documentado del recurso *ApiKeyAuth* es **cabecera `X-API-Key`**.
+
+**MCP remoto** (`https://mcp.kiteprop.com/mcp`, config en Cursor): según la guía de KiteProp para clientes MCP, la misma idea es **cabecera `X-API-Key`** en la configuración del servidor MCP; es **otro transporte** (MCP sobre HTTP), no otro nombre de cabecera en la API REST v1.
+
 ## Variables de entorno (resumen)
 
 | Variable | Uso |
@@ -40,7 +53,7 @@ Implementación: `postConsultaToKiteprop` en `packages/core/src/kiteprop-consult
 
 ## MCP vs web
 
-El **MCP** de KiteProp es para herramientas tipo Cursor / integraciones; el visitante del sitio **no** usa MCP. La web usa rutas propias + REST como arriba.
+El **MCP** de KiteProp es para herramientas tipo Cursor / integraciones; el visitante del sitio **no** usa MCP. La web usa rutas propias + REST con **`X-API-Key`** (arriba). La autenticación MCP remota usa la misma cabecera en la config del cliente; ver **Autenticación REST (API v1 oficial)**.
 
 ## Esquema del JSON de propiedades
 
