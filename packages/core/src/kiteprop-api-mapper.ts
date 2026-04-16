@@ -20,6 +20,21 @@ function bool(v: unknown): boolean {
   return v === true;
 }
 
+/**
+ * El export JSON suele llevar `tags: ["premier"]`. La API a veces manda `tags: []` o `""` y el dato útil
+ * está en `property_tags` / alias. `??` no sustituye arrays vacíos; por eso se elige el primer campo con contenido.
+ */
+function pickFirstNonEmpty(p: Record<string, unknown>, keys: string[]): unknown {
+  for (const key of keys) {
+    const v = p[key];
+    if (v === undefined || v === null) continue;
+    if (Array.isArray(v) && v.length === 0) continue;
+    if (typeof v === 'string' && v.trim() === '') continue;
+    return v;
+  }
+  return undefined;
+}
+
 function mapUserToAgent(u: unknown): RawAgent {
   if (!u || typeof u !== 'object') {
     return {
@@ -135,10 +150,9 @@ export function mapKitepropApiV1PropertyToRaw(p: Record<string, unknown>): RawPr
     link_360_iframe: p.link_360 != null ? str(p.link_360) : null,
     agency: emptyAgency,
     agent,
-    /** API v1 a veces envía tags en alias distintos al export JSON. */
-    tags: p.tags ?? p.property_tags ?? p.kp_tags ?? p.tag_list ?? p.tag_names,
-    labels: p.labels ?? p.label_list,
-    categories: p.categories ?? p.collections,
+    tags: pickFirstNonEmpty(p, ['tags', 'property_tags', 'kp_tags', 'tag_list', 'tag_names']),
+    labels: pickFirstNonEmpty(p, ['labels', 'label_list']),
+    categories: pickFirstNonEmpty(p, ['categories', 'collections']),
     premier: typeof p.premier === 'boolean' ? p.premier : undefined,
     is_premier: typeof p.is_premier === 'boolean' ? p.is_premier : undefined,
   };

@@ -19,7 +19,7 @@ function scanUnknownList(value: unknown): boolean {
       const o = item as Record<string, unknown>;
       for (const k of ['name', 'slug', 'label', 'title', 'key']) {
         const v = o[k];
-        if (typeof v === 'string' && equalsPremierToken(v)) return true;
+        if (typeof v === 'string' && (equalsPremierToken(v) || stringMentionsPremierWord(v))) return true;
       }
     }
   }
