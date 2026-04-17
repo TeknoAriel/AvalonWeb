@@ -28,6 +28,7 @@ export {
   fetchKitepropPropertyFeedAsRaw,
   kitepropApiFeedConfigured,
 } from './kiteprop-api-feed';
+export { kitepropOutboundUserAgent } from './kiteprop-outbound';
 export { extractKitepropPropertyFeedRows, parseKitepropPropertyFeedJsonPayload } from './kiteprop-feed-payload';
 export {
   enrichRawPropertyFromKitepropAliases,

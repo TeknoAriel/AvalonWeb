@@ -1,8 +1,9 @@
+import { kitepropOutboundUserAgent } from './kiteprop-outbound';
+
 /**
  * POST al CRM KiteProp (`/api/v1/messages`, `/api/v1/contacts` o URL legacy).
  * Contrato y variables: `docs/KITEPROP.md`.
  */
-
 export type KitepropConsultaInput = {
   name: string;
   email: string;
@@ -59,6 +60,7 @@ async function postJson(
         Accept: 'application/json',
         'Content-Type': 'application/json',
         'X-API-Key': key,
+        'User-Agent': kitepropOutboundUserAgent(),
       },
       body: JSON.stringify(body),
     });

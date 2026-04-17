@@ -31,8 +31,6 @@ curl -sL -o packages/core/data/properties.json \
   "https://static.kiteprop.com/kp/difusions/…/externalsite-….json"
 ```
 
-**Avalon Premier — logo de cabecera:** archivo `apps/avalon-premier/public/brand/premier-logo-wordmark.png` (marca sin teléfono debajo; ruta definida en `packages/branding`).
-
 Documentación:
 
 - **KiteProp (env, consultas CRM, seguridad de la key):** [`docs/KITEPROP.md`](docs/KITEPROP.md) — referencia principal para no duplicar reglas.

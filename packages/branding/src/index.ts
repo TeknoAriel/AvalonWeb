@@ -84,8 +84,7 @@ export const brandAssets = {
     og: '/og-avalon.png',
   },
   premier: {
-    /** Marca en cabecera (sin teléfono debajo). Colocar el PNG en `apps/avalon-premier/public/brand/`. */
-    logoHeader: '/brand/premier-logo-wordmark.png',
+    logoHeader: '/brand/premier-logo-header.png',
     logoFooter: '/brand/premier-logo-footer.png',
     favicon: '/favicon.png',
     og: '/og-premier.png',

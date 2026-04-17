@@ -3,6 +3,8 @@
  * @see https://www.kiteprop.com/docs/api/v1
  */
 
+import { kitepropOutboundUserAgent } from '@avalon/core';
+
 const BASE = (process.env.KITEPROP_API_BASE_URL || 'https://www.kiteprop.com/api/v1').replace(
   /\/$/,
   '',
@@ -30,6 +32,7 @@ export async function kitepropFetchJson<T>(
       headers: {
         Accept: 'application/json',
         'X-API-Key': API_KEY,
+        'User-Agent': kitepropOutboundUserAgent(),
         ...(extraHeaders as Record<string, string>),
       },
       next: { revalidate },

@@ -1,6 +1,7 @@
 import type { RawProperty } from '@avalon/types';
-import { extractKitepropPropertyFeedRows } from './kiteprop-feed-payload';
 import { enrichRawPropertyFromKitepropAliases, mapKitepropApiV1PropertyToRaw } from './kiteprop-api-mapper';
+import { extractKitepropPropertyFeedRows } from './kiteprop-feed-payload';
+import { kitepropOutboundUserAgent } from './kiteprop-outbound';
 
 function apiKey(): string {
   return (process.env.KITEPROP_API_KEY || process.env.KITEPROP_API_TOKEN || '').trim();
@@ -12,7 +13,10 @@ function apiBase(): string {
 
 function authHeaders(): HeadersInit {
   const key = apiKey();
-  const h: Record<string, string> = { Accept: 'application/json' };
+  const h: Record<string, string> = {
+    Accept: 'application/json',
+    'User-Agent': kitepropOutboundUserAgent(),
+  };
   if (key) h['X-API-Key'] = key;
   return h;
 }
