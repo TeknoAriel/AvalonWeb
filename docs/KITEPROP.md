@@ -29,8 +29,8 @@ No aparece en esa especificación un mecanismo paralelo tipo “enviar la misma 
 
 | Variable | Uso |
 |----------|-----|
-| `KITEPROP_PROPERTIES_JSON_URL` | JSON de difusión (prioridad sobre API y snapshot). Misma URL en ambas apps si comparten export. |
-| `KITEPROP_API_KEY` o `KITEPROP_API_TOKEN` | `X-API-Key` en REST (listado `GET …/properties` y POST de consultas). **Si hay JSON URL + esta key**, el servidor **siempre** pide también el listado API y fusiona tags Premier por `id` sobre el JSON (ver `loadKitepropCatalogMerged`). |
+| `KITEPROP_PROPERTIES_JSON_URL` | JSON de difusión (**respaldo** si no hay API key o la API no devuelve filas). Opcional si ya usás solo API. |
+| `KITEPROP_API_KEY` o `KITEPROP_API_TOKEN` | `X-API-Key` en REST. **Con key configurada**, el catálogo intenta **primero** `GET …/properties` (origen más fiel al CRM y a tags Premier); el JSON solo si eso falla o está vacío. |
 | `KITEPROP_API_BASE_URL` | Base del listado API; default `https://www.kiteprop.com/api/v1`. Opcionales: `KITEPROP_API_PROPERTIES_PATH`, `KITEPROP_API_STATUS_FILTER`, `KITEPROP_API_PER_PAGE`. |
 | `KITEPROP_API_URL` | Host **sin** `/api/v1` para POST de consultas (ej. `https://www.kiteprop.com`). Si no está, se deduce de `KITEPROP_API_BASE_URL`. |
 | `KITEPROP_API_CONSULTA_URL` | **Opcional.** Si está definida, **todas** las consultas van a esa URL con cuerpo **legacy** (`full_name`, `body`, `property_id`, etc.). Solo para tenants con endpoint distinto acordado con soporte. |

@@ -14,11 +14,11 @@ Este documento define **reglas no negociables** para el listado Premier. Cualqui
 
 Implementación: `packages/core/src/kiteprop-catalog-load.ts` — `loadKitepropCatalogMerged`.
 
-1. Si hay `KITEPROP_PROPERTIES_JSON_URL` y responde → se parsea el JSON (cuerpo del catálogo).
-2. Si hay **además** API key (`KITEPROP_API_KEY` / `KITEPROP_API_TOKEN`) → **siempre** se pide `GET /api/v1/properties` (paginado) y se fusiona por **`id`** la metadata Premier sobre el lote del JSON (`applyPremierMetadataFromDonor`). Así el listado Premier no depende de que la difusión JSON traiga el tag.
-3. Siempre después: `mergePremierMetadataFromRepoSnapshot` con `packages/core/data/properties.json` (red de seguridad por `id`).
-4. Si no hay JSON o falla → catálogo **solo** desde API.
-5. Si la API falla → snapshot del repo.
+1. Si hay API key (`KITEPROP_API_KEY` / `KITEPROP_API_TOKEN`) → **primero** `GET /api/v1/properties` (paginado). Si devuelve filas → **ese es el catálogo** (verdad CRM; tags Premier incluidos; un solo fetch).
+2. Si la API no está configurada, o falló, o devolvió vacío → `KITEPROP_PROPERTIES_JSON_URL` si responde (parse JSON).
+3. Si hay JSON y además API key pero el paso 1 no devolvió filas → se intenta fusionar API sobre JSON por **`id`** solo si no se reutilizó ya un resultado API vacío (evita doble fetch inútil).
+4. Siempre después: `mergePremierMetadataFromRepoSnapshot` con `packages/core/data/properties.json` (red de seguridad por `id`).
+5. Si nada sirve → solo snapshot del repo.
 
 Premier y Propiedades comparten la misma carga; Premier **solo** filtra con `hasPremierTag` en `getSitePropertiesFromRaw('premier', …)`.
 
