@@ -27,6 +27,22 @@ from typing import Any
 
 PREMIER_WORD = re.compile(r"\bpremier\b", re.I)
 
+# Cloudflare puede responder 1010 si el User-Agent es el default de Python-urllib.
+_DEFAULT_UA = (
+    "Mozilla/5.0 (compatible; AvalonWeb-kp-verify/1.0; "
+    "+https://github.com/TeknoAriel/AvalonWeb) Chrome/121.0.0.0 Safari/537.36"
+)
+
+
+def _request_headers(key: str) -> dict[str, str]:
+    custom = (os.environ.get("KITEPROP_VERIFY_USER_AGENT") or "").strip()
+    return {
+        "X-API-Key": key,
+        "Accept": "application/json",
+        "Accept-Language": "es-AR,es;q=0.9,en;q=0.8",
+        "User-Agent": custom or _DEFAULT_UA,
+    }
+
 
 def env_key() -> str:
     return (
@@ -60,11 +76,7 @@ def status_filter() -> str:
 def fetch_page(base: str, path: str, key: str, page: int, per: int, status: str) -> dict[str, Any]:
     qs = urllib.parse.urlencode({"page": str(page), "per_page": str(per), "status": status})
     url = f"{base}{path}?{qs}"
-    req = urllib.request.Request(
-        url,
-        headers={"X-API-Key": key, "Accept": "application/json"},
-        method="GET",
-    )
+    req = urllib.request.Request(url, headers=_request_headers(key), method="GET")
     with urllib.request.urlopen(req, timeout=90) as resp:
         return json.loads(resp.read().decode("utf-8"))
 
@@ -152,8 +164,15 @@ def main() -> int:
     try:
         p1 = fetch_page(base, path, key, 1, per, status)
     except urllib.error.HTTPError as e:
-        body = e.read().decode("utf-8", errors="replace")[:800]
+        body = e.read().decode("utf-8", errors="replace")[:1200]
         print(f"HTTP {e.code} al pedir página 1:\n{body}", file=sys.stderr)
+        if e.code == 403 and ("1010" in body or "browser_signature" in body):
+            print(
+                "\nSugerencia: Cloudflare bloqueó el User-Agent. "
+                "Probá: export KITEPROP_VERIFY_USER_AGENT='Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+                "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36'",
+                file=sys.stderr,
+            )
         return 1
     except urllib.error.URLError as e:
         print(f"Error de red: {e}", file=sys.stderr)

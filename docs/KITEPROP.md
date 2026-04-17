@@ -45,10 +45,13 @@ Para comprobar si **`GET …/properties`** devuelve marcadores Premier (sin pega
    - `export KP_KEY='kp_…'` **o** `export KITEPROP_API_KEY='kp_…'`
    - Opcional: `export KITEPROP_API_BASE_URL=https://www.kiteprop.com/api/v1` (default del core)
    - Opcional: `export KITEPROP_API_STATUS_FILTER=active` (igual que el fetch del catálogo por defecto)
-2. Desde la raíz del monorepo:
+2. Desde la raíz del monorepo, **en dos líneas** (no pongas comentarios `# …` en la misma línea que `export` en zsh, puede fallar):
+   - `export KP_KEY='kp_…'`
    - `pnpm kp:verify-premier` **o** `python3 scripts/verify_kiteprop_api_premier.py`
 
 El script pagina como el cliente del core, cuenta filas por `status` **en ese filtro**, lista **IDs** donde detecta señal tipo Premier (`tags` / `property_tags` / flags / strings con la palabra *premier*) y muestra una muestra de `tags` de las primeras filas.
+
+**Cloudflare 403 / error 1010 (`browser_signature_banned`):** el User-Agent por defecto de `Python-urllib` a veces está bloqueado. El script ya envía un User-Agent genérico; si sigue fallando, probá `export KITEPROP_VERIFY_USER_AGENT='Mozilla/5.0 …'` (un UA de navegador reciente) y volvé a ejecutar, o usá `curl` con `-H "User-Agent: …"` contra el mismo URL.
 
 **Nota:** con `status=active` solo ves el subconjunto “activos” que devuelve la API; para otros estados hay que cambiar `KITEPROP_API_STATUS_FILTER` y volver a correr (si tu tenant lo permite). La documentación interactiva: [API v1](https://www.kiteprop.com/docs/api/v1).
 
