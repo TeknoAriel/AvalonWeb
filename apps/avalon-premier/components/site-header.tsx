@@ -2,32 +2,32 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
 import { getSiteBrandConfig } from '@avalon/config';
 import { getBrandAssetPaths } from '@avalon/branding';
-import { cn } from '@avalon/utils';
 import { HeaderCompareLink, HeaderEngagementLinks } from '@avalon/ui';
 import { SITE } from '@/lib/site';
+
+/** Misma escala visual en todas las rutas (alineada a lo que antes era solo home). */
+const HEADER_LOGO_WIDTH = 660;
+const HEADER_LOGO_HEIGHT = 156;
 
 export function SiteHeader() {
   const brand = getSiteBrandConfig(SITE);
   const assets = getBrandAssetPaths(SITE);
-  const pathname = usePathname();
-  const isHome = pathname === '/';
 
   return (
     <header className="sticky top-0 z-50 border-b border-premier-line/55 bg-[var(--color-site-header-bg)] shadow-[0_1px_3px_rgba(27,33,48,0.06)] backdrop-blur-none">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-6 px-4 py-4 md:px-6 md:py-5">
-        <Link href="/" className="flex max-h-[5.5rem] max-w-[min(100%,22rem)] items-center md:max-h-[6.25rem] md:max-w-[min(100%,26rem)]">
+        <Link
+          href="/"
+          className="flex max-h-[5.5rem] max-w-[min(100%,22rem)] items-center md:max-h-[6.25rem] md:max-w-[min(100%,26rem)]"
+        >
           <Image
             src={assets.logoHeader}
             alt={brand.name}
-            width={isHome ? 660 : 440}
-            height={isHome ? 156 : 104}
-            className={cn(
-              'h-auto w-full max-w-full object-contain object-left transition-[height] duration-200',
-              isHome ? 'max-h-[5.25rem] md:max-h-[6rem]' : 'max-h-[3.5rem] md:max-h-16'
-            )}
+            width={HEADER_LOGO_WIDTH}
+            height={HEADER_LOGO_HEIGHT}
+            className="h-auto w-full max-w-full object-contain object-left max-h-[5.25rem] md:max-h-[6rem]"
             priority
           />
         </Link>

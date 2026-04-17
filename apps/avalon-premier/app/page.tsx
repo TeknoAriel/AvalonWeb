@@ -47,7 +47,7 @@ export default async function HomePage() {
           <div className="mx-auto mt-10 max-w-lg border border-premier-line/50 bg-brand-surface-alt/50 p-10 text-center md:p-12">
             <p className="font-serif text-xl font-normal text-brand-primary">Colección en preparación</p>
             <p className="mt-5 text-sm font-light text-brand-text/62">
-              Aún no hay activos con etiqueta Premier en el feed remoto o en el JSON. Cuando el CRM
+              Aún no hay activos con etiqueta Premier en la API KiteProp o en el snapshot. Cuando el CRM
               marque <code className="rounded bg-brand-primary/5 px-1 text-xs">premier</code> en
               tags, labels o flags equivalentes, aparecerán automáticamente. Podés usar{' '}
               <code className="rounded bg-brand-primary/5 px-1 text-xs">PREMIER_PROPERTY_IDS</code>{' '}

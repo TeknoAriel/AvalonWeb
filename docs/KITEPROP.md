@@ -12,6 +12,15 @@ Documento canónico para **variables de entorno**, **lectura de catálogo** y **
 - La **API key** solo en **servidor** (Vercel / `.env.local`). Nunca en el cliente ni en `NEXT_PUBLIC_*`.
 - El navegador llama a **`/api/consultas`** de la app; Next valida y llama a KiteProp con `X-API-Key`.
 
+## Cron del catálogo vs “push” al cambiar una propiedad
+
+| Enfoque | Ventaja | Límite |
+|--------|---------|--------|
+| **Cron** (`/api/cron/refresh-catalog` + `revalidateTag`) | No depende de que KiteProp implemente webhooks hacia tu dominio; mismo flujo en Vercel y fácil de auditar. | Hasta el intervalo del cron (p. ej. 2 h) + ISR antes de ver el cambio en HTML cacheado. |
+| **Webhook / push** desde KiteProp | Actualización casi inmediata si el CRM llama a tu URL al guardar. | Hace falta **endpoint acordado con KiteProp** (URL pública, secreto, idempotencia) y mantenimiento; hoy este repo **no** recibe webhooks de KiteProp. |
+
+**Recomendación:** mantener **cron + ISR** como base estable. Si KiteProp ofrece webhook oficial a tu stack, se puede añadir una ruta tipo `POST /api/revalidate` (o dedicada) que invalide `KITEPROP_PROPERTY_FEED_TAG` sin reemplazar el cron (el cron sigue cubriendo cambios que no disparen webhook).
+
 ## Autenticación REST (API v1 oficial)
 
 Resumen tomado del **apidoc publicado** por KiteProp (misma fuente que alimenta [API v1 — documentación](https://www.kiteprop.com/docs/api/v1); JSON: `https://www.kiteprop.com/docs/api/v1/api_data.json`, bloque *API Key Auth* / `ApiKeyAuth`):
