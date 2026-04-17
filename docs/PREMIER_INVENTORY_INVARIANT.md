@@ -37,8 +37,8 @@ No reintroducir `??` encadenado simple sobre estos campos sin pasar por esa lóg
 
 ## 4. Otros filtros que afectan el listado Premier
 
-- **`isPubliclyListed`**: por defecto solo `status === 'active'` (`packages/core/src/listing-rules.ts`).
-- **`passesPremierListingQualityGate`** (`packages/core/src/premier-curation.ts`): filtros opcionales por env (`PREMIER_MIN_GALLERY_IMAGES`, m² mínimos, IDs excluidos). No deben activarse en producción sin acuerdo; el default de fotos mínimas es **0** salvo env explícito.
+- **`isPubliclyListedForSite`** (`packages/core/src/listing-rules.ts`): sinónimos de “activo” en API (`published`, `activo`, etc.), `active_unpublished` en Premier, y **si `hasPremierTag` es verdadero** en Premier se admite el aviso salvo estados terminales (`sold`, `rented`, …). Así no se pierden piezas Premier por un `status` string distinto de `active`.
+- **`passesPremierListingQualityGate`**: ya **no** filtra el listado Premier por defecto (la función sigue exportada por si se reutiliza en otro flujo).
 - **Query string** (`filterNormalizedProperties`): filtros de URL pueden dejar el listado en 0 aunque haya inventario Premier.
 
 ## 5. Búsqueda en lenguaje natural (NL)

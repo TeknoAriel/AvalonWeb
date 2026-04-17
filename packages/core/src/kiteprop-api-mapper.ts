@@ -20,12 +20,16 @@ function bool(v: unknown): boolean {
   return v === true;
 }
 
-/** API/CRM a veces manda 1/0 o strings en flags booleanos. */
-function coalesceOptionalBool(...vals: unknown[]): boolean | undefined {
+/** Flags `premier` / `is_premier` en API: tinyint ≠ 0 debe contar como true (no solo 1). */
+function coalescePremierApiFlag(...vals: unknown[]): boolean | undefined {
   for (const v of vals) {
     if (v === undefined || v === null) continue;
-    if (v === true || v === 1) return true;
-    if (v === false || v === 0) return false;
+    if (v === true) return true;
+    if (v === false) return false;
+    if (typeof v === 'number' && Number.isFinite(v)) {
+      if (v === 0) return false;
+      return true;
+    }
     if (typeof v === 'string') {
       const s = v.trim().toLowerCase();
       if (['1', 'true', 'yes', 'y', 'on', 'si', 'sí'].includes(s)) return true;
@@ -204,13 +208,13 @@ export function mapKitepropApiV1PropertyToRaw(p: Record<string, unknown>): RawPr
     tags: pickFirstNonEmpty(p, KITEPROP_TAG_FIELD_ALIASES),
     labels: pickFirstNonEmpty(p, KITEPROP_LABEL_FIELD_ALIASES),
     categories: pickFirstNonEmpty(p, KITEPROP_CATEGORY_FIELD_ALIASES),
-    premier: coalesceOptionalBool(
+    premier: coalescePremierApiFlag(
       p.premier,
       p.avalon_premier,
       p['premier_flag'],
       ...nestedRecordPremierCandidates(p),
     ),
-    is_premier: coalesceOptionalBool(p.is_premier, p.isPremier, ...nestedRecordPremierCandidates(p)),
+    is_premier: coalescePremierApiFlag(p.is_premier, p.isPremier, ...nestedRecordPremierCandidates(p)),
   };
 
   return raw;
@@ -245,7 +249,7 @@ export function enrichRawPropertyFromKitepropAliases(
   }
 
   if (raw.premier === undefined) {
-    const b = coalesceOptionalBool(
+    const b = coalescePremierApiFlag(
       src.premier,
       src.avalon_premier,
       src['premier_flag'],
@@ -254,7 +258,7 @@ export function enrichRawPropertyFromKitepropAliases(
     if (b !== undefined) next.premier = b;
   }
   if (raw.is_premier === undefined) {
-    const b = coalesceOptionalBool(src.is_premier, src.isPremier, ...nestedRecordPremierCandidates(src));
+    const b = coalescePremierApiFlag(src.is_premier, src.isPremier, ...nestedRecordPremierCandidates(src));
     if (b !== undefined) next.is_premier = b;
   }
 

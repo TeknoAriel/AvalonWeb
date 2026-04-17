@@ -2,7 +2,6 @@ import type { NormalizedProperty, RawProperty, SiteType } from '@avalon/types';
 import { ALL_RAW_PROPERTIES } from './load';
 import { isPubliclyListedForSite } from './listing-rules';
 import { normalizeProperty } from './normalize';
-import { passesPremierListingQualityGate } from './premier-curation';
 import { isPremierInventory } from './premier';
 import { pickSmartRelated } from './related-scoring';
 
@@ -14,11 +13,7 @@ export function getSitePropertiesFromRaw(site: SiteType, rawList: RawProperty[])
       ? listed.filter((r) => isPremierInventory(r))
       : listed.filter((r) => !isPremierInventory(r));
 
-  const normalized = filtered.map(normalizeProperty);
-  if (site === 'premier') {
-    return normalized.filter(passesPremierListingQualityGate);
-  }
-  return normalized;
+  return filtered.map(normalizeProperty);
 }
 
 export function getSiteProperties(site: SiteType): NormalizedProperty[] {
@@ -66,7 +61,7 @@ export function getRelatedProperties(
 
 /**
  * Resuelve IDs guardados para comparar (p. ej. localStorage) contra el catálogo actual.
- * Misma regla que el listado: sitio + listado público + gate de calidad Premier.
+ * Misma regla que el listado: sitio + listado público.
  */
 export function getNormalizedPropertiesByIdsForSite(
   site: SiteType,
@@ -79,7 +74,6 @@ export function getNormalizedPropertiesByIdsForSite(
     if (!Number.isFinite(id) || seen.has(id)) continue;
     const p = getPropertyByIdFromRaw(site, id, rawList);
     if (!p) continue;
-    if (site === 'premier' && !passesPremierListingQualityGate(p)) continue;
     ordered.push(p);
     seen.add(id);
   }

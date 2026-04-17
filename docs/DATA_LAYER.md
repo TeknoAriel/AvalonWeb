@@ -23,7 +23,7 @@ Fuente analizada: array de propiedades con **57 claves** de primer nivel en el e
 ## Estados (`status`)
 
 Ejemplos en el lote completo: `active`, `inactive`, `suspended`, `sold`, `reserved`, `rented`, `active_unpublished`.  
-**Listado público**: filtramos `active` únicamente (ajustable en `isPubliclyListed`).
+**Listado público**: `isPubliclyListed` / `isPubliclyListedForSite` aceptan sinónimos de activo (`published`, `activo`, …) y reglas específicas Premier — ver `packages/core/src/listing-rules.ts`.
 
 ## Tags Premier
 

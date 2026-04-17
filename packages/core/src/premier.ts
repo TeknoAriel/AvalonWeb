@@ -3,11 +3,15 @@ import { nestedRecordPremierCandidates } from './kiteprop-api-mapper';
 
 const PREMIER_NORMALIZED = 'premier';
 
-/** Valores explícitos en JSON/API (boolean, 1/0, strings típicos del CRM). */
+/** Valores explícitos en JSON/API (boolean, 1/0, strings; números ≠ 0 como truthy típico CRM tinyint). */
 function explicitPremierBool(v: unknown): boolean | null {
   if (v === undefined || v === null) return null;
   if (v === true || v === 1) return true;
   if (v === false || v === 0) return false;
+  if (typeof v === 'number' && Number.isFinite(v)) {
+    if (v === 0) return false;
+    return true;
+  }
   if (typeof v === 'string') {
     const s = v.trim().toLowerCase();
     if (['1', 'true', 'yes', 'y', 'on', 'si', 'sí'].includes(s)) return true;
@@ -106,6 +110,11 @@ function scanMaybeJsonStringArray(value: string): boolean {
 
 export function hasPremierTag(raw: RawProperty): boolean {
   if (premierOverrideIds().has(raw.id)) return true;
+
+  const pF = explicitPremierBool(raw.premier);
+  const iF = explicitPremierBool(raw.is_premier);
+  if (pF === true || iF === true) return true;
+  if (pF === false && iF === false) return false;
 
   const rest = restCatalogPremierFlag(raw);
   if (rest === false) return false;
