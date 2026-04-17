@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic';
 /**
  * Cron Vercel (cada 2 h): invalida caché de páginas para volver a leer JSON/API de KiteProp.
  * Vercel envía `Authorization: Bearer <CRON_SECRET>` si definís `CRON_SECRET` en el proyecto.
- * El catálogo sigue siendo el feed remoto; una ficha que ya no venga en el JSON deja de listarse sola.
+ * El catálogo sigue siendo la API (+ snapshot si la API falla); una ficha que deje de venir en la API deja de listarse al revalidar.
  */
 export async function GET(req: NextRequest) {
   const secret = process.env.CRON_SECRET?.trim();

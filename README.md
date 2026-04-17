@@ -18,17 +18,17 @@ packages/
   utils/     # cn, dinero, YouTube embed, strip HTML
   config/    # getSiteBrandConfig (copy, URLs, contacto)
   branding/  # paletas, CSS variables, rutas de logos
-  core/      # JSON, normalización, filtros, reglas Premier
+  core/      # Feed API KiteProp, normalización, filtros, reglas Premier
   ui/        # PriceSummary, MediaGallery (next/image)
 ```
 
 ## Datos
 
-El archivo real de difusión está en `packages/core/data/properties.json` (~5 MB, ~1500 ítems). Para actualizarlo:
+En **producción** el catálogo sale de la **API KiteProp** (`GET /properties` + `KITEPROP_API_KEY`). El snapshot `packages/core/data/properties.json` (~5 MB) es **fallback** y merge de metadata; podés regenerarlo a mano si necesitás un dump local, por ejemplo:
 
 ```bash
 curl -sL -o packages/core/data/properties.json \
-  "https://static.kiteprop.com/kp/difusions/4b3c894a10d905c82e85b35c410d7d4099551504/externalsite-2-9e4f284e1578b24afa155c578d05821ac4c56baa.json"
+  "https://static.kiteprop.com/kp/difusions/…/externalsite-….json"
 ```
 
 Documentación:

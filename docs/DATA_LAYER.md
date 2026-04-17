@@ -36,9 +36,9 @@ La función `hasPremierTag` reconoce, entre otras:
 - Flags booleanos `premier` / `is_premier`, y strings en `segment`, `collection`, `tier`, `class`, `tag`, `tag_slug`.
 - Overrides por `PREMIER_PROPERTY_IDS` / `NEXT_PUBLIC_PREMIER_PROPERTY_IDS`.
 
-En **servidor**, `loadKitepropCatalogMerged` elige fuente en orden **fijo**: (1) con **API key**, primero **`GET …/properties`** — si hay filas, ese es el catálogo (CRM estable, tags Premier); (2) si no hay key o la API no devolvió datos → **`KITEPROP_PROPERTIES_JSON_URL`**; (3) con JSON + key y API vacía en (1), merge Premier por `id` sin repetir fetch inútil; (4) `mergePremierMetadataFromRepoSnapshot` con `properties.json`; (5) fallback solo snapshot. Mapeo API: `kiteprop-api-mapper` + `enrich` (`docs/KITEPROP.md`). ISR **2 h**. [API v1](https://www.kiteprop.com/docs/api/v1).
+En **servidor**, `loadKitepropCatalogMerged` usa **solo** `GET …/properties` con **`KITEPROP_API_KEY`** / token cuando está configurado; luego `mergePremierMetadataFromRepoSnapshot` con `packages/core/data/properties.json`. Sin key o si la API falla → solo snapshot. **No** hay ingest por URL de JSON de difusión en runtime (evita desalineación con la API y tags Premier faltantes). Mapeo API: `kiteprop-api-mapper` + `enrich` (`docs/KITEPROP.md`). ISR **2 h**. [API v1](https://www.kiteprop.com/docs/api/v1).
 
-**JSON de difusión estática** (`static.kiteprop.com/.../externalsite-....json`): conviene declararlo en Vercel como `KITEPROP_PROPERTIES_JSON_URL` en **avalonweb** y **avalon-premier** (misma URL en ambos si comparten export). Así el catálogo sigue al export sin depender solo del snapshot del repo.
+El archivo `properties.json` del repo puede regenerarse manualmente desde un export JSON para **desarrollo o backup**; la app en producción no consume `KITEPROP_PROPERTIES_JSON_URL`.
 
 ## MCP vs visitante de la web
 

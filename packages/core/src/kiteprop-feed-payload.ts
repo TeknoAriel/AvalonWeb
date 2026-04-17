@@ -23,7 +23,7 @@ function rowLooksLikeKitepropApiV1Property(row: Record<string, unknown>): boolea
 }
 
 /**
- * Normaliza el cuerpo JSON de `KITEPROP_PROPERTIES_JSON_URL` (o un dump de respuesta API) a `RawProperty[]`.
+ * Normaliza el cuerpo JSON de un dump (p. ej. respuesta API o export) a `RawProperty[]`. El catálogo en runtime no usa URL de difusión; se mantiene para tests / herramientas.
  * Las filas con forma API v1 pasan por `mapKitepropApiV1PropertyToRaw` (tags vacíos + alias `property_tags`, etc.).
  * El export plano tipo `properties.json` se usa tal cual si no coincide la heurística API.
  */

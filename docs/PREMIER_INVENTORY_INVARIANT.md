@@ -14,11 +14,11 @@ Este documento define **reglas no negociables** para el listado Premier. Cualqui
 
 Implementación: `packages/core/src/kiteprop-catalog-load.ts` — `loadKitepropCatalogMerged`.
 
-1. Si hay API key (`KITEPROP_API_KEY` / `KITEPROP_API_TOKEN`) → **primero** `GET /api/v1/properties` (paginado). Si devuelve filas → **ese es el catálogo** (verdad CRM; tags Premier incluidos; un solo fetch).
-2. Si la API no está configurada, o falló, o devolvió vacío → `KITEPROP_PROPERTIES_JSON_URL` si responde (parse JSON).
-3. Si hay JSON y además API key pero el paso 1 no devolvió filas → se intenta fusionar API sobre JSON por **`id`** solo si no se reutilizó ya un resultado API vacío (evita doble fetch inútil).
-4. Siempre después: `mergePremierMetadataFromRepoSnapshot` con `packages/core/data/properties.json` (red de seguridad por `id`).
-5. Si nada sirve → solo snapshot del repo.
+1. Con API key (`KITEPROP_API_KEY` / `KITEPROP_API_TOKEN`) → `GET /api/v1/properties` (paginado). Si devuelve filas → **ese es el catálogo** (CRM; tags Premier).
+2. Siempre después: `mergePremierMetadataFromRepoSnapshot` con `packages/core/data/properties.json` (red de seguridad por `id`).
+3. Sin key, o API falla o vacía → **solo** snapshot del repo.
+
+**No** se usa URL de JSON de difusión (`KITEPROP_PROPERTIES_JSON_URL`) en runtime: se eliminó para evitar divergencias con la API y pérdida de tags Premier.
 
 Premier y Propiedades comparten la misma carga; Premier **solo** filtra con `hasPremierTag` en `getSitePropertiesFromRaw('premier', …)`.
 
@@ -27,7 +27,7 @@ Premier y Propiedades comparten la misma carga; Premier **solo** filtra con `has
 - En el **export JSON**, suele venir `tags: ["premier"]` de forma directa.
 - La **API v1** a veces devuelve **`tags: []`** o **`tags: ""`** mientras el dato útil está en **`property_tags`**, `kp_tags`, `tag_list`, etc.
 - Un **ingest / difusión nueva** puede dejar de mandar **cualquier** etiqueta Premier (ni en `tags` ni en alias). En ese caso **`hasPremierTag` sobre el remoto solo** da falso.
-- Mitigación en código: **suplemento API** (paso 2 arriba) + **`mergePremierMetadataFromRepoSnapshot`**: la API trae tags Premier que el JSON omitió; el snapshot del repo refuerza por `id` si aún falta señal.
+- Mitigación en código: catálogo **solo API** + **`mergePremierMetadataFromRepoSnapshot`** con el repo por `id` si hace falta reponer metadata.
 - Mitigación operativa: **`PREMIER_PROPERTY_IDS`** / **`NEXT_PUBLIC_PREMIER_PROPERTY_IDS`** (coma) para forzar IDs Premier cuando el export no trae nada y el snapshot aún no incluye ese `id`.
 - Usar **`p.tags ?? p.property_tags`** es **incorrecto**: `??` **no** sustituye arrays vacíos ni strings vacíos, así que se pierde el tag y **`hasPremierTag` da falso** → colección Premier vacía aunque el CRM esté bien.
 
@@ -52,7 +52,7 @@ No reintroducir `??` encadenado simple sobre estos campos sin pasar por esa lóg
 | Detección tag Premier | `packages/core/src/premier.ts` — `hasPremierTag`, `isPremierInventory` |
 | Partición por sitio | `packages/core/src/site-properties.ts` — `getSitePropertiesFromRaw` |
 | Mapper API → Raw | `packages/core/src/kiteprop-api-mapper.ts` — `pickFirstNonEmpty`, `mapKitepropApiV1PropertyToRaw` |
-| Carga cacheada Premier | `apps/avalon-premier/providers/kiteprop-feed.ts` |
+| Carga cacheada Premier | `apps/avalon-premier/providers/kiteprop-feed.ts` → `loadKitepropCatalogMerged` |
 | Listado página | `apps/avalon-premier/app/propiedades/page.tsx` |
 
 ## 7. Cambios futuros — checklist
@@ -66,4 +66,4 @@ Antes de mergear cambios en feed/mapper/filtros/Premier:
 
 ---
 
-*Última actualización: alineado con commits que fijaron `pickFirstNonEmpty` y la regla explícita en DATA_LAYER.*
+*Última actualización: catálogo solo API + snapshot; sin JSON de difusión en runtime.*

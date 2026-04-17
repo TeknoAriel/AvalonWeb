@@ -1,5 +1,5 @@
 /**
- * Feed de propiedades: JSON remoto opcional (`KITEPROP_PROPERTIES_JSON_URL`) o snapshot en core.
+ * Feed de propiedades: API KiteProp (con key) o snapshot en core (`loadKitepropCatalogMerged`).
  * Premier solo muestra activos con tag / flag Premier (`hasPremierTag` en @avalon/core).
  */
 import { getSitePropertiesFromRaw } from '@avalon/core';

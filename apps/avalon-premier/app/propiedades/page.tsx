@@ -89,12 +89,11 @@ export default async function PropertiesPage({
               <p className="mt-3">
                 El listado solo incluye avisos del feed marcados como Premier (tags, labels, flags o IDs en{' '}
                 <code className="rounded bg-brand-primary/5 px-1 text-xs">PREMIER_PROPERTY_IDS</code>). No hay
-                Elasticsearch: es filtrado en servidor sobre el JSON/API de KiteProp.
+                Elasticsearch: es filtrado en servidor sobre la API KiteProp (y snapshot si la API no está disponible).
               </p>
               <p className="mt-3 text-xs text-brand-text/50">
-                Si el feed remoto no trae etiquetas Premier, configurá la URL en{' '}
-                <code className="rounded bg-brand-primary/5 px-0.5">KITEPROP_PROPERTIES_JSON_URL</code> o los IDs
-                de prueba en entorno.
+                El catálogo sale de la API KiteProp con <code className="rounded bg-brand-primary/5 px-0.5">KITEPROP_API_KEY</code>; si falla, del snapshot del repo. Podés forzar IDs con{' '}
+                <code className="rounded bg-brand-primary/5 px-0.5">PREMIER_PROPERTY_IDS</code>.
               </p>
             </>
           ) : (
