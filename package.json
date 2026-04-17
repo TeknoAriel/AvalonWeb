@@ -2,6 +2,7 @@
   "name": "avalon-monorepo",
   "private": true,
   "scripts": {
+    "kp:verify-premier": "bash scripts/verify-kiteprop-api-premier.sh",
     "build": "turbo build",
     "dev": "turbo dev",
     "dev:avalon": "turbo dev --filter=avalon-propiedades",

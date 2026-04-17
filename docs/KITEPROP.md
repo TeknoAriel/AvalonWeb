@@ -37,6 +37,21 @@ No aparece en esa especificación un mecanismo paralelo tipo “enviar la misma 
 
 Copiá valores concretos desde `.env.example` (comentado) en cada app o en Vercel.
 
+## Verificación API desde terminal (Premier / tags)
+
+Para comprobar si **`GET …/properties`** devuelve marcadores Premier (sin pegar la key en el chat ni en el repo):
+
+1. En tu máquina, cargá la misma clave que en Vercel (solo en el shell o en `.env.local` gitignored):
+   - `export KP_KEY='kp_…'` **o** `export KITEPROP_API_KEY='kp_…'`
+   - Opcional: `export KITEPROP_API_BASE_URL=https://www.kiteprop.com/api/v1` (default del core)
+   - Opcional: `export KITEPROP_API_STATUS_FILTER=active` (igual que el fetch del catálogo por defecto)
+2. Desde la raíz del monorepo:
+   - `pnpm kp:verify-premier` **o** `python3 scripts/verify_kiteprop_api_premier.py`
+
+El script pagina como el cliente del core, cuenta filas por `status` **en ese filtro**, lista **IDs** donde detecta señal tipo Premier (`tags` / `property_tags` / flags / strings con la palabra *premier*) y muestra una muestra de `tags` de las primeras filas.
+
+**Nota:** con `status=active` solo ves el subconjunto “activos” que devuelve la API; para otros estados hay que cambiar `KITEPROP_API_STATUS_FILTER` y volver a correr (si tu tenant lo permite). La documentación interactiva: [API v1](https://www.kiteprop.com/docs/api/v1).
+
 ## Consultas web → CRM
 
 | Caso | Endpoint (tras `{host}` = `KITEPROP_API_URL` o deducido) | Cuerpo relevante |
