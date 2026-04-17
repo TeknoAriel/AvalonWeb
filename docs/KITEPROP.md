@@ -64,7 +64,7 @@ Copiá valores concretos desde `.env.example` (comentado) en cada app o en Verce
 
 ### Producción (Vercel) — checklist catálogo Premier
 
-- Si **GitHub dejó de disparar deploys** en Vercel sin tocar el código, el repo incluye **GitHub Actions** que publican con la CLI: `.github/workflows/deploy-avalon-premier.yml` y `deploy-avalon-propiedades.yml`. Hacen falta secrets en el repo: **`VERCEL_TOKEN`**, **`VERCEL_ORG_ID`**, **`VERCEL_PROJECT_ID`** (Premier) y opcional **`VERCEL_PROJECT_ID_PROPIEDADES`**. Token: [Vercel → Account → Tokens](https://vercel.com/account/tokens); IDs del proyecto en **Settings → General**.
+- **Deploy desde GitHub** (si la integración Git→Vercel no dispara builds): workflow **`.github/workflows/deploy-vercel.yml`**. Un solo secret **`VERCEL_TOKEN`** ([crear token](https://vercel.com/account/tokens)). Los nombres de proyecto y el team están en el YAML (`matrix` + `VERCEL_TEAM`); si el de propiedades falla, ajustá el `project` del matrix al slug exacto de Vercel (URL `vercel.com/<team>/<slug>`).
 - Declarar **`KITEPROP_API_KEY`** (o `KITEPROP_API_TOKEN`) en **los dos** proyectos: **avalon-premier** y **avalon-propiedades** (cada deploy tiene su propio env; si falta en Premier, el sitio cae al snapshot del repo, con muchos menos ítems Premier que la API).
 - El segmento Premier lee el flag **`premier` / `is_premier`** (y alias) en la fila API o anidado en **`attributes`**, **`meta`**, etc. Si el CRM solo marca Premier ahí, debe llegar en el JSON de `GET …/properties`.
 - **`CRON_SECRET`** en ambos si usás el cron de revalidación.

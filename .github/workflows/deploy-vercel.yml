@@ -1,0 +1,64 @@
+# Deploy a producción en Vercel (ambos sitios del monorepo).
+# Un solo secret: VERCEL_TOKEN (https://vercel.com/account/tokens)
+#
+# Team y nombres de proyecto salen de tu dashboard (URL: vercel.com/<team>/<project>).
+# Si falla el de propiedades, cambiá solo matrix.project para ese app.
+
+name: Deploy Vercel (Premier + Propiedades)
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: vercel-deploy-monorepo
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  VERCEL_TEAM: teknoariels-projects
+
+jobs:
+  deploy:
+    if: ${{ secrets.VERCEL_TOKEN != '' }}
+    name: ${{ matrix.label }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - label: avalon-premier
+            directory: apps/avalon-premier
+            project: avalon-premier
+          - label: avalon-propiedades
+            directory: apps/avalon-propiedades
+            # Subdominio canónico avalonweb.vercel.app → slug suele ser avalonweb; si falla el link, probá avalon-propiedades
+            project: avalonweb
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install dependencies (monorepo)
+        run: pnpm install --frozen-lockfile
+
+      - name: Link, build & deploy
+        working-directory: ${{ matrix.directory }}
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          set -eu
+          npx vercel@50.32.3 link --yes --project="${{ matrix.project }}" --scope="${{ env.VERCEL_TEAM }}" --token="$VERCEL_TOKEN"
+          npx vercel@50.32.3 pull --yes --environment=production --git-config=false --token="$VERCEL_TOKEN"
+          npx vercel@50.32.3 build --prod --token="$VERCEL_TOKEN"
+          npx vercel@50.32.3 deploy --prebuilt --prod --token="$VERCEL_TOKEN" --yes
