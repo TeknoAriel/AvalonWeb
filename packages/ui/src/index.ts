@@ -16,6 +16,7 @@ export {
   COMPARE_MAX,
   compareStorageKey,
   readCompareIds,
+  mergeCompareIdsWithFavorites,
   writeCompareIds,
   toggleCompareId,
   removeCompareId,

@@ -65,6 +65,7 @@ Copiá valores concretos desde `.env.example` (comentado) en cada app o en Verce
 ### Producción (Vercel) — checklist catálogo Premier
 
 - Declarar **`KITEPROP_API_KEY`** (o `KITEPROP_API_TOKEN`) en **los dos** proyectos: **avalon-premier** y **avalon-propiedades** (cada deploy tiene su propio env; si falta en Premier, el sitio cae al snapshot del repo, con muchos menos ítems Premier que la API).
+- El segmento Premier lee el flag **`premier` / `is_premier`** (y alias) en la fila API o anidado en **`attributes`**, **`meta`**, etc. Si el CRM solo marca Premier ahí, debe llegar en el JSON de `GET …/properties`.
 - **`CRON_SECRET`** en ambos si usás el cron de revalidación.
 - Si ves **403 / 1010** desde el servidor hacia KiteProp, probá **`KITEPROP_FETCH_USER_AGENT`** con un UA de navegador reciente; el core ya envía uno por defecto en `fetch` del catálogo y en consultas.
 

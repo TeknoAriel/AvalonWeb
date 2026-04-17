@@ -3,7 +3,7 @@
 import { buildCompareInsights, type CompareInsight } from '@avalon/core';
 import { isFeatureEnabled } from '@avalon/config';
 import type { NormalizedProperty, SiteType } from '@avalon/types';
-import { cn, formatMoneyAmount } from '@avalon/utils';
+import { cn, formatMoneyAmount, ENGAGEMENT_FAVORITES_EVENT } from '@avalon/utils';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
@@ -68,7 +68,15 @@ export function PropertyCompareView({
       if (ce.detail?.site === site) setIds(readCompareIds(site));
     };
     window.addEventListener(COMPARE_CHANGE_EVENT, onChange);
-    return () => window.removeEventListener(COMPARE_CHANGE_EVENT, onChange);
+    const onFav = (e: Event) => {
+      const ce = e as CustomEvent<{ site: SiteType }>;
+      if (ce.detail?.site === site) setIds(readCompareIds(site));
+    };
+    window.addEventListener(ENGAGEMENT_FAVORITES_EVENT, onFav);
+    return () => {
+      window.removeEventListener(COMPARE_CHANGE_EVENT, onChange);
+      window.removeEventListener(ENGAGEMENT_FAVORITES_EVENT, onFav);
+    };
   }, [site]);
 
   useEffect(() => {

@@ -30,6 +30,7 @@ export {
   ENGAGEMENT_SAVED_EVENT,
   isFavorite,
   readFavoriteSnapshots,
+  removeFavoriteById,
   readRecentSnapshots,
   readSavedSearches,
   recordPropertyView,

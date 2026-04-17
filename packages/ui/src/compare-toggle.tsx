@@ -3,6 +3,7 @@
 import type { SiteType } from '@avalon/types';
 import { cn } from '@avalon/utils';
 import { useEffect, useState } from 'react';
+import { ENGAGEMENT_FAVORITES_EVENT } from '@avalon/utils';
 import {
   COMPARE_CHANGE_EVENT,
   COMPARE_MAX,
@@ -30,7 +31,11 @@ export function CompareToggle({ site, propertyId, variant, className }: CompareT
       if (ce.detail?.site === site) sync();
     };
     window.addEventListener(COMPARE_CHANGE_EVENT, onChange);
-    return () => window.removeEventListener(COMPARE_CHANGE_EVENT, onChange);
+    window.addEventListener(ENGAGEMENT_FAVORITES_EVENT, onChange);
+    return () => {
+      window.removeEventListener(COMPARE_CHANGE_EVENT, onChange);
+      window.removeEventListener(ENGAGEMENT_FAVORITES_EVENT, onChange);
+    };
   }, [site, propertyId]);
 
   return (

@@ -1,4 +1,5 @@
 import type { RawProperty } from '@avalon/types';
+import { nestedRecordPremierCandidates } from './kiteprop-api-mapper';
 
 const PREMIER_NORMALIZED = 'premier';
 
@@ -30,6 +31,7 @@ function restCatalogPremierFlag(raw: RawProperty): boolean | null {
     o['premier_flag'],
     raw.premier,
     raw.is_premier,
+    ...nestedRecordPremierCandidates(o),
   ];
   let anyFalse = false;
   for (const v of candidates) {

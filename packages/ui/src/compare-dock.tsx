@@ -1,7 +1,7 @@
 'use client';
 
 import type { SiteType } from '@avalon/types';
-import { cn } from '@avalon/utils';
+import { cn, ENGAGEMENT_FAVORITES_EVENT } from '@avalon/utils';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { COMPARE_CHANGE_EVENT, readCompareIds } from './compare-storage';
@@ -23,7 +23,15 @@ export function CompareDock({ site, variant, compareHref }: CompareDockProps) {
       if (ce.detail?.site === site) update();
     };
     window.addEventListener(COMPARE_CHANGE_EVENT, onChange);
-    return () => window.removeEventListener(COMPARE_CHANGE_EVENT, onChange);
+    const onFav = (e: Event) => {
+      const ce = e as CustomEvent<{ site: SiteType }>;
+      if (ce.detail?.site === site) update();
+    };
+    window.addEventListener(ENGAGEMENT_FAVORITES_EVENT, onFav);
+    return () => {
+      window.removeEventListener(COMPARE_CHANGE_EVENT, onChange);
+      window.removeEventListener(ENGAGEMENT_FAVORITES_EVENT, onFav);
+    };
   }, [site]);
 
   if (count === 0) return null;

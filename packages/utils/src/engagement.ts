@@ -65,6 +65,18 @@ export function isFavorite(site: SiteType, id: number): boolean {
   return readFavoriteSnapshots(site).some((x) => x.id === id);
 }
 
+/** Quita un favorito por id (p. ej. al sacarlo del conjunto comparar cuando solo estaba en ☆ Fav). */
+export function removeFavoriteById(site: SiteType, id: number): boolean {
+  const cur = readFavoriteSnapshots(site);
+  if (!cur.some((x) => x.id === id)) return false;
+  writeFavoriteSnapshots(
+    site,
+    cur.filter((x) => x.id !== id),
+  );
+  trackAvalonEvent('property_unfavorited', { property_id: id, site });
+  return true;
+}
+
 export function toggleFavoriteSnapshot(site: SiteType, snap: FavoriteSnapshot): boolean {
   const cur = readFavoriteSnapshots(site);
   const idx = cur.findIndex((x) => x.id === snap.id);
