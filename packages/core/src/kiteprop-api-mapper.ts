@@ -42,11 +42,27 @@ function isEmptyFeedShard(v: unknown): boolean {
   return false;
 }
 
+/** Claves donde KiteProp suele colgar etiquetas (API, export, difusiones). Alineado con heurísticas en `premier.ts`. */
+export const KITEPROP_TAG_FIELD_ALIASES = [
+  'tags',
+  'property_tags',
+  'kp_tags',
+  'tag_list',
+  'tag_names',
+  'difusion_tags',
+  'web_tags',
+  'public_tags',
+  'featured_tags',
+] as const;
+
+const KITEPROP_LABEL_FIELD_ALIASES = ['labels', 'label_list'] as const;
+const KITEPROP_CATEGORY_FIELD_ALIASES = ['categories', 'collections', 'groups'] as const;
+
 /**
  * El export JSON suele llevar `tags: ["premier"]`. La API a veces manda `tags: []` o `""` y el dato útil
  * está en `property_tags` / alias. `??` no sustituye arrays vacíos; por eso se elige el primer campo con contenido.
  */
-function pickFirstNonEmpty(p: Record<string, unknown>, keys: string[]): unknown {
+function pickFirstNonEmpty(p: Record<string, unknown>, keys: readonly string[]): unknown {
   for (const key of keys) {
     const v = p[key];
     if (v === undefined || v === null) continue;
@@ -172,9 +188,9 @@ export function mapKitepropApiV1PropertyToRaw(p: Record<string, unknown>): RawPr
     link_360_iframe: p.link_360 != null ? str(p.link_360) : null,
     agency: emptyAgency,
     agent,
-    tags: pickFirstNonEmpty(p, ['tags', 'property_tags', 'kp_tags', 'tag_list', 'tag_names']),
-    labels: pickFirstNonEmpty(p, ['labels', 'label_list']),
-    categories: pickFirstNonEmpty(p, ['categories', 'collections']),
+    tags: pickFirstNonEmpty(p, KITEPROP_TAG_FIELD_ALIASES),
+    labels: pickFirstNonEmpty(p, KITEPROP_LABEL_FIELD_ALIASES),
+    categories: pickFirstNonEmpty(p, KITEPROP_CATEGORY_FIELD_ALIASES),
     premier: coalesceOptionalBool(p.premier, p.avalon_premier, p['premier_flag']),
     is_premier: coalesceOptionalBool(p.is_premier, p.isPremier),
   };
@@ -185,30 +201,37 @@ export function mapKitepropApiV1PropertyToRaw(p: Record<string, unknown>): RawPr
 /**
  * Completa `tags`/`labels`/`categories` y flags Premier desde alias típicos del CRM cuando el export
  * trae `tags: []` u omite el campo pero el dato vive en otra clave del mismo objeto.
+ *
+ * @param sourceRow Fila original del JSON/API **antes** de `mapKitepropApiV1PropertyToRaw`. Si el mapper
+ *   no copia claves extra, igual podemos leer `property_tags` / `difusion_tags` desde acá (evita perder Premier).
  */
-export function enrichRawPropertyFromKitepropAliases(raw: RawProperty): RawProperty {
-  const p = raw as unknown as Record<string, unknown>;
+export function enrichRawPropertyFromKitepropAliases(
+  raw: RawProperty,
+  sourceRow?: Record<string, unknown>,
+): RawProperty {
+  const rawRec = raw as unknown as Record<string, unknown>;
+  const src = sourceRow ?? rawRec;
   const next: RawProperty = { ...raw };
 
   if (isEmptyFeedShard(raw.tags)) {
-    const t = pickFirstNonEmpty(p, ['tags', 'property_tags', 'kp_tags', 'tag_list', 'tag_names']);
+    const t = pickFirstNonEmpty(src, KITEPROP_TAG_FIELD_ALIASES);
     if (t !== undefined) next.tags = t as RawProperty['tags'];
   }
   if (isEmptyFeedShard(raw.labels)) {
-    const t = pickFirstNonEmpty(p, ['labels', 'label_list']);
+    const t = pickFirstNonEmpty(src, KITEPROP_LABEL_FIELD_ALIASES);
     if (t !== undefined) next.labels = t as RawProperty['labels'];
   }
   if (isEmptyFeedShard(raw.categories)) {
-    const t = pickFirstNonEmpty(p, ['categories', 'collections']);
+    const t = pickFirstNonEmpty(src, KITEPROP_CATEGORY_FIELD_ALIASES);
     if (t !== undefined) next.categories = t as RawProperty['categories'];
   }
 
   if (raw.premier === undefined) {
-    const b = coalesceOptionalBool(p.premier, p.avalon_premier, p['premier_flag']);
+    const b = coalesceOptionalBool(src.premier, src.avalon_premier, src['premier_flag']);
     if (b !== undefined) next.premier = b;
   }
   if (raw.is_premier === undefined) {
-    const b = coalesceOptionalBool(p.is_premier, p.isPremier);
+    const b = coalesceOptionalBool(src.is_premier, src.isPremier);
     if (b !== undefined) next.is_premier = b;
   }
 

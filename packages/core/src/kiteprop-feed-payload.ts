@@ -7,6 +7,7 @@ export function extractKitepropPropertyFeedRows(payload: unknown): Record<string
   if (payload && typeof payload === 'object') {
     const o = payload as Record<string, unknown>;
     if (Array.isArray(o.data)) return o.data as Record<string, unknown>[];
+    if (Array.isArray(o.properties)) return o.properties as Record<string, unknown>[];
     const inner = o.data;
     if (inner && typeof inner === 'object' && Array.isArray((inner as Record<string, unknown>).data)) {
       return (inner as Record<string, unknown>).data as Record<string, unknown>[];
@@ -36,7 +37,7 @@ export function parseKitepropPropertyFeedJsonPayload(payload: unknown): RawPrope
       ? mapKitepropApiV1PropertyToRaw(r)
       : (r as unknown as RawProperty);
     if (!base?.id) continue;
-    out.push(enrichRawPropertyFromKitepropAliases(base));
+    out.push(enrichRawPropertyFromKitepropAliases(base, r));
   }
   return out;
 }

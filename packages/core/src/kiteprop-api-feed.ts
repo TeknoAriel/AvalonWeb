@@ -84,7 +84,7 @@ export async function fetchKitepropPropertyFeedAsRaw(
     const rows = extractKitepropPropertyFeedRows(json);
     for (const row of rows) {
       const mapped = mapKitepropApiV1PropertyToRaw(row);
-      if (mapped) all.push(enrichRawPropertyFromKitepropAliases(mapped));
+      if (mapped) all.push(enrichRawPropertyFromKitepropAliases(mapped, row));
     }
 
     const pag = extractPagination(json);

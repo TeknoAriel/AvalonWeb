@@ -28,7 +28,11 @@ export {
   kitepropApiFeedConfigured,
 } from './kiteprop-api-feed';
 export { extractKitepropPropertyFeedRows, parseKitepropPropertyFeedJsonPayload } from './kiteprop-feed-payload';
-export { enrichRawPropertyFromKitepropAliases, mapKitepropApiV1PropertyToRaw } from './kiteprop-api-mapper';
+export {
+  enrichRawPropertyFromKitepropAliases,
+  mapKitepropApiV1PropertyToRaw,
+  KITEPROP_TAG_FIELD_ALIASES,
+} from './kiteprop-api-mapper';
 export { postConsultaToKiteprop, type KitepropConsultaInput, type KitepropConsultaResult } from './kiteprop-consulta';
 export { submitWebConsulta, type WebConsultaSource } from './consultas-submission';
 export { isPubliclyListed, isPubliclyListedForSite } from './listing-rules';
