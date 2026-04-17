@@ -2,6 +2,44 @@ import type { RawProperty } from '@avalon/types';
 
 const PREMIER_NORMALIZED = 'premier';
 
+/** Valores explícitos en JSON/API (boolean, 1/0, strings típicos del CRM). */
+function explicitPremierBool(v: unknown): boolean | null {
+  if (v === undefined || v === null) return null;
+  if (v === true || v === 1) return true;
+  if (v === false || v === 0) return false;
+  if (typeof v === 'string') {
+    const s = v.trim().toLowerCase();
+    if (['1', 'true', 'yes', 'y', 'on', 'si', 'sí'].includes(s)) return true;
+    if (['0', 'false', 'no', 'off'].includes(s)) return false;
+  }
+  return null;
+}
+
+/**
+ * Catálogo REST KiteProp: si `premier` / `is_premier` (y alias) vienen definidos, eso define el segmento.
+ * Cualquier `true` → Premier; si no hay `true` y hay algún `false` explícito → no Premier.
+ * Si no mandan flags, se sigue con tags/labels y overrides (snapshot / difusiones legacy).
+ */
+function restCatalogPremierFlag(raw: RawProperty): boolean | null {
+  const o = raw as unknown as Record<string, unknown>;
+  const candidates: unknown[] = [
+    o.premier,
+    o.is_premier,
+    o.isPremier,
+    o.avalon_premier,
+    o['premier_flag'],
+    raw.premier,
+    raw.is_premier,
+  ];
+  let anyFalse = false;
+  for (const v of candidates) {
+    const e = explicitPremierBool(v);
+    if (e === true) return true;
+    if (e === false) anyFalse = true;
+  }
+  return anyFalse ? false : null;
+}
+
 function equalsPremierToken(value: string): boolean {
   return value.trim().toLowerCase() === PREMIER_NORMALIZED;
 }
@@ -65,9 +103,11 @@ function scanMaybeJsonStringArray(value: string): boolean {
 }
 
 export function hasPremierTag(raw: RawProperty): boolean {
-  if (raw.premier === true || raw.is_premier === true) return true;
-
   if (premierOverrideIds().has(raw.id)) return true;
+
+  const rest = restCatalogPremierFlag(raw);
+  if (rest === false) return false;
+  if (rest === true) return true;
 
   if (raw.tags !== undefined) {
     if (typeof raw.tags === 'string') {

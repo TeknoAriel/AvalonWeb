@@ -21,6 +21,21 @@ Documento canónico para **variables de entorno**, **lectura de catálogo** y **
 
 **Recomendación:** mantener **cron + ISR** como base estable. Si KiteProp ofrece webhook oficial a tu stack, se puede añadir una ruta tipo `POST /api/revalidate` (o dedicada) que invalide `KITEPROP_PROPERTY_FEED_TAG` sin reemplazar el cron (el cron sigue cubriendo cambios que no disparen webhook).
 
+### Cron en Vercel: variables y valores
+
+| Nombre | Qué ponés |
+|--------|-----------|
+| **`CRON_SECRET`** | Un secreto largo solo servidor (ej. salida de `openssl rand -hex 32`). Lo definís en **Vercel → Project → Settings → Environment Variables** en cada proyecto que use el cron (`avalon-propiedades`, `avalon-premier`). Podés usar el **mismo** valor en ambos para simplificar. |
+
+**Comportamiento:** Vercel Cron hace **`GET /api/cron/refresh-catalog`** a tu dominio. Si `CRON_SECRET` está definido en el proyecto, Vercel envía **`Authorization: Bearer <CRON_SECRET>`**; la ruta solo revalida si esa cabecera coincide con `process.env.CRON_SECRET`. Sin variable → respuesta **503** y no hay revalidación.
+
+**Frecuencia:** en cada app, `vercel.json` declara el cron cada **2 horas** (`0 */2 * * *`).
+
+**No hay otras variables específicas del cron:** para releer el catálogo siguen valiendo `KITEPROP_API_KEY`, `KITEPROP_API_BASE_URL`, etc.
+
+**Prueba manual:**  
+`curl -sS -H "Authorization: Bearer TU_CRON_SECRET" "https://<tu-dominio>/api/cron/refresh-catalog"`
+
 ## Autenticación REST (API v1 oficial)
 
 Resumen tomado del **apidoc publicado** por KiteProp (misma fuente que alimenta [API v1 — documentación](https://www.kiteprop.com/docs/api/v1); JSON: `https://www.kiteprop.com/docs/api/v1/api_data.json`, bloque *API Key Auth* / `ApiKeyAuth`):
@@ -43,6 +58,7 @@ No aparece en esa especificación un mecanismo paralelo tipo “enviar la misma 
 | `KITEPROP_API_NO_ACTIVE_UNPUBLISHED` | Si vale `1`, el listado API **no** concatena `active_unpublished` cuando el filtro es solo `active` (por defecto **sí** se concatena, para alinear con fichas Premier listables como unpublished). |
 | `KITEPROP_API_URL` | Host **sin** `/api/v1` para POST de consultas (ej. `https://www.kiteprop.com`). Si no está, se deduce de `KITEPROP_API_BASE_URL`. |
 | `KITEPROP_API_CONSULTA_URL` | **Opcional.** Si está definida, **todas** las consultas van a esa URL con cuerpo **legacy** (`full_name`, `body`, `property_id`, etc.). Solo para tenants con endpoint distinto acordado con soporte. |
+| `CRON_SECRET` | Secreto del **cron** de revalidación (`GET /api/cron/refresh-catalog`). Ver tabla arriba en **Cron en Vercel**. |
 
 Copiá valores concretos desde `.env.example` (comentado) en cada app o en Vercel.
 
