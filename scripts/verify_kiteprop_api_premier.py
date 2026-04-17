@@ -129,7 +129,10 @@ def main() -> int:
     key = env_key()
     if not key:
         print(
-            "Falta clave: exportá KP_KEY=... o KITEPROP_API_KEY / KITEPROP_API_TOKEN (no la pegues en el repo).",
+            "Falta clave en el entorno del proceso hijo.\n"
+            "  Usá: export KP_KEY='kp_…'   (solo KP_KEY=… sin «export» no la ven pnpm/python).\n"
+            "  O: export KITEPROP_API_KEY=… / KITEPROP_API_TOKEN=…\n"
+            "No commitees la key; .env.local está en .gitignore.",
             file=sys.stderr,
         )
         return 2

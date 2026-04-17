@@ -41,7 +41,7 @@ Copiá valores concretos desde `.env.example` (comentado) en cada app o en Verce
 
 Para comprobar si **`GET …/properties`** devuelve marcadores Premier (sin pegar la key en el chat ni en el repo):
 
-1. En tu máquina, cargá la misma clave que en Vercel (solo en el shell o en `.env.local` gitignored):
+1. En tu máquina, cargá la misma clave que en Vercel (solo en el shell o en `.env.local` gitignored). Tiene que ser **`export`**: si escribís solo `KP_KEY=…` en la línea, `pnpm` / `python` hijos **no** ven la variable.
    - `export KP_KEY='kp_…'` **o** `export KITEPROP_API_KEY='kp_…'`
    - Opcional: `export KITEPROP_API_BASE_URL=https://www.kiteprop.com/api/v1` (default del core)
    - Opcional: `export KITEPROP_API_STATUS_FILTER=active` (igual que el fetch del catálogo por defecto)
