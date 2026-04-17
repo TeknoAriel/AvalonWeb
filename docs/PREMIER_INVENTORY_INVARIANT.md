@@ -24,6 +24,9 @@ Premier y Propiedades pueden compartir la misma URL de JSON en Vercel; Premier *
 
 - En el **export JSON**, suele venir `tags: ["premier"]` de forma directa.
 - La **API v1** a veces devuelve **`tags: []`** o **`tags: ""`** mientras el dato útil está en **`property_tags`**, `kp_tags`, `tag_list`, etc.
+- Un **ingest / difusión nueva** puede dejar de mandar **cualquier** etiqueta Premier (ni en `tags` ni en alias). En ese caso **`hasPremierTag` sobre el remoto solo** da falso.
+- Mitigación en código: **`mergePremierMetadataFromRepoSnapshot`** (tras cargar JSON/API) recompone por **`id`** con `packages/core/data/properties.json` del repo: copia `tags` / `labels` / `categories` / flags y **claves auxiliares** (`property_tags`, `difusion_tags`, …) que el snapshot ya tenía curadas. Si el remoto trae otras etiquetas sin Premier, un segundo paso copia desde el snapshot hasta recuperar la señal.
+- Mitigación operativa: **`PREMIER_PROPERTY_IDS`** / **`NEXT_PUBLIC_PREMIER_PROPERTY_IDS`** (coma) para forzar IDs Premier cuando el export no trae nada y el snapshot aún no incluye ese `id`.
 - Usar **`p.tags ?? p.property_tags`** es **incorrecto**: `??` **no** sustituye arrays vacíos ni strings vacíos, así que se pierde el tag y **`hasPremierTag` da falso** → colección Premier vacía aunque el CRM esté bien.
 
 **Obligatorio** en el mapper API (`packages/core/src/kiteprop-api-mapper.ts`): usar **`pickFirstNonEmpty`** (o equivalente) para `tags`, `labels` y `categories`, recorriendo alias en orden hasta encontrar el **primer valor con contenido**.

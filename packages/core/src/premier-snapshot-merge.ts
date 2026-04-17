@@ -15,6 +15,37 @@ function preferSnapshotField(prev: unknown, cur: unknown): unknown {
 }
 
 /**
+ * Campos que `hasPremierTag` puede usar (además de `tags` / `labels` / `categories` en `RawProperty`).
+ * Si un ingest nuevo deja de mandar `tags` pero el CRM mandaba Premier en `property_tags` / difusión, el
+ * merge debe poder copiar esas claves desde el snapshot por `id`.
+ */
+const PREMIER_SNAPSHOT_FIELD_KEYS: readonly string[] = [
+  'tags',
+  'labels',
+  'categories',
+  'premier',
+  'is_premier',
+  'property_tags',
+  'property_tag_names',
+  'tag_names',
+  'tag_list',
+  'kp_tags',
+  'difusion_tags',
+  'web_tags',
+  'public_tags',
+  'featured_tags',
+  'groups',
+  'collections',
+  'segment',
+  'collection',
+  'tier',
+  'class',
+  'tag',
+  'tag_slug',
+  'tier_slug',
+];
+
+/**
  * Si el feed remoto/API omitió tags Premier pero el snapshot del repo los tenía para el mismo `id`,
  * copia tags y flags para no perder curaduría cuando la difusión KiteProp deja de exportar etiquetas.
  * No inventa IDs nuevos: solo alinea filas que ya existían etiquetadas en el snapshot versionado.
@@ -28,13 +59,25 @@ export function mergePremierMetadataFromRepoSnapshot(
     if (hasPremierTag(r)) return r;
     const prev = byId.get(r.id);
     if (!prev || !hasPremierTag(prev)) return r;
-    return {
-      ...r,
-      tags: preferSnapshotField(prev.tags, r.tags) as RawProperty['tags'],
-      labels: preferSnapshotField(prev.labels, r.labels) as RawProperty['labels'],
-      categories: preferSnapshotField(prev.categories, r.categories) as RawProperty['categories'],
-      premier: prev.premier !== undefined && prev.premier !== null ? prev.premier : r.premier,
-      is_premier: prev.is_premier !== undefined && prev.is_premier !== null ? prev.is_premier : r.is_premier,
-    };
+
+    const merged: Record<string, unknown> = { ...r };
+    const p = prev as unknown as Record<string, unknown>;
+
+    for (const key of PREMIER_SNAPSHOT_FIELD_KEYS) {
+      merged[key] = preferSnapshotField(p[key], merged[key]);
+    }
+
+    let out = merged as unknown as RawProperty;
+    if (!hasPremierTag(out)) {
+      for (const key of PREMIER_SNAPSHOT_FIELD_KEYS) {
+        const pv = p[key];
+        if (isVirtuallyEmpty(pv)) continue;
+        merged[key] = pv;
+        out = merged as unknown as RawProperty;
+        if (hasPremierTag(out)) break;
+      }
+    }
+
+    return out;
   });
 }
