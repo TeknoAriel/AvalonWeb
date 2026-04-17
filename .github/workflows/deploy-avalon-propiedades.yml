@@ -1,0 +1,60 @@
+# Igual que deploy-avalon-premier.yml pero para avalon-propiedades.
+# Secrets: VERCEL_TOKEN, VERCEL_ORG_ID (mismo team), VERCEL_PROJECT_ID_PROPIEDADES (prj_ del proyecto avalon-propiedades).
+
+name: Deploy Avalon Propiedades (Vercel)
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: vercel-deploy-avalon-propiedades
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Vercel production (avalon-propiedades)
+    runs-on: ubuntu-latest
+    if: ${{ secrets.VERCEL_TOKEN != '' && secrets.VERCEL_ORG_ID != '' && secrets.VERCEL_PROJECT_ID_PROPIEDADES != '' }}
+
+    env:
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_PROPIEDADES }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install dependencies (monorepo)
+        run: pnpm install --frozen-lockfile
+
+      - name: Link Vercel project for CI
+        working-directory: apps/avalon-propiedades
+        run: |
+          mkdir -p .vercel
+          jq -n --arg org "$VERCEL_ORG_ID" --arg prj "$VERCEL_PROJECT_ID" '{orgId:$org, projectId:$prj}' > .vercel/project.json
+
+      - name: Pull Vercel environment (production)
+        working-directory: apps/avalon-propiedades
+        run: npx vercel@50.32.3 pull --yes --environment=production --git-config=false --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Vercel build (production)
+        working-directory: apps/avalon-propiedades
+        run: npx vercel@50.32.3 build --prod --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Vercel deploy (prebuilt → production)
+        working-directory: apps/avalon-propiedades
+        run: npx vercel@50.32.3 deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}

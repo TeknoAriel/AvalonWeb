@@ -1,0 +1,69 @@
+# Deploy production para avalon-premier vía Vercel CLI.
+# Útil cuando la integración GitHub→Vercel no dispara builds (webhooks / permisos / repo renombrado).
+#
+# Configuración (GitHub → Settings → Secrets and variables → Actions → New repository secret):
+#   VERCEL_TOKEN       https://vercel.com/account/tokens (scope del team del proyecto)
+#   VERCEL_ORG_ID      Team ID (Vercel → Team Settings → Team ID), ej. team_xxx
+#   VERCEL_PROJECT_ID  Project ID (Proyecto avalon-premier → Settings → General → Project ID), ej. prj_xxx
+#
+# Opcional: desactivá "Automatic deployments from Git" en el proyecto Vercel si querés evitar doble deploy
+# cuando la integración Git vuelva a funcionar.
+
+name: Deploy Avalon Premier (Vercel)
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: vercel-deploy-avalon-premier
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Vercel production (avalon-premier)
+    runs-on: ubuntu-latest
+    # Sin secretos el job se omite (no rompe CI del resto del equipo hasta que los configuren).
+    if: ${{ secrets.VERCEL_TOKEN != '' && secrets.VERCEL_ORG_ID != '' && secrets.VERCEL_PROJECT_ID != '' }}
+
+    env:
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install dependencies (monorepo)
+        run: pnpm install --frozen-lockfile
+
+      - name: Link Vercel project for CI
+        working-directory: apps/avalon-premier
+        run: |
+          mkdir -p .vercel
+          jq -n --arg org "$VERCEL_ORG_ID" --arg prj "$VERCEL_PROJECT_ID" '{orgId:$org, projectId:$prj}' > .vercel/project.json
+
+      - name: Pull Vercel environment (production)
+        working-directory: apps/avalon-premier
+        run: npx vercel@50.32.3 pull --yes --environment=production --git-config=false --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Vercel build (production)
+        working-directory: apps/avalon-premier
+        run: npx vercel@50.32.3 build --prod --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Vercel deploy (prebuilt → production)
+        working-directory: apps/avalon-premier
+        run: npx vercel@50.32.3 deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
