@@ -23,6 +23,7 @@ export {
   getPropertyByIdFromRaw,
   getRelatedProperties,
   getRelatedPropertiesFromRaw,
+  getNormalizedPropertiesByIdsForSite,
 } from './site-properties';
 export {
   fetchKitepropPropertyFeedAsRaw,

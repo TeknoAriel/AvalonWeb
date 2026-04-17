@@ -63,3 +63,25 @@ export function getRelatedProperties(
 ): NormalizedProperty[] {
   return getRelatedPropertiesFromRaw(site, current, ALL_RAW_PROPERTIES, limit);
 }
+
+/**
+ * Resuelve IDs guardados para comparar (p. ej. localStorage) contra el catálogo actual.
+ * Misma regla que el listado: sitio + listado público + gate de calidad Premier.
+ */
+export function getNormalizedPropertiesByIdsForSite(
+  site: SiteType,
+  ids: number[],
+  rawList: RawProperty[],
+): NormalizedProperty[] {
+  const ordered: NormalizedProperty[] = [];
+  const seen = new Set<number>();
+  for (const id of ids) {
+    if (!Number.isFinite(id) || seen.has(id)) continue;
+    const p = getPropertyByIdFromRaw(site, id, rawList);
+    if (!p) continue;
+    if (site === 'premier' && !passesPremierListingQualityGate(p)) continue;
+    ordered.push(p);
+    seen.add(id);
+  }
+  return ordered;
+}

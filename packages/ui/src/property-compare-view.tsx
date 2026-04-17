@@ -57,6 +57,8 @@ export function PropertyCompareView({
 }: PropertyCompareViewProps) {
   const [ids, setIds] = useState<number[]>([]);
   const [mounted, setMounted] = useState(false);
+  const [resolvedExtras, setResolvedExtras] = useState<NormalizedProperty[]>([]);
+  const [resolveStatus, setResolveStatus] = useState<'idle' | 'loading' | 'done'>('idle');
 
   useEffect(() => {
     setMounted(true);
@@ -69,15 +71,57 @@ export function PropertyCompareView({
     return () => window.removeEventListener(COMPARE_CHANGE_EVENT, onChange);
   }, [site]);
 
+  useEffect(() => {
+    if (!mounted) return;
+    const fromProps = new Map(properties.map((p) => [p.id, p]));
+    const missing = ids.filter((id) => !fromProps.has(id));
+    if (missing.length === 0) {
+      setResolvedExtras([]);
+      setResolveStatus('done');
+      return;
+    }
+    setResolveStatus('loading');
+    let cancelled = false;
+    void fetch('/api/compare-resolve', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ids: missing }),
+    })
+      .then(async (r) => {
+        if (!r.ok) throw new Error(String(r.status));
+        return r.json() as Promise<{ properties?: NormalizedProperty[] }>;
+      })
+      .then((data) => {
+        if (!cancelled) setResolvedExtras(Array.isArray(data.properties) ? data.properties : []);
+      })
+      .catch(() => {
+        if (!cancelled) setResolvedExtras([]);
+      })
+      .finally(() => {
+        if (!cancelled) setResolveStatus('done');
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [mounted, ids, properties]);
+
   const selected = useMemo(() => {
-    const map = new Map(properties.map((p) => [p.id, p]));
+    const map = new Map<number, NormalizedProperty>();
+    for (const p of properties) map.set(p.id, p);
+    for (const p of resolvedExtras) map.set(p.id, p);
     return ids.map((id) => map.get(id)).filter((p): p is NormalizedProperty => Boolean(p));
-  }, [ids, properties]);
+  }, [ids, properties, resolvedExtras]);
 
   const insights: CompareInsight[] = useMemo(() => {
     if (!isFeatureEnabled('compare_insights')) return [];
     return buildCompareInsights(selected);
   }, [selected]);
+
+  const missingIdsAfterResolve = useMemo(() => {
+    if (!mounted || resolveStatus !== 'done' || ids.length === 0) return [];
+    const have = new Set(selected.map((p) => p.id));
+    return ids.filter((id) => !have.has(id));
+  }, [mounted, resolveStatus, ids, selected]);
 
   if (!mounted) {
     return (
@@ -88,6 +132,33 @@ export function PropertyCompareView({
   }
 
   if (selected.length === 0) {
+    if (ids.length > 0 && resolveStatus !== 'done') {
+      return (
+        <p className={variant === 'avalon' ? 'text-brand-muted' : 'text-brand-text/65'}>
+          Cargando datos de las propiedades seleccionadas…
+        </p>
+      );
+    }
+    if (ids.length > 0 && resolveStatus === 'done') {
+      return (
+        <div className="space-y-4">
+          <p className={variant === 'avalon' ? 'text-brand-muted' : 'text-brand-text/65'}>
+            No pudimos mostrar esas propiedades en el catálogo actual (pueden haber salido del listado o los IDs
+            guardados en el navegador están desactualizados). Probá elegirlas de nuevo desde el listado.
+          </p>
+          <Link
+            href={propertyPathPrefix}
+            className={
+              variant === 'avalon'
+                ? 'inline-block text-sm font-semibold text-brand-primary underline'
+                : 'inline-block text-xs uppercase tracking-caps text-brand-accent'
+            }
+          >
+            Ir al listado
+          </Link>
+        </div>
+      );
+    }
     return (
       <div className="space-y-4">
         <p className={variant === 'avalon' ? 'text-brand-muted' : 'text-brand-text/65'}>
@@ -119,6 +190,19 @@ export function PropertyCompareView({
 
   return (
     <div className="space-y-6">
+      {missingIdsAfterResolve.length > 0 ? (
+        <p
+          className={
+            variant === 'avalon'
+              ? 'rounded-md border border-amber-200/80 bg-amber-50/90 px-3 py-2 text-sm text-amber-950'
+              : 'rounded-md border border-brand-accent/25 bg-brand-surface-alt/80 px-3 py-2 text-sm text-brand-text/75'
+          }
+        >
+          {missingIdsAfterResolve.length === 1
+            ? 'Una propiedad ya no está disponible en este sitio; el resto se muestra abajo.'
+            : 'Algunas propiedades ya no están disponibles en este sitio; el resto se muestra abajo.'}
+        </p>
+      ) : null}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <p className={variant === 'avalon' ? 'text-sm text-brand-muted' : 'text-sm text-brand-text/65'}>
           Comparando {selected.length} de 5 propiedades
@@ -154,6 +238,20 @@ export function PropertyCompareView({
             </li>
           ))}
         </ul>
+      ) : null}
+
+      {selected.length >= 2 && insights.length === 0 ? (
+        <p
+          className={
+            variant === 'avalon'
+              ? 'text-sm text-brand-muted'
+              : 'text-sm text-brand-text/60'
+          }
+        >
+          {isFeatureEnabled('compare_insights')
+            ? 'No generamos un resumen automático para este conjunto (precios ocultos, misma operación sin contraste, etc.). La tabla de abajo compara todas las filas.'
+            : 'El resumen automático no está activo en este sitio. La tabla de abajo compara todas las filas.'}
+        </p>
       ) : null}
 
       <div className="-mx-4 overflow-x-auto md:mx-0">

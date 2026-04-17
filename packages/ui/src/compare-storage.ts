@@ -8,6 +8,15 @@ export function compareStorageKey(site: SiteType): string {
   return `avalon_compare_ids_${site}`;
 }
 
+function coerceCompareId(x: unknown): number | null {
+  if (typeof x === 'number' && Number.isFinite(x)) return Math.trunc(x);
+  if (typeof x === 'string') {
+    const n = Number.parseInt(x, 10);
+    return Number.isFinite(n) ? n : null;
+  }
+  return null;
+}
+
 export function readCompareIds(site: SiteType): number[] {
   if (typeof window === 'undefined') return [];
   try {
@@ -15,7 +24,13 @@ export function readCompareIds(site: SiteType): number[] {
     if (!raw) return [];
     const parsed = JSON.parse(raw) as unknown;
     if (!Array.isArray(parsed)) return [];
-    return parsed.filter((x): x is number => typeof x === 'number').slice(0, COMPARE_MAX);
+    const ids: number[] = [];
+    for (const x of parsed) {
+      const n = coerceCompareId(x);
+      if (n != null) ids.push(n);
+      if (ids.length >= COMPARE_MAX) break;
+    }
+    return ids;
   } catch {
     return [];
   }

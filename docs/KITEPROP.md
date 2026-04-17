@@ -40,6 +40,7 @@ No aparece en esa especificación un mecanismo paralelo tipo “enviar la misma 
 |----------|-----|
 | `KITEPROP_API_KEY` o `KITEPROP_API_TOKEN` | **Obligatorio para el catálogo en producción:** `X-API-Key` en `GET …/properties` (listado) y en POST de consultas. Sin key, el sitio usa solo el snapshot `properties.json` del repo. |
 | `KITEPROP_API_BASE_URL` | Base del listado API; default `https://www.kiteprop.com/api/v1`. Opcionales: `KITEPROP_API_PROPERTIES_PATH`, `KITEPROP_API_STATUS_FILTER`, `KITEPROP_API_PER_PAGE`. |
+| `KITEPROP_API_NO_ACTIVE_UNPUBLISHED` | Si vale `1`, el listado API **no** concatena `active_unpublished` cuando el filtro es solo `active` (por defecto **sí** se concatena, para alinear con fichas Premier listables como unpublished). |
 | `KITEPROP_API_URL` | Host **sin** `/api/v1` para POST de consultas (ej. `https://www.kiteprop.com`). Si no está, se deduce de `KITEPROP_API_BASE_URL`. |
 | `KITEPROP_API_CONSULTA_URL` | **Opcional.** Si está definida, **todas** las consultas van a esa URL con cuerpo **legacy** (`full_name`, `body`, `property_id`, etc.). Solo para tenants con endpoint distinto acordado con soporte. |
 
