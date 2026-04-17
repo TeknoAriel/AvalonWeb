@@ -10,22 +10,24 @@ Este documento define **reglas no negociables** para el listado Premier. Cualqui
 
 **No existe** motor de búsqueda tipo Elasticsearch para este criterio: es **filtrado determinista en Node** sobre el array de propiedades cargado.
 
-## 2. Orden de carga del feed (servidor)
+## 2. Orden de carga del feed (servidor) — **no negociable**
 
-Orden fijo (ver `apps/avalon-premier/lib/raw-properties.ts` y `docs/DATA_LAYER.md`):
+Implementación: `packages/core/src/kiteprop-catalog-load.ts` — `loadKitepropCatalogMerged`.
 
-1. `KITEPROP_PROPERTIES_JSON_URL` — JSON plano (export / externalsite).
-2. Si no aplica o falla: API KiteProp v1 (`KITEPROP_API_KEY` / `KITEPROP_API_TOKEN`, etc.).
-3. Si falla: snapshot `packages/core/data/properties.json` del repo.
+1. Si hay `KITEPROP_PROPERTIES_JSON_URL` y responde → se parsea el JSON (cuerpo del catálogo).
+2. Si hay **además** API key (`KITEPROP_API_KEY` / `KITEPROP_API_TOKEN`) → **siempre** se pide `GET /api/v1/properties` (paginado) y se fusiona por **`id`** la metadata Premier sobre el lote del JSON (`applyPremierMetadataFromDonor`). Así el listado Premier no depende de que la difusión JSON traiga el tag.
+3. Siempre después: `mergePremierMetadataFromRepoSnapshot` con `packages/core/data/properties.json` (red de seguridad por `id`).
+4. Si no hay JSON o falla → catálogo **solo** desde API.
+5. Si la API falla → snapshot del repo.
 
-Premier y Propiedades pueden compartir la misma URL de JSON en Vercel; Premier **solo** filtra el subconjunto con tag Premier.
+Premier y Propiedades comparten la misma carga; Premier **solo** filtra con `hasPremierTag` en `getSitePropertiesFromRaw('premier', …)`.
 
 ## 3. API vs JSON — riesgo que rompió listados (lección aprendida)
 
 - En el **export JSON**, suele venir `tags: ["premier"]` de forma directa.
 - La **API v1** a veces devuelve **`tags: []`** o **`tags: ""`** mientras el dato útil está en **`property_tags`**, `kp_tags`, `tag_list`, etc.
 - Un **ingest / difusión nueva** puede dejar de mandar **cualquier** etiqueta Premier (ni en `tags` ni en alias). En ese caso **`hasPremierTag` sobre el remoto solo** da falso.
-- Mitigación en código: **`mergePremierMetadataFromRepoSnapshot`** (tras cargar JSON/API) recompone por **`id`** con `packages/core/data/properties.json` del repo: copia `tags` / `labels` / `categories` / flags y **claves auxiliares** (`property_tags`, `difusion_tags`, …) que el snapshot ya tenía curadas. Si el remoto trae otras etiquetas sin Premier, un segundo paso copia desde el snapshot hasta recuperar la señal.
+- Mitigación en código: **suplemento API** (paso 2 arriba) + **`mergePremierMetadataFromRepoSnapshot`**: la API trae tags Premier que el JSON omitió; el snapshot del repo refuerza por `id` si aún falta señal.
 - Mitigación operativa: **`PREMIER_PROPERTY_IDS`** / **`NEXT_PUBLIC_PREMIER_PROPERTY_IDS`** (coma) para forzar IDs Premier cuando el export no trae nada y el snapshot aún no incluye ese `id`.
 - Usar **`p.tags ?? p.property_tags`** es **incorrecto**: `??` **no** sustituye arrays vacíos ni strings vacíos, así que se pierde el tag y **`hasPremierTag` da falso** → colección Premier vacía aunque el CRM esté bien.
 

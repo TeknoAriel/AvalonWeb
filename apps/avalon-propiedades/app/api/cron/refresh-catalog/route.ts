@@ -5,7 +5,7 @@ import { NextRequest, NextResponse } from 'next/server';
 export const dynamic = 'force-dynamic';
 
 /**
- * Cron Vercel (cada 6 h): invalida caché para releer `KITEPROP_PROPERTIES_JSON_URL` / API / snapshot.
+ * Cron Vercel (cada 2 h): invalida caché para releer `KITEPROP_PROPERTIES_JSON_URL` / API / snapshot.
  * Auth: `Authorization: Bearer <CRON_SECRET>` (variable en Vercel).
  */
 export async function GET(req: NextRequest) {

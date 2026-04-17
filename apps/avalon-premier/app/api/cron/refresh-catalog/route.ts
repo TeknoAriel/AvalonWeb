@@ -5,7 +5,7 @@ import { NextRequest, NextResponse } from 'next/server';
 export const dynamic = 'force-dynamic';
 
 /**
- * Cron Vercel (cada 6 h): invalida caché de páginas para volver a leer JSON/API de KiteProp.
+ * Cron Vercel (cada 2 h): invalida caché de páginas para volver a leer JSON/API de KiteProp.
  * Vercel envía `Authorization: Bearer <CRON_SECRET>` si definís `CRON_SECRET` en el proyecto.
  * El catálogo sigue siendo el feed remoto; una ficha que ya no venga en el JSON deja de listarse sola.
  */

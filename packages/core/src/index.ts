@@ -4,6 +4,7 @@ export { ALL_RAW_PROPERTIES } from './load';
 export { normalizeProperty } from './normalize';
 export { hasPremierTag, isPremierInventory } from './premier';
 export { mergePremierMetadataFromRepoSnapshot } from './premier-snapshot-merge';
+export { applyPremierMetadataFromDonor, PREMIER_PATCH_FIELD_KEYS } from './premier-metadata-donor';
 export { extractAmenities } from './amenities';
 export { extractMedia } from './media';
 export { buildPropertySlug, parsePropertySlugParam } from './slug';

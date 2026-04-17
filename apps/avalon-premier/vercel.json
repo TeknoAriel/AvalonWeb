@@ -1,5 +1,5 @@
 {
   "installCommand": "cd ../.. && pnpm install",
   "buildCommand": "cd ../.. && pnpm exec turbo build --filter=avalon-premier",
-  "crons": [{ "path": "/api/cron/refresh-catalog", "schedule": "0 */6 * * *" }]
+  "crons": [{ "path": "/api/cron/refresh-catalog", "schedule": "0 */2 * * *" }]
 }
