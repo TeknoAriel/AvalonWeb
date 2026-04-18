@@ -1,13 +1,13 @@
-# Deploy a producción en Vercel (ambos sitios del monorepo).
+# Deploy a producción en Vercel — solo **avalon-premier** desde Actions.
+#
+# La web principal (`apps/avalon-propiedades` → proyecto Vercel `avalonweb`) se publica
+# con la integración Git→Vercel del proyecto en el dashboard (ya no hay job matrix para esa app).
+#
 # Secret: VERCEL_TOKEN (https://vercel.com/account/tokens)
 #
-# pull → build --prod → deploy --prebuilt (documentación Vercel + Actions).
-# - working-directory en cada app: coincide con vercel.json (cd ../.. al monorepo).
-# - fetch-depth 0 + pull sin --git-config=false (checkout de Actions).
-# - NODE_OPTIONS en build (OOM).
-# - Si falla el build, se sube un artefacto con el log completo del CLI.
+# pull → build --prod → deploy --prebuilt. PATH explícito en build evita spawn sh ENOENT en algunos runners.
 
-name: Deploy Vercel (Premier + Propiedades)
+name: Deploy Vercel (Premier)
 
 on:
   push:
@@ -15,27 +15,18 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: vercel-deploy-monorepo
+  group: vercel-deploy-premier
   cancel-in-progress: true
 
 env:
   VERCEL_TEAM: teknoariels-projects
+  APP_DIR: apps/avalon-premier
+  VERCEL_PROJECT: avalon-premier
 
 jobs:
-  deploy:
-    name: ${{ matrix.label }}
+  deploy-premier:
+    name: avalon-premier
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - label: avalon-premier
-            directory: apps/avalon-premier
-            project: avalon-premier
-          - label: avalon-propiedades
-            directory: apps/avalon-propiedades
-            project: avalonweb
-
     steps:
       - uses: actions/checkout@v4
         with:
@@ -62,18 +53,18 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Vercel link
-        working-directory: ${{ matrix.directory }}
+        working-directory: ${{ env.APP_DIR }}
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
           set -eu
           npx vercel@50.32.3 link --yes \
-            --project="${{ matrix.project }}" \
+            --project="${{ env.VERCEL_PROJECT }}" \
             --scope="${{ env.VERCEL_TEAM }}" \
             --token="$VERCEL_TOKEN"
 
       - name: Vercel pull (production)
-        working-directory: ${{ matrix.directory }}
+        working-directory: ${{ env.APP_DIR }}
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
@@ -84,29 +75,32 @@ jobs:
 
       - name: Vercel build (prod)
         id: vbuild
-        working-directory: ${{ matrix.directory }}
+        working-directory: ${{ env.APP_DIR }}
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           NODE_OPTIONS: --max-old-space-size=8192
+          # Evita "spawn sh ENOENT" si el CLI hijo hereda un PATH incompleto.
+          PATH: /bin:/usr/bin:/usr/local/bin:${{ env.PATH }}
         run: |
           set -euo pipefail
           mkdir -p "${GITHUB_WORKSPACE}/.ci-logs"
           npx vercel@50.32.3 build --prod \
             --scope="${{ env.VERCEL_TEAM }}" \
-            --token="$VERCEL_TOKEN" 2>&1 | tee "${GITHUB_WORKSPACE}/.ci-logs/vercel-build-${{ matrix.label }}.log"
+            --token="$VERCEL_TOKEN" 2>&1 | tee "${GITHUB_WORKSPACE}/.ci-logs/vercel-build-premier.log"
 
       - name: Upload Vercel build log on failure
         if: always() && steps.vbuild.outcome == 'failure'
         uses: actions/upload-artifact@v4
         with:
-          name: vercel-build-log-${{ matrix.label }}
-          path: .ci-logs/vercel-build-${{ matrix.label }}.log
+          name: vercel-build-log-avalon-premier
+          path: .ci-logs/vercel-build-premier.log
 
       - name: Vercel deploy (prebuilt prod)
         if: success()
-        working-directory: ${{ matrix.directory }}
+        working-directory: ${{ env.APP_DIR }}
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          PATH: /bin:/usr/bin:/usr/local/bin:${{ env.PATH }}
         run: |
           set -eu
           npx vercel@50.32.3 deploy --prebuilt --prod --yes --logs \

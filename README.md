@@ -64,11 +64,11 @@ El producto es simple: **web principal** (todo el catálogo institucional) + **w
 | Web principal | `apps/avalon-propiedades` | **`avalonweb`** |
 | Web Premier (solidaria / editorial) | `apps/avalon-premier` | **`avalon-premier`** |
 
-El deploy por GitHub Actions (`.github/workflows/deploy-vercel.yml`) publica exactamente esos dos slugs. No hace falta un tercer proyecto de “propiedades” con otro nombre.
+El deploy por GitHub Actions (`.github/workflows/deploy-vercel.yml`) publica solo **`avalon-premier`**. La web principal (`avalonweb`) conviene publicarla con la **integración Git → Vercel** del proyecto `avalonweb` en el dashboard (Root Directory `apps/avalon-propiedades`). No hace falta un tercer proyecto Vercel con nombre duplicado.
 
 **Si ves más tarjetas en el dashboard** (por ejemplo `avalon-web-avalon-propiedades` o un segundo proyecto tipo `avalon-propiedades` apuntando al mismo Git): suelen ser **duplicados** que Vercel creó al enlazar el monorepo sin `Root Directory` correcto, o intentos viejos. **No los uses:** archivá o borrá el proyecto duplicado y desconectá el Git de esa tarjeta para que no siga haciendo builds. **`redalia`** y **`kite-prospect`** no forman parte de este monorepo; son otros sitios en tu cuenta.
 
-**Si además tenés Git conectado** en `avalonweb` y en `avalon-premier`: o confiás solo en Actions, o solo en el deploy automático de Vercel — **no los dos a la vez** en el mismo proyecto (evitás dos colas peleándose). Lo canónico con el workflow actual es **Actions** + secret `VERCEL_TOKEN`.
+**Git en Vercel:** conectá el repo a **`avalonweb`** (web principal) y, si querés, a **`avalon-premier`**. Para Premier, el workflow de Actions usa `VERCEL_TOKEN`; para la web principal podés dejar solo el deploy automático por Git en Vercel y evitar dos pipelines compitiendo en el mismo proyecto.
 
 Configuración típica cuando enlazás a mano en Vercel (sin depender solo de Actions):
 
