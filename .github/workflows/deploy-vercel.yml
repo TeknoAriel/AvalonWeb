@@ -1,8 +1,10 @@
-# Deploy **avalon-premier** a producción: build en los servidores de Vercel (no `vercel build` en GitHub).
-# Evita fallos del runner (spawn sh, OOM) y no depende del formato prebuilt local.
+# Deploy **avalon-premier** a producción (build en Vercel). Un solo paso: `vercel deploy`.
+# No `vercel link` (evita fallos por slug de team / proyecto).
 #
-# Secret: VERCEL_TOKEN — https://vercel.com/account/tokens
-# Proyecto Vercel: avalon-premier · Team: VERCEL_TEAM
+# Secrets en GitHub → Settings → Secrets and variables → Actions:
+#   VERCEL_TOKEN        https://vercel.com/account/tokens
+#   VERCEL_ORG_ID       Vercel → team → Settings → Team ID (o el de .vercel/project.json tras `vercel link` local)
+#   VERCEL_PROJECT_ID   Vercel → proyecto avalon-premier → Settings → General → Project ID
 
 name: Deploy Vercel (Premier)
 
@@ -11,57 +13,25 @@ on:
     branches: [main]
   workflow_dispatch:
 
-concurrency:
-  group: vercel-deploy-premier
-  cancel-in-progress: true
-
-env:
-  VERCEL_TEAM: teknoariels-projects
-  APP_DIR: apps/avalon-premier
-  VERCEL_PROJECT: avalon-premier
-  # Misma familia de CLI que usa el build en Vercel (evita diferencias de comportamiento).
-  VERCEL_CLI_VERSION: '51.6.1'
-
 jobs:
   deploy-premier:
     name: avalon-premier
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 1
-
-      - name: Comprobar VERCEL_TOKEN
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-        run: |
-          if [ -z "${VERCEL_TOKEN}" ]; then
-            echo '::error::Falta el secret VERCEL_TOKEN (Settings → Secrets and variables → Actions)'
-            exit 1
-          fi
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
 
-      - name: Vercel link
+      - name: Deploy producción
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
         run: |
           set -eu
-          npx "vercel@${{ env.VERCEL_CLI_VERSION }}" link --yes \
-            --cwd "${{ env.APP_DIR }}" \
-            --project="${{ env.VERCEL_PROJECT }}" \
-            --scope="${{ env.VERCEL_TEAM }}" \
-            --token="$VERCEL_TOKEN"
-
-      - name: Vercel deploy (prod — build remoto en Vercel)
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          PATH: /bin:/usr/bin:/usr/local/bin:${{ env.PATH }}
-        run: |
-          set -eu
-          npx "vercel@${{ env.VERCEL_CLI_VERSION }}" deploy --prod --yes --logs \
-            --cwd "${{ env.APP_DIR }}" \
-            --scope="${{ env.VERCEL_TEAM }}" \
-            --token="$VERCEL_TOKEN"
+          : "${VERCEL_TOKEN:?Definí el secret VERCEL_TOKEN en GitHub Actions}"
+          : "${VERCEL_ORG_ID:?Definí el secret VERCEL_ORG_ID (Team ID en Vercel)}"
+          : "${VERCEL_PROJECT_ID:?Definí el secret VERCEL_PROJECT_ID (Project ID del proyecto avalon-premier)}"
+          npx --yes vercel@51.6.1 deploy --prod --yes --logs --cwd apps/avalon-premier

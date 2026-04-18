@@ -79,7 +79,7 @@ El deploy por GitHub Actions (`.github/workflows/deploy-vercel.yml`) publica sol
 
 **Si ves más tarjetas en el dashboard** (por ejemplo `avalon-web-avalon-propiedades` o un segundo proyecto tipo `avalon-propiedades` apuntando al mismo Git): suelen ser **duplicados** que Vercel creó al enlazar el monorepo sin `Root Directory` correcto, o intentos viejos. **No los uses:** archivá o borrá el proyecto duplicado y desconectá el Git de esa tarjeta para que no siga haciendo builds. **`redalia`** y **`kite-prospect`** no forman parte de este monorepo; son otros sitios en tu cuenta.
 
-**Git en Vercel:** conectá el repo a **`avalonweb`** (web principal) y, si querés, a **`avalon-premier`**. Para Premier, el workflow de Actions usa `VERCEL_TOKEN`; para la web principal podés dejar solo el deploy automático por Git en Vercel y evitar dos pipelines compitiendo en el mismo proyecto.
+**Git en Vercel:** conectá el repo a **`avalonweb`** (web principal) y, si querés, a **`avalon-premier`**. Para Premier, el workflow de Actions usa los secrets **`VERCEL_TOKEN`**, **`VERCEL_ORG_ID`** y **`VERCEL_PROJECT_ID`** (ver comentarios en `.github/workflows/deploy-vercel.yml`); para la web principal podés dejar solo el deploy automático por Git en Vercel y evitar dos pipelines compitiendo en el mismo proyecto.
 
 Configuración típica cuando enlazás a mano en Vercel (sin depender solo de Actions):
 
