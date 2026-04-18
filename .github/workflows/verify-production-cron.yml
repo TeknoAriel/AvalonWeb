@@ -1,0 +1,33 @@
+# Smoke del cron en **producción** (misma petición que Vercel Cron).
+# No corre en cada PR por defecto: schedule + manual + push main opcional desactivado en forks.
+#
+# Secrets (repo → Settings → Secrets and variables → Actions):
+#   CRON_SECRET
+#   PRODUCTION_URL_AVALON_WEB    ej. https://avalonweb.vercel.app
+#   PRODUCTION_URL_AVALON_PREMIER ej. https://avalon-premier.vercel.app
+#
+# Programación: 1× día (ajustá cron si querés).
+
+name: Verify production cron
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "15 8 * * *" # 08:15 UTC diario
+
+concurrency:
+  group: verify-prod-cron
+  cancel-in-progress: true
+
+jobs:
+  smoke-cron:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Smoke GET /api/cron/refresh-catalog (Avalon Web + Premier)
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          PRODUCTION_URL_AVALON_WEB: ${{ secrets.PRODUCTION_URL_AVALON_WEB }}
+          PRODUCTION_URL_AVALON_PREMIER: ${{ secrets.PRODUCTION_URL_AVALON_PREMIER }}
+        run: bash scripts/ci-verify-production-cron.sh

@@ -32,3 +32,23 @@ jobs:
 
       - name: Build
         run: pnpm build
+
+      - name: Snapshot Premier (repo)
+        run: pnpm check:premier-snapshot
+
+      - name: Ingesta KiteProp live (si hay secret)
+        env:
+          KITEPROP_API_KEY: ${{ secrets.KITEPROP_API_KEY }}
+          KITEPROP_API_TOKEN: ${{ secrets.KITEPROP_API_TOKEN }}
+          INGEST_STATS_OUT: ${{ github.workspace }}/ingest-report.json
+          MIN_INGEST_TOTAL_ROWS: ${{ vars.MIN_INGEST_TOTAL_ROWS }}
+          MIN_PREMIER_TAG_COUNT: ${{ vars.MIN_PREMIER_TAG_COUNT }}
+        run: pnpm ci:verify-ingest
+
+      - name: Artefacto reporte ingesta
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kiteprop-ingest-report
+          path: ingest-report.json
+          if-no-files-found: ignore

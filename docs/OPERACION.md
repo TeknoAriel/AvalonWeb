@@ -81,3 +81,33 @@ Debe imprimir `HTTP 200`.
 ## 5. Detalle técnico (opcional)
 
 `docs/KITEPROP.md` — API KiteProp, consultas, troubleshooting.
+
+---
+
+## 6. Verificación infalible en CI (cada commit en `main` / PR)
+
+### Qué corre en GitHub Actions (`.github/workflows/ci.yml`)
+
+| Paso | Qué garantiza |
+|------|----------------|
+| **Lint** | Código consistente. |
+| **Build** (`pnpm build`) | **Avalon Web y Avalon Premier** compilan (monorepo Turbo = ambas apps). |
+| **`pnpm check:premier-snapshot`** | El snapshot empaquetado sigue teniendo al menos un listable Premier (red de seguridad del repo). |
+| **`pnpm ci:verify-ingest`** | Si definís el secret **`KITEPROP_API_KEY`** (o `KITEPROP_API_TOKEN`) en el repo → descarga el feed real y falla si `totalRows` &lt; `MIN_INGEST_TOTAL_ROWS` (variable de repo **Vars** `MIN_INGEST_TOTAL_ROWS`, default 1). Opcional: **`MIN_PREMIER_TAG_COUNT`** (ej. `28`) para exigir mínimo de filas con `hasPremierTag`. |
+| **Artefacto** `kiteprop-ingest-report` | JSON del último reporte (solo si se generó `ingest-report.json`). |
+
+Sin `KITEPROP_API_KEY` en Secrets, la ingesta live **no falla** el CI (aviso en log); para que sea “infalible” en el sentido estricto, **agregá el secret** en GitHub → *Settings → Secrets and variables → Actions*.
+
+### Cron en producción (diario + manual)
+
+Workflow **`.github/workflows/verify-production-cron.yml`**:
+
+- **Secrets:** `CRON_SECRET`, `PRODUCTION_URL_AVALON_WEB`, `PRODUCTION_URL_AVALON_PREMIER` (origen `https://…` sin `/` final).
+- Hace `GET …/api/cron/refresh-catalog` con el mismo `Authorization: Bearer` que Vercel Cron; comprueba **HTTP 200** y `"ok":true`.
+
+**Qué no garantiza:** que KiteProp haya respondido bien en ese instante (solo que tu app aceptó el cron y revalidó). La ingesta real la cubre el paso **`ci:verify-ingest`** con la API key.
+
+### Tras cada deploy
+
+1. Esperá a que **CI** en el commit pase (verde).  
+2. En *Actions* → **Verify production cron** → *Run workflow* (opcional pero recomendado).

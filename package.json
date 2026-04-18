@@ -5,6 +5,8 @@
     "kp:verify-premier": "bash scripts/verify-kiteprop-api-premier.sh",
     "bff:verify-catalog": "bash scripts/verify-bff-catalog.sh",
     "kp:ingest-stats": "tsx scripts/kiteprop-ingest-stats.ts",
+    "ci:verify-ingest": "bash scripts/ci-verify-kiteprop-ingest.sh",
+    "ci:verify-cron-prod": "bash scripts/ci-verify-production-cron.sh",
     "build": "turbo build",
     "dev": "turbo dev",
     "dev:avalon": "turbo dev --filter=avalon-propiedades",

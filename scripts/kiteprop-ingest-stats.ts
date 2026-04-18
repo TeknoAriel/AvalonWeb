@@ -5,7 +5,12 @@
  *
  *   export KITEPROP_API_KEY='kp_…'
  *   pnpm kp:ingest-stats
+ *
+ * CI: opcional `INGEST_STATS_OUT=ruta.json` escribe el mismo JSON en disco (artefacto).
+ * Umbral estricto opcional: `MIN_PREMIER_TAG_COUNT=28` falla si hay menos Premier detectados.
  */
+import { writeFile } from 'node:fs/promises';
+
 import {
   fetchKitepropPropertyFeedAsRaw,
   hasPremierTag,
@@ -39,17 +44,34 @@ async function main(): Promise<void> {
     Object.entries(statusHistogram).sort((a, b) => b[1] - a[1]),
   );
 
-  console.log(
-    JSON.stringify(
-      {
-        totalRows: raw.length,
-        premierTagCount,
-        statusHistogram: sortedStatuses,
-      },
-      null,
-      2,
-    ),
-  );
+  const report = {
+    totalRows: raw.length,
+    premierTagCount,
+    statusHistogram: sortedStatuses,
+    generatedAt: new Date().toISOString(),
+  };
+
+  const outPath = process.env.INGEST_STATS_OUT?.trim();
+  if (outPath) {
+    await writeFile(outPath, `${JSON.stringify(report, null, 2)}\n`, 'utf8');
+  }
+
+  console.log(JSON.stringify(report, null, 2));
+
+  const minPrem = process.env.MIN_PREMIER_TAG_COUNT?.trim();
+  if (minPrem) {
+    const n = Number.parseInt(minPrem, 10);
+    if (Number.isFinite(n) && premierTagCount < n) {
+      console.error(`premierTagCount (${premierTagCount}) < MIN_PREMIER_TAG_COUNT (${n})`);
+      process.exit(1);
+    }
+  }
+
+  const minTotal = Number.parseInt(process.env.MIN_INGEST_TOTAL_ROWS ?? '1', 10);
+  if (Number.isFinite(minTotal) && raw.length < minTotal) {
+    console.error(`totalRows (${raw.length}) < MIN_INGEST_TOTAL_ROWS (${minTotal})`);
+    process.exit(1);
+  }
 }
 
 main().catch((e: unknown) => {
