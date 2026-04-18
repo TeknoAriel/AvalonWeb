@@ -84,6 +84,15 @@ Configuración típica cuando enlazás a mano en Vercel (sin depender solo de Ac
 - **Root Directory**: `apps/avalon-propiedades` o `apps/avalon-premier` según el proyecto  
 - **Build** (ejemplo): `cd ../.. && pnpm turbo build --filter=avalon-propiedades` (cambiá el filtro en el proyecto Premier)
 
+### Build en Vercel (evitar error de carpeta duplicada)
+
+Si el log dice que no encuentra `.../apps/avalon-premier/apps/avalon-premier` (ruta **duplicada**):
+
+1. Abrí **Settings → General** del proyecto en Vercel.  
+2. **Root Directory** debe ser `apps/avalon-premier` (o `apps/avalon-propiedades` en `avalonweb`).  
+3. **Output Directory** debe estar **vacío** o ser exactamente **`.next`**.  
+   Si pusiste `apps/avalon-premier` ahí, Vercel lo concatena al root y rompe el deploy. Next.js ya escribe en `.next` dentro de esa carpeta.
+
 Variables por proyecto: ver [`docs/KITEPROP.md`](docs/KITEPROP.md) y `.env.example` en cada app (`NEXT_PUBLIC_*`, KiteProp, `CRON_SECRET`, etc.).
 
 ## Logos

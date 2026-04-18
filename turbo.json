@@ -1,9 +1,38 @@
 {
   "$schema": "https://turbo.build/schema.json",
+  "globalPassThroughEnv": [
+    "KITEPROP_API_KEY",
+    "KITEPROP_API_TOKEN",
+    "KITEPROP_API_BASE_URL",
+    "KITEPROP_PROPERTIES_JSON_URL",
+    "KITEPROP_API_USER",
+    "KITEPROP_API_PASSWORD",
+    "KITEPROP_API_URL",
+    "KITEPROP_FETCH_USER_AGENT",
+    "CRON_SECRET",
+    "PREMIER_PROPERTY_IDS",
+    "NEXT_PUBLIC_PREMIER_PROPERTY_IDS",
+    "NEXT_PUBLIC_SITE_URL",
+    "NEXT_PUBLIC_AVALON_URL",
+    "NEXT_PUBLIC_PREMIER_URL",
+    "NEXT_PUBLIC_PEER_SITE_URL",
+    "NEXT_PUBLIC_WHATSAPP",
+    "NEXT_PUBLIC_PREMIER_HERO_VIDEO_URL",
+    "VERCEL_URL",
+    "VERCEL_ENV"
+  ],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": [".next/**", "!.next/cache/**", "dist/**"]
+      "outputs": [
+        ".next/**",
+        "!.next/cache/**",
+        "apps/avalon-premier/.next/**",
+        "!apps/avalon-premier/.next/cache/**",
+        "apps/avalon-propiedades/.next/**",
+        "!apps/avalon-propiedades/.next/cache/**",
+        "dist/**"
+      ]
     },
     "lint": {},
     "dev": {
