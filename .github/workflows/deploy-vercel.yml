@@ -1,11 +1,13 @@
 # Deploy a producción en Vercel (ambos sitios del monorepo).
 # Secret: VERCEL_TOKEN (https://vercel.com/account/tokens)
 #
-# Estrategia: build remoto en Vercel (`vercel deploy --prod` sin --prebuilt).
-# El flujo link + build local + deploy --prebuilt fallaba en el runner en `vercel build`;
-# el build en los servidores de Vercel usa Root Directory + comandos del proyecto (vercel.json / dashboard).
+# Flujo canónico Vercel + Actions: pull → build → deploy --prebuilt.
+# - Todos los comandos desde la raíz del repo con --cwd al app (sube bien el monorepo: packages/, etc.).
+# - No usar --git-config=false en pull (rompe con checkout típico de Actions).
+# - NODE_OPTIONS en build reduce OOM en next/turbo.
+# - deploy --logs deja trazas del lado Vercel en el log de GitHub si algo falla.
 #
-# Team y slugs de proyecto: vercel.com/<team>/<slug>. Si falla link en propiedades, ajustá matrix.project.
+# Si `vercel deploy` remoto sin prebuilt falla por política de “git author”, este flujo evita depender de ese camino.
 
 name: Deploy Vercel (Premier + Propiedades)
 
@@ -38,6 +40,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Comprobar VERCEL_TOKEN
         env:
@@ -59,7 +63,6 @@ jobs:
       - name: Install dependencies (monorepo)
         run: pnpm install --frozen-lockfile
 
-      # Desde la raíz del repo + --cwd: el upload incluye packages/ (monorepo). Si se corre solo dentro de apps/*, el deploy remoto suele fallar.
       - name: Vercel link
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
@@ -71,12 +74,33 @@ jobs:
             --scope="${{ env.VERCEL_TEAM }}" \
             --token="$VERCEL_TOKEN"
 
-      - name: Vercel deploy (prod, build en Vercel)
+      - name: Vercel pull (production)
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
           set -eu
-          npx vercel@50.32.3 deploy --prod --yes \
+          npx vercel@50.32.3 pull --yes \
+            --environment=production \
+            --cwd "${{ matrix.directory }}" \
+            --token="$VERCEL_TOKEN"
+
+      - name: Vercel build (prod)
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          NODE_OPTIONS: --max-old-space-size=8192
+        run: |
+          set -eu
+          npx vercel@50.32.3 build --prod \
+            --cwd "${{ matrix.directory }}" \
+            --scope="${{ env.VERCEL_TEAM }}" \
+            --token="$VERCEL_TOKEN"
+
+      - name: Vercel deploy (prebuilt prod)
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          set -eu
+          npx vercel@50.32.3 deploy --prebuilt --prod --yes --logs \
             --cwd "${{ matrix.directory }}" \
             --scope="${{ env.VERCEL_TEAM }}" \
             --token="$VERCEL_TOKEN"
