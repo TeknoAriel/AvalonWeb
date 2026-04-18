@@ -15,9 +15,6 @@ concurrency:
   group: vercel-deploy-monorepo
   cancel-in-progress: true
 
-permissions:
-  contents: read
-
 env:
   VERCEL_TEAM: teknoariels-projects
 
@@ -41,11 +38,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Comprobar secret VERCEL_TOKEN
-        if: ${{ secrets.VERCEL_TOKEN == '' }}
+      # No uses `secrets` en `if:` de un step: en este workflow GitHub no compone jobs (falla al instante, 0 check runs).
+      - name: Comprobar VERCEL_TOKEN
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
-          echo '::error::Falta el secret VERCEL_TOKEN (GitHub → Settings → Secrets and variables → Actions)'
-          exit 1
+          if [ -z "${VERCEL_TOKEN}" ]; then
+            echo '::error::Falta el secret VERCEL_TOKEN (GitHub → Settings → Secrets and variables → Actions)'
+            exit 1
+          fi
 
       - uses: pnpm/action-setup@v4
 
