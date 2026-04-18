@@ -15,6 +15,14 @@ export function resolveServerToServerBearerSecret(): string {
 }
 
 /**
+ * **Solo depuración.** Si vale `1`, el GET `/api/internal/catalog` no exige Bearer y Premier puede
+ * consumir el BFF sin `CRON_SECRET`. **Quitar en producción** cuando el flujo esté verificado.
+ */
+export function isCatalogIngestDebug(): boolean {
+  return process.env.CATALOG_INGEST_DEBUG === '1';
+}
+
+/**
  * URL absoluta del BFF de catálogo en Avalon Web (ej. `https://avalonweb.vercel.app/api/internal/catalog`).
  * **Solo** esta variable activa el modo cliente BFF (no se deriva de `NEXT_PUBLIC_AVALON_URL`), para que
  * Avalon Web nunca llame a su propio `/api/internal/catalog` por accidente cuando define el secreto.
@@ -50,7 +58,10 @@ export function resolveAvalonInternalApiOrigin(): string | null {
 }
 
 export function isAvalonCatalogBffConfigured(): boolean {
-  return Boolean(resolveAvalonCatalogBffUrl() && resolveServerToServerBearerSecret());
+  const url = resolveAvalonCatalogBffUrl();
+  if (!url) return false;
+  if (isCatalogIngestDebug()) return true;
+  return Boolean(resolveServerToServerBearerSecret());
 }
 
 export function isAvalonConsultaProxyConfigured(): boolean {
@@ -65,13 +76,17 @@ export async function fetchRawCatalogFromAvalonBff(
   secret: string,
   fetchInit: RequestInit & { next?: { revalidate?: number; tags?: string[] } },
 ): Promise<RawProperty[]> {
+  const headers: Record<string, string> = {
+    Accept: 'application/json',
+    'User-Agent': kitepropOutboundUserAgent(),
+  };
+  if (!isCatalogIngestDebug() && secret) {
+    headers.Authorization = `Bearer ${secret}`;
+  }
+
   const res = await fetch(catalogUrl, {
     method: 'GET',
-    headers: {
-      Accept: 'application/json',
-      Authorization: `Bearer ${secret}`,
-      'User-Agent': kitepropOutboundUserAgent(),
-    },
+    headers,
     ...fetchInit,
   });
   if (!res.ok) {

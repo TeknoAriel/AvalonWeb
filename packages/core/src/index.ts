@@ -1,5 +1,5 @@
 export { KITEPROP_PROPERTY_FEED_TAG } from './kiteprop-cache-tag';
-export { resolveServerToServerBearerSecret } from './avalon-internal-api';
+export { resolveServerToServerBearerSecret, isCatalogIngestDebug } from './avalon-internal-api';
 export {
   loadKitepropCatalogMerged,
   loadKitepropCatalogFromKitepropApi,

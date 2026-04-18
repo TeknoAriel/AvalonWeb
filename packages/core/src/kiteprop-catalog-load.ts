@@ -2,6 +2,7 @@ import type { RawProperty } from '@avalon/types';
 import {
   fetchRawCatalogFromAvalonBff,
   isAvalonCatalogBffConfigured,
+  isCatalogIngestDebug,
   resolveAvalonCatalogBffUrl,
   resolveServerToServerBearerSecret,
 } from './avalon-internal-api';
@@ -55,7 +56,7 @@ export async function loadKitepropCatalogMerged(): Promise<RawProperty[]> {
   if (isAvalonCatalogBffConfigured()) {
     const url = resolveAvalonCatalogBffUrl();
     const secret = resolveServerToServerBearerSecret();
-    if (!url || !secret) {
+    if (!url || (!isCatalogIngestDebug() && !secret)) {
       return loadKitepropCatalogFromKitepropApi();
     }
     try {

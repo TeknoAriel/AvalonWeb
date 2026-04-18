@@ -4,6 +4,34 @@
 
 ---
 
+## 0. Verificación por pasos (recomendado)
+
+### Paso A — KiteProp (solo tu máquina o CI con key)
+
+Con la misma `KITEPROP_API_KEY` que en Vercel:
+
+```bash
+export KITEPROP_API_KEY='kp_…'
+pnpm kp:ingest-stats
+```
+
+Salida JSON: `totalRows` y `premierTagCount`. Si `premierTagCount` es 0 pero en el CRM hay Premier, el problema está en **mapeo/tags** (no en Premier ni en el BFF). Si aquí ya ves el número esperado, KiteProp → Avalon está bien.
+
+### Paso B — BFF sin Bearer (solo mientras depurás; **apagar después**)
+
+En **Avalon Web** y **Premier** (Vercel → Production): `CATALOG_INGEST_DEBUG=1`
+
+- En Avalon Web, `GET /api/internal/catalog` **no** pide `Authorization`.
+- Premier puede usar el BFF **sin** `CRON_SECRET` para el catálogo.
+
+**Riesgo:** cualquiera con la URL puede leer el listado. Poné `CATALOG_INGEST_DEBUG=0` o borrá la variable en cuanto veas el flujo OK, y volvé a `CRON_SECRET` + Bearer.
+
+### Paso C — Ruta del BFF
+
+La URL correcta es **`/api/internal/catalog`** (no `/api/catalog`). Ejemplo: `https://avalonweb.vercel.app/api/internal/catalog`.
+
+---
+
 ## 1. Proyecto Vercel **Avalon Web** (`apps/avalon-propiedades`)
 
 | Variable | Obligatorio |
