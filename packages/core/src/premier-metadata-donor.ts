@@ -19,6 +19,9 @@ function preferDonorField(donorVal: unknown, recipientVal: unknown): unknown {
  */
 export const PREMIER_PATCH_FIELD_KEYS: readonly string[] = [
   'tags',
+  'modificadores',
+  'modificador',
+  'modifiers',
   'labels',
   'categories',
   'premier',

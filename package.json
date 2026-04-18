@@ -3,18 +3,21 @@
   "private": true,
   "scripts": {
     "kp:verify-premier": "bash scripts/verify-kiteprop-api-premier.sh",
+    "bff:verify-catalog": "bash scripts/verify-bff-catalog.sh",
     "build": "turbo build",
     "dev": "turbo dev",
     "dev:avalon": "turbo dev --filter=avalon-propiedades",
     "dev:premier": "turbo dev --filter=avalon-premier",
     "lint": "turbo lint",
-    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md,css}\""
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md,css}\"",
+    "check:premier-snapshot": "tsx scripts/check-premier-snapshot.ts"
   },
   "devDependencies": {
     "next": "^14.2.21",
     "prettier": "^3.4.2",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "tsx": "4.19.2",
     "turbo": "^2.3.3",
     "typescript": "^5.7.2"
   },

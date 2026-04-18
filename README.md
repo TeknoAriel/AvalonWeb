@@ -24,7 +24,9 @@ packages/
 
 ## Datos
 
-En **producción** el catálogo sale de la **API KiteProp** (`GET /properties` + `KITEPROP_API_KEY`). El snapshot `packages/core/data/properties.json` (~5 MB) es **fallback** y merge de metadata; podés regenerarlo a mano si necesitás un dump local, por ejemplo:
+**Checklist corto de variables y BFF (un solo flujo):** [`docs/OPERACION.md`](docs/OPERACION.md).
+
+En **producción**, **Avalon Web** lee la **API KiteProp** (`GET /properties` + `KITEPROP_API_KEY`). **Avalon Premier** puede consumir el mismo catálogo vía **BFF** interno (sin duplicar la key). El snapshot `packages/core/data/properties.json` (~5 MB) es **fallback** y merge de metadata; podés regenerarlo a mano si necesitás un dump local, por ejemplo:
 
 ```bash
 curl -sL -o packages/core/data/properties.json \

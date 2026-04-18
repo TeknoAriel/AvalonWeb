@@ -1,6 +1,8 @@
 # KiteProp — referencia única (Avalon)
 
-Documento canónico para **variables de entorno**, **lectura de catálogo** y **envío de consultas al CRM**. Evita duplicar reglas en otros archivos: si algo cambia, actualizá acá y enlazá desde README o brief.
+**Operación día a día (pocas variables, un solo flujo):** [`docs/OPERACION.md`](./OPERACION.md).
+
+Este archivo es la referencia **técnica** (API, cron, troubleshooting). Evita duplicar reglas en otros archivos: si algo cambia, actualizá acá y enlazá desde README o brief.
 
 ## Enlaces oficiales
 
@@ -11,6 +13,60 @@ Documento canónico para **variables de entorno**, **lectura de catálogo** y **
 
 - La **API key** solo en **servidor** (Vercel / `.env.local`). Nunca en el cliente ni en `NEXT_PUBLIC_*`.
 - El navegador llama a **`/api/consultas`** de la app; Next valida y llama a KiteProp con `X-API-Key`.
+
+### Paso 1 — Clave API en Vercel (sin duplicar)
+
+**Nombre canónico (el que debe quedar):** `KITEPROP_API_KEY`.
+
+1. Abrí **Vercel → proyecto (`avalon-premier` o `avalonweb`) → Settings → Environment Variables** (entorno **Production** y, si usás, **Preview**).
+2. **Si ves dos filas:** `KITEPROP_API_KEY` **y** `KITEPROP_API_TOKEN` (aunque tengan el mismo valor):
+   - **Borrá la fila `KITEPROP_API_TOKEN`.**
+   - **No borres `KITEPROP_API_KEY`.** Debe seguir con tu clave `kp_…`.
+3. **Si solo existe `KITEPROP_API_TOKEN` y no existe `KITEPROP_API_KEY`:**
+   - **Agregá** una variable **`KITEPROP_API_KEY`** con el **mismo** valor que tenía `KITEPROP_API_TOKEN`.
+   - **Borrá la fila `KITEPROP_API_TOKEN`.**
+4. Guardá y hacé **Redeploy** de ese proyecto para que no quede caché de build con la config vieja.
+
+El código aún acepta `KITEPROP_API_TOKEN` como respaldo en runtime, pero **en Vercel no hace falta definirla**: una sola regla (`KITEPROP_API_KEY`) evita confusiones.
+
+### Catálogo: modo recomendado (BFF en Avalon Web)
+
+**Un solo ingest contra KiteProp** lo hace **avalonweb** (`apps/avalon-propiedades`). Expone:
+
+| Ruta | Uso |
+|------|-----|
+| **`GET /api/internal/catalog`** | Mismo JSON que `loadKitepropCatalogFromKitepropApi()`. Auth: **`Authorization: Bearer <CRON_SECRET>`** (mismo que el cron). Legacy: si no hay `CRON_SECRET`, se acepta `INTERNAL_CATALOG_SECRET`. |
+| **`POST /api/internal/consultas`** | Reenvío a KiteProp. Misma auth + `X-Web-Consulta-Source: avalon-premier`. |
+
+**Variables:** tabla mínima en **[`docs/OPERACION.md`](./OPERACION.md)**. Resumen: **no hace falta** `INTERNAL_CATALOG_SECRET` si ya definís **`CRON_SECRET`** en ambos proyectos con el **mismo** valor.
+
+**Crons:** mantener el cron en **ambos** proyectos (`/api/cron/refresh-catalog`).
+
+**Probar el BFF:** `export CRON_SECRET='…'` (y opcional `AVALON_CATALOG_INTERNAL_URL`) → `pnpm bff:verify-catalog` → `HTTP 200`.
+
+### Modo clásico (sin BFF)
+
+Si **no** definís `AVALON_CATALOG_INTERNAL_URL` en Premier, `loadKitepropCatalogMerged` vuelve a leer KiteProp desde esa app (necesitás `KITEPROP_API_KEY` ahí). Útil en local sin levantar las dos apps.
+
+### Proyecto **avalon-premier** en Vercel — reglas que no usa el código (borralas)
+
+El runtime **no lee** estas variables; si las tenés, **borrá la fila completa** en el proyecto **avalon-premier**:
+
+| Variable a borrar | Motivo |
+|-------------------|--------|
+| **`KITEPROP_PROPERTIES_JSON_URL`** | El catálogo **no** consume JSON de difusión por URL; solo API + snapshot. |
+| **`KITEPROP_API_USER`** | No existe en el código de este monorepo. |
+| **`KITEPROP_API_PASSWORD`** | No existe en el código de este monorepo. |
+
+### Proyecto **avalon-premier** — URLs públicas sin duplicar
+
+En `getSiteBrandConfig('premier')` la URL “de este sitio” es **`NEXT_PUBLIC_SITE_URL`** (con fallback a `NEXT_PUBLIC_PREMIER_URL`). El enlace al otro sitio usa **`NEXT_PUBLIC_PEER_SITE_URL`** si está definida; si no, **`NEXT_PUBLIC_AVALON_URL`** (o el default de producción).
+
+Si **`NEXT_PUBLIC_SITE_URL`** ya es la URL canónica de Premier (p. ej. `https://avalon-premier.vercel.app`), **podés borrar `NEXT_PUBLIC_PREMIER_URL`** en este proyecto: queda redundante.
+
+Si **`NEXT_PUBLIC_PEER_SITE_URL`** y **`NEXT_PUBLIC_AVALON_URL`** apuntan al **mismo** sitio (avalonweb), **borrá `NEXT_PUBLIC_PEER_SITE_URL`** y dejá solo **`NEXT_PUBLIC_AVALON_URL`** (queda una sola regla para “el sitio hermano”).
+
+**Lista mínima recomendada (avalon-premier, Production, con BFF):** `INTERNAL_CATALOG_SECRET`, `AVALON_CATALOG_INTERNAL_URL`, `NEXT_PUBLIC_SITE_URL`, `NEXT_PUBLIC_AVALON_URL`, `NEXT_PUBLIC_WHATSAPP`, **`CRON_SECRET`** si usás cron. Opcional: `KITEPROP_API_KEY` como respaldo si el BFF no responde (consultas y catálogo).
 
 ## Cron del catálogo vs “push” al cambiar una propiedad
 
@@ -31,7 +87,7 @@ Documento canónico para **variables de entorno**, **lectura de catálogo** y **
 
 **Frecuencia:** en cada app, `vercel.json` declara el cron cada **2 horas** (`0 */2 * * *`).
 
-**No hay otras variables específicas del cron:** para releer el catálogo siguen valiendo `KITEPROP_API_KEY`, `KITEPROP_API_BASE_URL`, etc.
+**No hay otras variables específicas del cron:** en avalonweb el catálogo vivo sigue dependiendo de `KITEPROP_API_KEY` (y opcionales de feed). En Premier con BFF, del cron depende la revalidación del fetch hacia avalonweb.
 
 **Prueba manual:**  
 `curl -sS -H "Authorization: Bearer TU_CRON_SECRET" "https://<tu-dominio>/api/cron/refresh-catalog"`
@@ -53,7 +109,8 @@ No aparece en esa especificación un mecanismo paralelo tipo “enviar la misma 
 
 | Variable | Uso |
 |----------|-----|
-| `KITEPROP_API_KEY` o `KITEPROP_API_TOKEN` | **Obligatorio para el catálogo en producción:** `X-API-Key` en `GET …/properties` (listado) y en POST de consultas. Sin key, el sitio usa solo el snapshot `properties.json` del repo. |
+| **`KITEPROP_API_KEY`** (canónica en Vercel) | **Obligatorio para el catálogo en producción:** `X-API-Key` en `GET …/properties` (listado) y en POST de consultas. Sin key, el sitio usa solo el snapshot `properties.json` del repo. |
+| `KITEPROP_API_TOKEN` | **Solo respaldo en código** (mismo uso que la key). **No la definidas en Vercel** si ya tenés `KITEPROP_API_KEY`; ver **Paso 1** arriba. |
 | `KITEPROP_API_BASE_URL` | Base del listado API; default `https://www.kiteprop.com/api/v1`. Opcionales: `KITEPROP_API_PROPERTIES_PATH`, `KITEPROP_API_STATUS_FILTER`, `KITEPROP_API_PER_PAGE`. |
 | `KITEPROP_API_NO_ACTIVE_UNPUBLISHED` | Si vale `1`, el listado API **no** concatena `active_unpublished` cuando el filtro es solo `active` (por defecto **sí** se concatena, para alinear con fichas Premier listables como unpublished). |
 | `KITEPROP_API_URL` | Host **sin** `/api/v1` para POST de consultas (ej. `https://www.kiteprop.com`). Si no está, se deduce de `KITEPROP_API_BASE_URL`. |
@@ -64,9 +121,10 @@ Copiá valores concretos desde `.env.example` (comentado) en cada app o en Verce
 
 ### Producción (Vercel) — checklist catálogo Premier
 
-- **Deploy desde GitHub:** workflow **`.github/workflows/deploy-vercel.yml`** — solo **`avalon-premier`** (secret **`VERCEL_TOKEN`**, [crear token](https://vercel.com/account/tokens)). Pasos: **`vercel link` → `pull` → `build --prod` → `deploy --prebuilt --prod`** en `apps/avalon-premier`. La web principal (`avalonweb` / `apps/avalon-propiedades`) se publica con **Git → Vercel** en el proyecto correspondiente del dashboard. Sin `--git-config=false` en `pull`. Si falla **`vercel build`**, revisá el artefacto **`vercel-build-log-avalon-premier`** en el run de Actions. Team en el YAML: `VERCEL_TEAM`.
+- **Deploy desde GitHub:** workflow **`.github/workflows/deploy-vercel.yml`** — solo **`avalon-premier`**: **`vercel link`** + **`vercel deploy --prod`** con `--cwd apps/avalon-premier` (el **build corre en Vercel**, no en Actions). Secret **`VERCEL_TOKEN`**. La web principal (`avalonweb`) sigue con **Git → Vercel**. Team: `VERCEL_TEAM` en el YAML.
 - **Vercel + Turbo — error `.../apps/avalon-premier/apps/avalon-premier`:** en el proyecto Vercel, **Root Directory** = `apps/avalon-premier` y **Output Directory** vacío o **`.next`** (nunca otra vez la ruta `apps/...`). Si no, Next queda en `.../apps/avalon-premier/.next` pero Vercel busca una carpeta mal compuesta. El `turbo.json` del repo declara `globalPassThroughEnv` para que **`KITEPROP_API_KEY`** (y otras) lleguen al `turbo build` en Vercel (sin eso Turbo las oculta y el build puede advertir o el runtime quedar sin API).
-- Declarar **`KITEPROP_API_KEY`** (o `KITEPROP_API_TOKEN`) en **los dos** proyectos Vercel del monorepo: slug **`avalon-premier`** y slug **`avalonweb`** (carpetas `apps/avalon-premier` y `apps/avalon-propiedades`). Cada deploy tiene su propio env; si falta en Premier, el sitio cae al snapshot del repo, con muchos menos ítems Premier que la API.
+- **Premier “en cero” con API:** confirmá **`KITEPROP_API_KEY`** en **Production** del proyecto **avalon-premier** (no solo Preview). Con la misma key, el script `scripts/verify_kiteprop_api_premier.py` cuenta filas con señal Premier. Si KiteProp manda el modificador en **`modificadores` / `modifiers`** u otro nombre, el core los trata como alias de etiquetas; si usan otro campo, hay que añadirlo a `KITEPROP_TAG_FIELD_ALIASES` en `kiteprop-api-mapper.ts`. Mientras tanto podés listar IDs en **`PREMIER_PROPERTY_IDS`** (coma) para forzar el listado Premier.
+- Declarar **`KITEPROP_API_KEY`** en **los dos** proyectos Vercel del monorepo: slug **`avalon-premier`** y slug **`avalonweb`** (carpetas `apps/avalon-premier` y `apps/avalon-propiedades`). Cada deploy tiene su propio env; si falta en Premier, el sitio cae al snapshot del repo, con muchos menos ítems Premier que la API.
 - El segmento Premier lee el flag **`premier` / `is_premier`** (y alias) en la fila API o anidado en **`attributes`**, **`meta`**, etc. Si el CRM solo marca Premier ahí, debe llegar en el JSON de `GET …/properties`.
 - **`CRON_SECRET`** en ambos si usás el cron de revalidación.
 - Si ves **403 / 1010** desde el servidor hacia KiteProp, probá **`KITEPROP_FETCH_USER_AGENT`** con un UA de navegador reciente; el core ya envía uno por defecto en `fetch` del catálogo y en consultas.

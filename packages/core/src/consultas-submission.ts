@@ -1,3 +1,5 @@
+import { resolveAvalonInternalApiOrigin, resolveServerToServerBearerSecret } from './avalon-internal-api';
+import { kitepropApiFeedConfigured } from './kiteprop-api-feed';
 import { postConsultaToKiteprop, type KitepropConsultaInput, type KitepropConsultaResult } from './kiteprop-consulta';
 
 export type WebConsultaSource = 'avalon-propiedades' | 'avalon-premier';
@@ -61,4 +63,48 @@ export async function submitWebConsulta(
     return { ok: false, status: result.status || 502, message: result.message };
   }
   return { ok: true };
+}
+
+/**
+ * Igual que `submitWebConsulta`, pero si el sitio es Premier y está configurado el proxy hacia Avalon Web,
+ * el POST se reenvía al BFF interno (mismo `CRON_SECRET` / secreto servidor que el catálogo). Así Premier puede
+ * operar sin `KITEPROP_API_KEY` si solo usás ingest centralizado.
+ */
+export async function submitWebConsultaWithOptionalAvalonProxy(
+  source: WebConsultaSource,
+  body: Record<string, unknown>,
+): Promise<SubmitWebConsultaResult> {
+  const secret = resolveServerToServerBearerSecret();
+  const origin = resolveAvalonInternalApiOrigin();
+  if (source === 'avalon-premier' && origin && secret) {
+    try {
+      const url = `${origin.replace(/\/$/, '')}/api/internal/consultas`;
+      const r = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${secret}`,
+          'X-Web-Consulta-Source': 'avalon-premier',
+        },
+        body: JSON.stringify(body),
+      });
+      const j = (await r.json().catch(() => ({}))) as { ok?: boolean; message?: string };
+      if (r.ok && j && j.ok === true) {
+        return { ok: true };
+      }
+      if (kitepropApiFeedConfigured()) {
+        return submitWebConsulta(source, body);
+      }
+      const msg =
+        typeof j.message === 'string' && j.message.length > 0 ? j.message : 'No se pudo enviar la consulta';
+      return { ok: false, status: r.status || 502, message: msg };
+    } catch {
+      if (kitepropApiFeedConfigured()) {
+        return submitWebConsulta(source, body);
+      }
+      return { ok: false, status: 502, message: 'No se pudo contactar al servidor Avalon Web' };
+    }
+  }
+
+  return submitWebConsulta(source, body);
 }

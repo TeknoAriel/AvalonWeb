@@ -1,5 +1,9 @@
 export { KITEPROP_PROPERTY_FEED_TAG } from './kiteprop-cache-tag';
-export { loadKitepropCatalogMerged } from './kiteprop-catalog-load';
+export { resolveServerToServerBearerSecret } from './avalon-internal-api';
+export {
+  loadKitepropCatalogMerged,
+  loadKitepropCatalogFromKitepropApi,
+} from './kiteprop-catalog-load';
 export { ALL_RAW_PROPERTIES } from './load';
 export { normalizeProperty } from './normalize';
 export { hasPremierTag, isPremierInventory } from './premier';
@@ -37,7 +41,11 @@ export {
   KITEPROP_TAG_FIELD_ALIASES,
 } from './kiteprop-api-mapper';
 export { postConsultaToKiteprop, type KitepropConsultaInput, type KitepropConsultaResult } from './kiteprop-consulta';
-export { submitWebConsulta, type WebConsultaSource } from './consultas-submission';
+export {
+  submitWebConsulta,
+  submitWebConsultaWithOptionalAvalonProxy,
+  type WebConsultaSource,
+} from './consultas-submission';
 export { isPubliclyListed, isPubliclyListedForSite } from './listing-rules';
 export {
   parseListingSalePriceAmount,

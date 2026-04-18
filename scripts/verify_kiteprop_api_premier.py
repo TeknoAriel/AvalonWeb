@@ -119,7 +119,18 @@ def row_premier_heuristic(row: dict[str, Any]) -> bool:
     """Aproxima `hasPremierTag` (tags/labels/categories + flags + property_tags.name, etc.)."""
     if row.get("premier") is True or row.get("is_premier") is True:
         return True
-    for k in ("tags", "labels", "categories", "property_tags", "kp_tags", "tag_list", "tag_names"):
+    for k in (
+        "tags",
+        "modificadores",
+        "modificador",
+        "modifiers",
+        "labels",
+        "categories",
+        "property_tags",
+        "kp_tags",
+        "tag_list",
+        "tag_names",
+    ):
         v = row.get(k)
         if v is None:
             continue

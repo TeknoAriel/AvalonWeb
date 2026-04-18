@@ -1,12 +1,8 @@
-# Deploy a producción en Vercel — solo **avalon-premier** desde Actions.
+# Deploy **avalon-premier** a producción: build en los servidores de Vercel (no `vercel build` en GitHub).
+# Evita fallos del runner (spawn sh, OOM) y no depende del formato prebuilt local.
 #
-# Proyectos Vercel que usás: **avalonweb** (principal) + **avalon-premier** (Premier).
-# El código del principal está en `apps/avalon-propiedades` pero el slug en Vercel es **avalonweb**;
-# publicalo con Git→Vercel en el dashboard (no hay job de Actions para avalonweb).
-#
-# Secret: VERCEL_TOKEN (https://vercel.com/account/tokens)
-#
-# pull → build --prod → deploy --prebuilt. PATH explícito en build evita spawn sh ENOENT en algunos runners.
+# Secret: VERCEL_TOKEN — https://vercel.com/account/tokens
+# Proyecto Vercel: avalon-premier · Team: VERCEL_TEAM
 
 name: Deploy Vercel (Premier)
 
@@ -23,6 +19,8 @@ env:
   VERCEL_TEAM: teknoariels-projects
   APP_DIR: apps/avalon-premier
   VERCEL_PROJECT: avalon-premier
+  # Misma familia de CLI que usa el build en Vercel (evita diferencias de comportamiento).
+  VERCEL_CLI_VERSION: '51.6.1'
 
 jobs:
   deploy-premier:
@@ -31,79 +29,39 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 1
 
       - name: Comprobar VERCEL_TOKEN
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
           if [ -z "${VERCEL_TOKEN}" ]; then
-            echo '::error::Falta el secret VERCEL_TOKEN (GitHub → Settings → Secrets and variables → Actions)'
+            echo '::error::Falta el secret VERCEL_TOKEN (Settings → Secrets and variables → Actions)'
             exit 1
           fi
-
-      - uses: pnpm/action-setup@v4
 
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: pnpm
-          cache-dependency-path: pnpm-lock.yaml
-
-      - name: Install dependencies (monorepo)
-        run: pnpm install --frozen-lockfile
 
       - name: Vercel link
-        working-directory: ${{ env.APP_DIR }}
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
           set -eu
-          npx vercel@50.32.3 link --yes \
+          npx "vercel@${{ env.VERCEL_CLI_VERSION }}" link --yes \
+            --cwd "${{ env.APP_DIR }}" \
             --project="${{ env.VERCEL_PROJECT }}" \
             --scope="${{ env.VERCEL_TEAM }}" \
             --token="$VERCEL_TOKEN"
 
-      - name: Vercel pull (production)
-        working-directory: ${{ env.APP_DIR }}
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-        run: |
-          set -eu
-          npx vercel@50.32.3 pull --yes \
-            --environment=production \
-            --token="$VERCEL_TOKEN"
-
-      - name: Vercel build (prod)
-        id: vbuild
-        working-directory: ${{ env.APP_DIR }}
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          NODE_OPTIONS: --max-old-space-size=8192
-          # Evita "spawn sh ENOENT" si el CLI hijo hereda un PATH incompleto.
-          PATH: /bin:/usr/bin:/usr/local/bin:${{ env.PATH }}
-        run: |
-          set -euo pipefail
-          mkdir -p "${GITHUB_WORKSPACE}/.ci-logs"
-          npx vercel@50.32.3 build --prod \
-            --scope="${{ env.VERCEL_TEAM }}" \
-            --token="$VERCEL_TOKEN" 2>&1 | tee "${GITHUB_WORKSPACE}/.ci-logs/vercel-build-premier.log"
-
-      - name: Upload Vercel build log on failure
-        if: always() && steps.vbuild.outcome == 'failure'
-        uses: actions/upload-artifact@v4
-        with:
-          name: vercel-build-log-avalon-premier
-          path: .ci-logs/vercel-build-premier.log
-
-      - name: Vercel deploy (prebuilt prod)
-        if: success()
-        working-directory: ${{ env.APP_DIR }}
+      - name: Vercel deploy (prod — build remoto en Vercel)
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           PATH: /bin:/usr/bin:/usr/local/bin:${{ env.PATH }}
         run: |
           set -eu
-          npx vercel@50.32.3 deploy --prebuilt --prod --yes --logs \
+          npx "vercel@${{ env.VERCEL_CLI_VERSION }}" deploy --prod --yes --logs \
+            --cwd "${{ env.APP_DIR }}" \
             --scope="${{ env.VERCEL_TEAM }}" \
             --token="$VERCEL_TOKEN"

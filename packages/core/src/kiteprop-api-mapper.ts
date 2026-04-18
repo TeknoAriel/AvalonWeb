@@ -47,7 +47,17 @@ export function nestedRecordPremierCandidates(p: Record<string, unknown>): unkno
     const v = p[k];
     if (!v || typeof v !== 'object' || Array.isArray(v)) continue;
     const r = v as Record<string, unknown>;
-    out.push(r.premier, r.is_premier, r.isPremier, r.avalon_premier, r['premier_flag']);
+    out.push(
+      r.premier,
+      r.is_premier,
+      r.isPremier,
+      r.avalon_premier,
+      r['premier_flag'],
+      r.modificadores,
+      r.modifiers,
+      r.modificador,
+      r.tags,
+    );
   }
   return out;
 }
@@ -62,6 +72,9 @@ function isEmptyFeedShard(v: unknown): boolean {
 /** Claves donde KiteProp suele colgar etiquetas (API, export, difusiones). Alineado con heurísticas en `premier.ts`. */
 export const KITEPROP_TAG_FIELD_ALIASES = [
   'tags',
+  'modificadores',
+  'modificador',
+  'modifiers',
   'property_tags',
   'kp_tags',
   'tag_list',

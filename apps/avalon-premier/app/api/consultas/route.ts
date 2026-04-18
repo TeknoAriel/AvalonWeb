@@ -1,4 +1,4 @@
-import { submitWebConsulta } from '@avalon/core';
+import { submitWebConsultaWithOptionalAvalonProxy } from '@avalon/core';
 import { NextRequest, NextResponse } from 'next/server';
 
 export const runtime = 'nodejs';
@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: false, message: 'JSON inválido' }, { status: 400 });
   }
 
-  const result = await submitWebConsulta('avalon-premier', body);
+  const result = await submitWebConsultaWithOptionalAvalonProxy('avalon-premier', body);
   if (!result.ok) {
     return NextResponse.json({ ok: false, message: result.message }, { status: result.status });
   }

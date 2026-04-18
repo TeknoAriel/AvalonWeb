@@ -1,5 +1,6 @@
-import { getNormalizedPropertiesByIdsForSite, loadKitepropCatalogMerged } from '@avalon/core';
+import { getNormalizedPropertiesByIdsForSite } from '@avalon/core';
 import { NextResponse } from 'next/server';
+import { getCachedRawProperties } from '@/lib/raw-properties';
 import { SITE } from '@/lib/site';
 
 export const dynamic = 'force-dynamic';
@@ -30,7 +31,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ properties: [] });
   }
 
-  const raw = await loadKitepropCatalogMerged();
+  const raw = await getCachedRawProperties();
   const properties = getNormalizedPropertiesByIdsForSite(SITE, ids, raw);
   return NextResponse.json({ properties });
 }

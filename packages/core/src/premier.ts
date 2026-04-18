@@ -154,6 +154,9 @@ export function hasPremierTag(raw: RawProperty): boolean {
   }
 
   for (const key of [
+    'modificadores',
+    'modificador',
+    'modifiers',
     'property_tags',
     'property_tag_names',
     'tag_names',

@@ -1,4 +1,10 @@
 import type { RawProperty } from '@avalon/types';
+import {
+  fetchRawCatalogFromAvalonBff,
+  isAvalonCatalogBffConfigured,
+  resolveAvalonCatalogBffUrl,
+  resolveServerToServerBearerSecret,
+} from './avalon-internal-api';
 import { kitepropApiFeedConfigured, fetchKitepropPropertyFeedAsRaw } from './kiteprop-api-feed';
 import { KITEPROP_PROPERTY_FEED_TAG } from './kiteprop-cache-tag';
 import { ALL_RAW_PROPERTIES } from './load';
@@ -16,16 +22,10 @@ function finalizeWithSnapshotMerge(rows: RawProperty[]): RawProperty[] {
 }
 
 /**
- * Catálogo KiteProp en servidor: **solo API** (con key) o snapshot del repo.
- * No se usa `KITEPROP_PROPERTIES_JSON_URL` ni ningún JSON de difusión en runtime.
- *
- * Orden fijo:
- * 1. Si hay `KITEPROP_API_KEY` / `KITEPROP_API_TOKEN` → `GET /api/v1/properties` (paginado). Si hay filas → catálogo.
- * 2. Si no hay key, o la API falla, o devuelve vacío → `packages/core/data/properties.json` (merge Premier con snapshot).
- *
- * Cada app aplica `getSitePropertiesFromRaw(site, raw)` — Premier = `hasPremierTag`, Avalon = lo contrario.
+ * Solo KiteProp (API + key) o snapshot empaquetado. **Sin** BFF de Avalon.
+ * Usar en el servidor Avalon Web que expone `/api/internal/catalog` y en tests.
  */
-export async function loadKitepropCatalogMerged(): Promise<RawProperty[]> {
+export async function loadKitepropCatalogFromKitepropApi(): Promise<RawProperty[]> {
   if (kitepropApiFeedConfigured()) {
     try {
       const fromApi = await fetchKitepropPropertyFeedAsRaw(defaultFetchInit);
@@ -38,4 +38,36 @@ export async function loadKitepropCatalogMerged(): Promise<RawProperty[]> {
   }
 
   return finalizeWithSnapshotMerge(ALL_RAW_PROPERTIES);
+}
+
+/**
+ * Catálogo en servidor.
+ *
+ * **Modo BFF (p. ej. Avalon Premier):** si hay `AVALON_CATALOG_INTERNAL_URL` y **`CRON_SECRET`**
+ * (mismo valor que protege el cron; opcional legacy `INTERNAL_CATALOG_SECRET`), se hace `GET` a Avalon Web
+ * (`/api/internal/catalog`) y se usa esa respuesta (ya mergeada en origen). Sin key KiteProp en Premier.
+ *
+ * **Modo directo (p. ej. Avalon Web):** `GET …/properties` con `KITEPROP_API_KEY` o snapshot si no hay key.
+ *
+ * Cada app sigue aplicando `getSitePropertiesFromRaw(site, raw)` sobre el mismo cuerpo de datos.
+ */
+export async function loadKitepropCatalogMerged(): Promise<RawProperty[]> {
+  if (isAvalonCatalogBffConfigured()) {
+    const url = resolveAvalonCatalogBffUrl();
+    const secret = resolveServerToServerBearerSecret();
+    if (!url || !secret) {
+      return loadKitepropCatalogFromKitepropApi();
+    }
+    try {
+      const fromBff = await fetchRawCatalogFromAvalonBff(url, secret, defaultFetchInit);
+      if (fromBff.length > 0) {
+        return fromBff;
+      }
+    } catch {
+      /* snapshot */
+    }
+    return finalizeWithSnapshotMerge(ALL_RAW_PROPERTIES);
+  }
+
+  return loadKitepropCatalogFromKitepropApi();
 }
