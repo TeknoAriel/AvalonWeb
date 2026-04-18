@@ -55,23 +55,28 @@ pnpm build            # build de todas las apps
 pnpm lint
 ```
 
-## Vercel (dos proyectos)
+## Vercel — una sola línea de trabajo (solo 2 proyectos)
 
-1. Crear **dos proyectos** enlazados al mismo repo.
-2. **Root Directory**: `apps/avalon-propiedades` y `apps/avalon-premier` respectivamente.
-3. **Build**: `cd ../.. && pnpm install && pnpm exec turbo build --filter=avalon-propiedades` (ajustar el filtro por proyecto).
-4. **Install command** en la raíz del repo o `pnpm install` desde root con override de root directory (recomendado: configurar Root Directory y en Vercel usar “Include files outside root” si aplica).
+El producto es simple: **web principal** (todo el catálogo institucional) + **web Premier** (mismo catálogo, recorte por etiqueta Premier). En código son `apps/avalon-propiedades` y `apps/avalon-premier`. En Vercel solo tienen que existir **estos dos** proyectos para este repo:
 
-Configuración típica con monorepo Vercel:
+| Rol | Carpeta en el repo | Proyecto en Vercel (slug en la URL) |
+|-----|--------------------|-------------------------------------|
+| Web principal | `apps/avalon-propiedades` | **`avalonweb`** |
+| Web Premier (solidaria / editorial) | `apps/avalon-premier` | **`avalon-premier`** |
 
-- **Framework Preset**: Next.js
-- **Root Directory**: `apps/avalon-propiedades` (o premier)
-- **Build Command**: desde documentación oficial de Turborepo + Vercel:  
-  `cd ../.. && pnpm turbo build --filter=avalon-propiedades`
+El deploy por GitHub Actions (`.github/workflows/deploy-vercel.yml`) publica exactamente esos dos slugs. No hace falta un tercer proyecto de “propiedades” con otro nombre.
 
-5. Variables de entorno por proyecto: `NEXT_PUBLIC_SITE_URL`, `NEXT_PUBLIC_AVALON_URL`, `NEXT_PUBLIC_PREMIER_URL`, `NEXT_PUBLIC_PEER_SITE_URL`, `NEXT_PUBLIC_WHATSAPP`.
+**Si ves más tarjetas en el dashboard** (por ejemplo `avalon-web-avalon-propiedades` o un segundo proyecto tipo `avalon-propiedades` apuntando al mismo Git): suelen ser **duplicados** que Vercel creó al enlazar el monorepo sin `Root Directory` correcto, o intentos viejos. **No los uses:** archivá o borrá el proyecto duplicado y desconectá el Git de esa tarjeta para que no siga haciendo builds. **`redalia`** y **`kite-prospect`** no forman parte de este monorepo; son otros sitios en tu cuenta.
 
-Copiá `.env.example` a `.env.local` en cada app o definí las variables en Vercel.
+**Si además tenés Git conectado** en `avalonweb` y en `avalon-premier`: o confiás solo en Actions, o solo en el deploy automático de Vercel — **no los dos a la vez** en el mismo proyecto (evitás dos colas peleándose). Lo canónico con el workflow actual es **Actions** + secret `VERCEL_TOKEN`.
+
+Configuración típica cuando enlazás a mano en Vercel (sin depender solo de Actions):
+
+- **Framework**: Next.js  
+- **Root Directory**: `apps/avalon-propiedades` o `apps/avalon-premier` según el proyecto  
+- **Build** (ejemplo): `cd ../.. && pnpm turbo build --filter=avalon-propiedades` (cambiá el filtro en el proyecto Premier)
+
+Variables por proyecto: ver [`docs/KITEPROP.md`](docs/KITEPROP.md) y `.env.example` en cada app (`NEXT_PUBLIC_*`, KiteProp, `CRON_SECRET`, etc.).
 
 ## Logos
 

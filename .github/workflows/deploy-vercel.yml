@@ -23,7 +23,7 @@ env:
 
 jobs:
   deploy:
-    if: ${{ secrets.VERCEL_TOKEN != '' }}
+    # No uses `secrets` en `if` a nivel de job: GitHub no lo permite y el workflow ni siquiera encola (error al parsear).
     name: ${{ matrix.label }}
     runs-on: ubuntu-latest
     strategy:
@@ -41,6 +41,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Comprobar secret VERCEL_TOKEN
+        if: ${{ secrets.VERCEL_TOKEN == '' }}
+        run: |
+          echo '::error::Falta el secret VERCEL_TOKEN (GitHub → Settings → Secrets and variables → Actions)'
+          exit 1
+
       - uses: pnpm/action-setup@v4
 
       - uses: actions/setup-node@v4
@@ -52,13 +58,46 @@ jobs:
       - name: Install dependencies (monorepo)
         run: pnpm install --frozen-lockfile
 
-      - name: Link, build & deploy
+      # Pasos separados: en Actions ves exactamente qué falló (link vs build vs deploy).
+      - name: Vercel link
         working-directory: ${{ matrix.directory }}
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
           set -eu
-          npx vercel@50.32.3 link --yes --project="${{ matrix.project }}" --scope="${{ env.VERCEL_TEAM }}" --token="$VERCEL_TOKEN"
-          npx vercel@50.32.3 pull --yes --environment=production --git-config=false --token="$VERCEL_TOKEN"
-          npx vercel@50.32.3 build --prod --token="$VERCEL_TOKEN"
-          npx vercel@50.32.3 deploy --prebuilt --prod --token="$VERCEL_TOKEN" --yes
+          npx vercel@50.32.3 link --yes \
+            --project="${{ matrix.project }}" \
+            --scope="${{ env.VERCEL_TEAM }}" \
+            --token="$VERCEL_TOKEN"
+
+      - name: Vercel pull (env production)
+        working-directory: ${{ matrix.directory }}
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          set -eu
+          npx vercel@50.32.3 pull --yes \
+            --environment=production \
+            --git-config=false \
+            --scope="${{ env.VERCEL_TEAM }}" \
+            --token="$VERCEL_TOKEN"
+
+      - name: Vercel build (prod)
+        working-directory: ${{ matrix.directory }}
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          set -eu
+          npx vercel@50.32.3 build --prod \
+            --scope="${{ env.VERCEL_TEAM }}" \
+            --token="$VERCEL_TOKEN"
+
+      - name: Vercel deploy (prebuilt prod)
+        working-directory: ${{ matrix.directory }}
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          set -eu
+          npx vercel@50.32.3 deploy --prebuilt --prod --yes \
+            --scope="${{ env.VERCEL_TEAM }}" \
+            --token="$VERCEL_TOKEN"
