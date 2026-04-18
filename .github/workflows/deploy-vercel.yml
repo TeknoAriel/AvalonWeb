@@ -1,8 +1,11 @@
 # Deploy a producción en Vercel (ambos sitios del monorepo).
-# Un solo secret: VERCEL_TOKEN (https://vercel.com/account/tokens)
+# Secret: VERCEL_TOKEN (https://vercel.com/account/tokens)
 #
-# Team y nombres de proyecto salen de tu dashboard (URL: vercel.com/<team>/<project>).
-# Si falla el de propiedades, cambiá solo matrix.project para ese app.
+# Estrategia: build remoto en Vercel (`vercel deploy --prod` sin --prebuilt).
+# El flujo link + build local + deploy --prebuilt fallaba en el runner en `vercel build`;
+# el build en los servidores de Vercel usa Root Directory + comandos del proyecto (vercel.json / dashboard).
+#
+# Team y slugs de proyecto: vercel.com/<team>/<slug>. Si falla link en propiedades, ajustá matrix.project.
 
 name: Deploy Vercel (Premier + Propiedades)
 
@@ -20,7 +23,6 @@ env:
 
 jobs:
   deploy:
-    # No uses `secrets` en `if` a nivel de job: GitHub no lo permite y el workflow ni siquiera encola (error al parsear).
     name: ${{ matrix.label }}
     runs-on: ubuntu-latest
     strategy:
@@ -32,15 +34,11 @@ jobs:
             project: avalon-premier
           - label: avalon-propiedades
             directory: apps/avalon-propiedades
-            # Subdominio canónico avalonweb.vercel.app → slug suele ser avalonweb; si falla el link, probá avalon-propiedades
             project: avalonweb
 
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
-      # No uses `secrets` en `if:` de un step: en este workflow GitHub no compone jobs (falla al instante, 0 check runs).
       - name: Comprobar VERCEL_TOKEN
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
@@ -50,18 +48,10 @@ jobs:
             exit 1
           fi
 
-      - uses: pnpm/action-setup@v4
-
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: pnpm
-          cache-dependency-path: pnpm-lock.yaml
 
-      - name: Install dependencies (monorepo)
-        run: pnpm install --frozen-lockfile
-
-      # Pasos separados: en Actions ves exactamente qué falló (link vs build vs deploy).
       - name: Vercel link
         working-directory: ${{ matrix.directory }}
         env:
@@ -73,33 +63,12 @@ jobs:
             --scope="${{ env.VERCEL_TEAM }}" \
             --token="$VERCEL_TOKEN"
 
-      - name: Vercel pull (env production)
+      - name: Vercel deploy (prod, build en Vercel)
         working-directory: ${{ matrix.directory }}
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
           set -eu
-          # Sin --git-config=false: en Actions el repo suele estar en detached HEAD y el pull puede fallar si el CLI toca git metadata.
-          npx vercel@50.32.3 pull --yes \
-            --environment=production \
-            --token="$VERCEL_TOKEN"
-
-      - name: Vercel build (prod)
-        working-directory: ${{ matrix.directory }}
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-        run: |
-          set -eu
-          npx vercel@50.32.3 build --prod \
-            --scope="${{ env.VERCEL_TEAM }}" \
-            --token="$VERCEL_TOKEN"
-
-      - name: Vercel deploy (prebuilt prod)
-        working-directory: ${{ matrix.directory }}
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-        run: |
-          set -eu
-          npx vercel@50.32.3 deploy --prebuilt --prod --yes \
+          npx vercel@50.32.3 deploy --prod --yes \
             --scope="${{ env.VERCEL_TEAM }}" \
             --token="$VERCEL_TOKEN"
