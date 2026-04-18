@@ -25,7 +25,7 @@ Documento canónico para **variables de entorno**, **lectura de catálogo** y **
 
 | Nombre | Qué ponés |
 |--------|-----------|
-| **`CRON_SECRET`** | Un secreto largo solo servidor (ej. salida de `openssl rand -hex 32`). Lo definís en **Vercel → Project → Settings → Environment Variables** en cada proyecto que use el cron (`avalon-propiedades`, `avalon-premier`). Podés usar el **mismo** valor en ambos para simplificar. |
+| **`CRON_SECRET`** | Un secreto largo solo servidor (ej. salida de `openssl rand -hex 32`). Lo definís en **Vercel → Project → Settings → Environment Variables** en cada proyecto que use el cron (**`avalonweb`** y **`avalon-premier`**). Podés usar el **mismo** valor en ambos para simplificar. |
 
 **Comportamiento:** Vercel Cron hace **`GET /api/cron/refresh-catalog`** a tu dominio. Si `CRON_SECRET` está definido en el proyecto, Vercel envía **`Authorization: Bearer <CRON_SECRET>`**; la ruta solo revalida si esa cabecera coincide con `process.env.CRON_SECRET`. Sin variable → respuesta **503** y no hay revalidación.
 

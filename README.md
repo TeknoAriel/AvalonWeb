@@ -57,7 +57,15 @@ pnpm lint
 
 ## Vercel — una sola línea de trabajo (solo 2 proyectos)
 
-El producto es simple: **web principal** (todo el catálogo institucional) + **web Premier** (mismo catálogo, recorte por etiqueta Premier). En código son `apps/avalon-propiedades` y `apps/avalon-premier`. En Vercel solo tienen que existir **estos dos** proyectos para este repo:
+### Nombres (para no mezclar cosas)
+
+| Dónde | Qué usás |
+|-------|-----------|
+| **GitHub** | Un solo monorepo (p. ej. `AvalonWeb`): todo el código vive acá. |
+| **Vercel** | Solo **`avalonweb`** (sitio principal) y **`avalon-premier`**. Esos son los dos “sitios” reales. |
+| **Carpeta en este repo** | `apps/avalon-propiedades` = código que **desplegás** en el proyecto Vercel **`avalonweb`**. El nombre de la carpeta es el del **paquete** pnpm/Turbo (`avalon-propiedades`); **no** implica que tengas que tener otro proyecto Vercel llamado `avalon-propiedades`. Si borraste un proyecto Vercel con ese nombre, **bien**: era duplicado o confuso. |
+
+El producto es simple: **web principal** (todo el catálogo institucional) + **web Premier** (mismo catálogo, recorte por etiqueta Premier). En Vercel solo tienen que existir **estos dos** proyectos para este repo:
 
 | Rol | Carpeta en el repo | Proyecto en Vercel (slug en la URL) |
 |-----|--------------------|-------------------------------------|

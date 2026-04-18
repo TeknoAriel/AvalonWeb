@@ -1,7 +1,8 @@
 # Deploy a producción en Vercel — solo **avalon-premier** desde Actions.
 #
-# La web principal (`apps/avalon-propiedades` → proyecto Vercel `avalonweb`) se publica
-# con la integración Git→Vercel del proyecto en el dashboard (ya no hay job matrix para esa app).
+# Proyectos Vercel que usás: **avalonweb** (principal) + **avalon-premier** (Premier).
+# El código del principal está en `apps/avalon-propiedades` pero el slug en Vercel es **avalonweb**;
+# publicalo con Git→Vercel en el dashboard (no hay job de Actions para avalonweb).
 #
 # Secret: VERCEL_TOKEN (https://vercel.com/account/tokens)
 #
