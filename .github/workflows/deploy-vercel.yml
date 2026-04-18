@@ -48,27 +48,35 @@ jobs:
             exit 1
           fi
 
+      - uses: pnpm/action-setup@v4
+
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
 
+      - name: Install dependencies (monorepo)
+        run: pnpm install --frozen-lockfile
+
+      # Desde la raíz del repo + --cwd: el upload incluye packages/ (monorepo). Si se corre solo dentro de apps/*, el deploy remoto suele fallar.
       - name: Vercel link
-        working-directory: ${{ matrix.directory }}
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
           set -eu
           npx vercel@50.32.3 link --yes \
+            --cwd "${{ matrix.directory }}" \
             --project="${{ matrix.project }}" \
             --scope="${{ env.VERCEL_TEAM }}" \
             --token="$VERCEL_TOKEN"
 
       - name: Vercel deploy (prod, build en Vercel)
-        working-directory: ${{ matrix.directory }}
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
           set -eu
           npx vercel@50.32.3 deploy --prod --yes \
+            --cwd "${{ matrix.directory }}" \
             --scope="${{ env.VERCEL_TEAM }}" \
             --token="$VERCEL_TOKEN"
