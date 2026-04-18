@@ -36,6 +36,7 @@ curl -sL -o packages/core/data/properties.json \
 Documentación:
 
 - **KiteProp (env, consultas CRM, seguridad de la key):** [`docs/KITEPROP.md`](docs/KITEPROP.md) — referencia principal para no duplicar reglas.
+- **CI / verificación ingesta + cron:** [`docs/OPERACION.md`](docs/OPERACION.md) sección **6**.
 - **Esquema del JSON de difusión:** [`docs/DATA_LAYER.md`](docs/DATA_LAYER.md).
 - **Invariante crítico Premier (tag, feed, mapper API — no romper):** [`docs/PREMIER_INVENTORY_INVARIANT.md`](docs/PREMIER_INVENTORY_INVARIANT.md).
 - API pública: [KiteProp API v1](https://www.kiteprop.com/docs/api/v1).
