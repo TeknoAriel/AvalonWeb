@@ -89,11 +89,14 @@ export default async function PropertiesPage({
               <p className="mt-3">
                 El listado solo incluye avisos del feed marcados como Premier (tags, labels, flags o IDs en{' '}
                 <code className="rounded bg-brand-primary/5 px-1 text-xs">PREMIER_PROPERTY_IDS</code>). No hay
-                Elasticsearch: es filtrado en servidor sobre la API KiteProp (y snapshot si la API no está disponible).
+                Elasticsearch: es filtrado en servidor sobre el mismo catálogo que Avalon Web (en producción suele ser el BFF{' '}
+                <code className="rounded bg-brand-primary/5 px-0.5">/api/internal/catalog</code>; si no, API KiteProp o snapshot).
               </p>
               <p className="mt-3 text-xs text-brand-text/50">
-                El catálogo sale de la API KiteProp con <code className="rounded bg-brand-primary/5 px-0.5">KITEPROP_API_KEY</code>; si falla, del snapshot del repo. Podés forzar IDs con{' '}
-                <code className="rounded bg-brand-primary/5 px-0.5">PREMIER_PROPERTY_IDS</code>.
+                Si ves pocos ítems pero en CRM hay más Premier, revisá en Vercel{' '}
+                <code className="rounded bg-brand-primary/5 px-0.5">AVALON_CATALOG_INTERNAL_URL</code>, el mismo{' '}
+                <code className="rounded bg-brand-primary/5 px-0.5">CRON_SECRET</code> que en Avalon Web y la key en el proyecto Web; ver{' '}
+                <code className="rounded bg-brand-primary/5 px-0.5">docs/KITEPROP.md</code>.
               </p>
             </>
           ) : (

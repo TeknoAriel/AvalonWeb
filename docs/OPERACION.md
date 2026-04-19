@@ -2,6 +2,8 @@
 
 **Deploy y comprobación automática:** ver [`docs/DEPLOY_VERIFICATION.md`](./DEPLOY_VERIFICATION.md) (post-deploy, BFF, doble deploy Git vs Actions).
 
+**Ingest KiteProp (URL + key, cabecera `X-API-Key`) y alinear Premier con `premierListableCount`:** ver [`docs/KITEPROP.md`](./KITEPROP.md) (secciones *variables que no usa el código*, *Ingest local*, *Checklist Premier*).
+
 **Modelo:** un solo ingest a KiteProp en **Avalon Web**. **Avalon Premier** solo pide el catálogo por HTTP a Avalon Web y filtra Premier en código. **Un solo secreto servidor** compartido: `CRON_SECRET` (protege el cron de Vercel **y** el Bearer de `/api/internal/*`). Si ya tenías `INTERNAL_CATALOG_SECRET`, seguí usándolo; si no, **no hace falta crear otro**: usá solo `CRON_SECRET` en ambos proyectos.
 
 ---

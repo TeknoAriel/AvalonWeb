@@ -48,15 +48,44 @@ El código aún acepta `KITEPROP_API_TOKEN` como respaldo en runtime, pero **en 
 
 Si **no** definís `AVALON_CATALOG_INTERNAL_URL` en Premier, `loadKitepropCatalogMerged` vuelve a leer KiteProp desde esa app (necesitás `KITEPROP_API_KEY` ahí). Útil en local sin levantar las dos apps.
 
-### Proyecto **avalon-premier** en Vercel — reglas que no usa el código (borralas)
+### Vercel — variables que el código **no** usa (borralas en avalonweb y avalon-premier)
 
-El runtime **no lee** estas variables; si las tenés, **borrá la fila completa** en el proyecto **avalon-premier**:
+El runtime del catálogo **no** lee usuario/contraseña para `GET …/properties`: la API v1 documentada usa **`X-API-Key`** (ver **Autenticación REST** más abajo). Si tenés filas como `KITEPROP_API_USER` / `KITEPROP_API_PASSWORD`, generan ruido y confusión; **borralas** en **ambos** proyectos.
 
 | Variable a borrar | Motivo |
 |-------------------|--------|
 | **`KITEPROP_PROPERTIES_JSON_URL`** | El catálogo **no** consume JSON de difusión por URL; solo API + snapshot. |
-| **`KITEPROP_API_USER`** | No existe en el código de este monorepo. |
+| **`KITEPROP_API_USER`** | No existe en el código de este monorepo (no afecta al ingest). |
 | **`KITEPROP_API_PASSWORD`** | No existe en el código de este monorepo. |
+
+**Ingest estable con solo URL + key (recomendado en avalonweb):**
+
+| Variable | Valor típico |
+|----------|----------------|
+| **`KITEPROP_API_KEY`** | `kp_…` (Production). |
+| **`KITEPROP_API_BASE_URL`** o **`KITEPROP_API_URL`** | `https://www.kiteprop.com/api/v1` (el feed usa **BASE** si está; si no, **API_URL**). No hace falta duplicar las dos con distinto valor. |
+
+El cliente del feed (`packages/core/src/kiteprop-api-feed.ts`) envía **`X-API-Key: <KITEPROP_API_KEY>`** (y `User-Agent`). Los scripts `pnpm kp:ingest-stats`, `pnpm kp:premier-feed-report` y `pnpm catalog:regenerate-snapshot` usan el mismo camino.
+
+### Ingest local (misma cabecera que producción)
+
+En la terminal, **una variable por línea** (sin pegar comentarios `#` en la misma línea que el `export` si tu zsh no tiene `interactivecomments`):
+
+```bash
+export KITEPROP_API_KEY='kp_TU_CLAVE_REAL'
+export KITEPROP_API_URL='https://www.kiteprop.com/api/v1'
+pnpm kp:ingest-stats
+```
+
+El JSON incluye `kitepropApiBaseResolved` y `premierListableCount`. Ese último es el número de filas que el **sitio Premier** mostraría **si** el `raw` del servidor fuera idéntico al de esta descarga.
+
+### Checklist: que Premier muestre las mismas **N** que `premierListableCount`
+
+1. **`pnpm kp:ingest-stats`** en local con la misma key que **Production** en **avalonweb** → anotá `premierListableCount` (ej. 24) y `totalRows`.
+2. **avalonweb (Vercel → Production):** `KITEPROP_API_KEY` + `KITEPROP_API_URL` o `KITEPROP_API_BASE_URL`; **Redeploy** tras cambiar env.
+3. **avalon-premier (Production):** `AVALON_CATALOG_INTERNAL_URL` = `https://<tu-dominio-avalonweb>/api/internal/catalog` (sin barra final extra rara) y **`CRON_SECRET` idéntico** al de avalonweb (Bearer del BFF). **Redeploy** Premier.
+4. **Probar BFF** (desde tu máquina): `curl -sS -H "Authorization: Bearer <CRON_SECRET>" "https://<avalonweb>/api/internal/catalog"` → debe ser **200** y un JSON array; su **longitud** debe ser del orden de `totalRows` del ingest (p. ej. ~229). Premier luego **filtra en código** a las **N** listables Premier (las 24): si el array del BFF es muy corto o vacío, el sitio no podrá mostrar 24 aunque el CRM las tenga.
+5. Si el BFF responde bien pero el sitio muestra pocas: revisá que no estés viendo **Preview** con env viejo, o un **dominio** distinto al del deploy *Current*.
 
 ### Proyecto **avalon-premier** — URLs públicas sin duplicar
 
@@ -85,7 +114,7 @@ Si **`NEXT_PUBLIC_PEER_SITE_URL`** y **`NEXT_PUBLIC_AVALON_URL`** apuntan al **m
 
 **Comportamiento:** Vercel Cron hace **`GET /api/cron/refresh-catalog`** a tu dominio. Si `CRON_SECRET` está definido en el proyecto, Vercel envía **`Authorization: Bearer <CRON_SECRET>`**; la ruta solo revalida si esa cabecera coincide con `process.env.CRON_SECRET`. Sin variable → respuesta **503** y no hay revalidación.
 
-**Frecuencia:** en cada app, `vercel.json` declara el cron cada **2 horas** (`0 */2 * * *`).
+**Frecuencia:** revisá `apps/*/vercel.json` en el repo (hoy suele ser **1× día** en UTC, p. ej. `30 9 * * *`); no confundir con comentarios viejos de “cada 2 h” salvo que lo hayas cambiado en tu fork.
 
 **No hay otras variables específicas del cron:** en avalonweb el catálogo vivo sigue dependiendo de `KITEPROP_API_KEY` (y opcionales de feed). En Premier con BFF, del cron depende la revalidación del fetch hacia avalonweb.
 
@@ -111,11 +140,11 @@ No aparece en esa especificación un mecanismo paralelo tipo “enviar la misma 
 |----------|-----|
 | **`KITEPROP_API_KEY`** (canónica en Vercel) | **Obligatorio para el catálogo en producción:** `X-API-Key` en `GET …/properties` (listado) y en POST de consultas. Sin key, el sitio usa solo el snapshot `properties.json` del repo. |
 | `KITEPROP_API_TOKEN` | **Solo respaldo en código** (mismo uso que la key). **No la definidas en Vercel** si ya tenés `KITEPROP_API_KEY`; ver **Paso 1** arriba. |
-| `KITEPROP_API_BASE_URL` | Base del listado API; default `https://www.kiteprop.com/api/v1`. Opcionales: `KITEPROP_API_PROPERTIES_PATH`, `KITEPROP_API_STATUS_FILTER`, `KITEPROP_API_PER_PAGE`. |
+| `KITEPROP_API_BASE_URL` | Base del listado `GET …/properties`; default `https://www.kiteprop.com/api/v1`. Opcionales: `KITEPROP_API_PROPERTIES_PATH`, `KITEPROP_API_STATUS_FILTER`, `KITEPROP_API_PER_PAGE`. |
+| `KITEPROP_API_URL` | Si **no** definiste `KITEPROP_API_BASE_URL`, el **feed del catálogo** usa este valor como base (misma URL con `/api/v1` está bien). Para **POST de consultas**, el core también usa `KITEPROP_API_URL` como host raíz (ver `kiteprop-consulta.ts`). |
 | `KITEPROP_API_NO_ACTIVE_UNPUBLISHED` | Si vale `1`, el listado API **no** concatena `active_unpublished` cuando el filtro es solo `active` (por defecto **sí** se concatena, para alinear con fichas Premier listables como unpublished). |
 | **`KITEPROP_PREMIER_SAVED_LIST_IDS`** | Opcional. IDs de **lista guardada / propsheet** en KiteProp (ej. URL [`…/propsheet/saved/348/0138`](https://www.kiteprop.com/propsheet/saved/348/0138) → `0138`). Varios: coma. Si el JSON de `GET …/properties` incluye ese id en campos típicos (`lists`, `groups`, `saved_list_ids`, anidados en `attributes` / `meta`), el core cuenta la fila como segmento Premier aunque no venga la palabra en `tags`. Si `pnpm kp:ingest-stats` muestra `premierSavedListRowCount: 0` con el id configurado, **la API no está mandando** ese vínculo: conviene confirmar con KiteProp el campo exacto o usar `PREMIER_PROPERTY_IDS` temporalmente. |
 | `KITEPROP_PREMIER_PROPSHEET_ID` | Alias de un solo id (mismo uso que una entrada en `KITEPROP_PREMIER_SAVED_LIST_IDS`). |
-| `KITEPROP_API_URL` | Host **sin** `/api/v1` para POST de consultas (ej. `https://www.kiteprop.com`). Si no está, se deduce de `KITEPROP_API_BASE_URL`. |
 | `KITEPROP_API_CONSULTA_URL` | **Opcional.** Si está definida, **todas** las consultas van a esa URL con cuerpo **legacy** (`full_name`, `body`, `property_id`, etc.). Solo para tenants con endpoint distinto acordado con soporte. |
 | `CRON_SECRET` | Secreto del **cron** de revalidación (`GET /api/cron/refresh-catalog`). Ver tabla arriba en **Cron en Vercel**. |
 
