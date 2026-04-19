@@ -51,7 +51,8 @@ Documentación:
 ### Regla Premier
 
 - `hasPremierTag(raw)` revisa `tags`, `labels`, `categories`, flags `premier` / `is_premier`, y variables de entorno `PREMIER_PROPERTY_IDS` / `NEXT_PUBLIC_PREMIER_PROPERTY_IDS`. Detalle y checklist en **`docs/PREMIER_INVENTORY_INVARIANT.md`**.
-- **Catálogo público**: solo propiedades con `status === "active"`.
+- **Catálogo Avalon (web estándar):** propiedades con estado “activo” (`isPubliclyListedForSite` sitio `avalon`).
+- **Catálogo Premier:** mismas filas que `isPremierSiteListable` en `@avalon/core` (segmento Premier + no terminal); coincide con `premierListableCount` en `pnpm kp:ingest-stats`.
 - El mapper de la **API** debe usar `pickFirstNonEmpty` para tags (no solo `??`): si `tags` viene `[]` y el premier está en `property_tags`, sin eso el listado Premier queda vacío.
 
 ## Scripts

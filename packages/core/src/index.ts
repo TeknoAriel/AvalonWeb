@@ -51,7 +51,7 @@ export {
   submitWebConsultaWithOptionalAvalonProxy,
   type WebConsultaSource,
 } from './consultas-submission';
-export { isPubliclyListed, isPubliclyListedForSite } from './listing-rules';
+export { isPubliclyListed, isPubliclyListedForSite, isPremierSiteListable } from './listing-rules';
 export {
   parseListingSalePriceAmount,
   parseTotalM2,

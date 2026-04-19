@@ -1,8 +1,12 @@
 import type { RawProperty, SiteType } from '@avalon/types';
 import { hasPremierTag } from './premier';
 
+/** Normaliza estado CRM para comparar con sets (espacios → `_`, minúsculas). */
 function statusKey(raw: RawProperty): string {
-  return String(raw.status ?? '').trim().toLowerCase();
+  return String(raw.status ?? '')
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, '_');
 }
 
 /** Estados que KiteProp / CRM suelen usar como “en mercado” (además de `active`). */
@@ -21,9 +25,7 @@ const STATUS_ACTIVE_LIKE = new Set([
   'true',
 ]);
 
-const STATUS_UNPUBLISHED_PREMIER = new Set(['active_unpublished', 'unpublished', 'draft', 'borrador', 'private']);
-
-/** Vendido / baja: no listar aunque tenga flag Premier. */
+/** Vendido / baja / inactiva: no listar en Premier aunque el CRM siga marcando segmento Premier. */
 const STATUS_TERMINAL = new Set([
   'sold',
   'vendido',
@@ -31,6 +33,13 @@ const STATUS_TERMINAL = new Set([
   'alquilado',
   'reserved',
   'inactive',
+  'inactiva',
+  'inactivo',
+  'no_disponible',
+  'nodisponible',
+  'baja',
+  'dada_de_baja',
+  'fuera_de_mercado',
   'suspended',
   'deleted',
   'archived',
@@ -45,13 +54,24 @@ export function isPubliclyListed(raw: RawProperty): boolean {
 }
 
 /**
- * Listado por sitio: sinónimos de “activo” en API; en Premier también unpublished y,
- * si el registro ya es Premier (`hasPremierTag`), cualquier estado no terminal (CRM puede usar otros strings).
+ * **Premier (sitio):** una sola regla alineada con el listado y con `pnpm kp:ingest-stats` → `premierListableCount`:
+ * segmento Premier (`hasPremierTag`) y **no** estado terminal (vendido, baja, inactiva, etc.).
+ * Cualquier fila Premier “en curso” (activa, unpublished, draft, u otros strings del CRM no terminales) entra.
+ */
+export function isPremierSiteListable(raw: RawProperty): boolean {
+  if (!hasPremierTag(raw)) return false;
+  const st = statusKey(raw);
+  if (STATUS_TERMINAL.has(st)) return false;
+  return true;
+}
+
+/**
+ * Listado por sitio: Avalon = activos públicos; Premier = `isPremierSiteListable` (ver arriba).
  */
 export function isPubliclyListedForSite(raw: RawProperty, site: SiteType): boolean {
+  if (site === 'premier') {
+    return isPremierSiteListable(raw);
+  }
   const st = statusKey(raw);
-  if (STATUS_ACTIVE_LIKE.has(st)) return true;
-  if (site === 'premier' && STATUS_UNPUBLISHED_PREMIER.has(st)) return true;
-  if (site === 'premier' && hasPremierTag(raw) && !STATUS_TERMINAL.has(st)) return true;
-  return false;
+  return STATUS_ACTIVE_LIKE.has(st);
 }

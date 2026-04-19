@@ -14,6 +14,7 @@ import { writeFile } from 'node:fs/promises';
 import {
   fetchKitepropPropertyFeedAsRaw,
   hasPremierTag,
+  isPremierSiteListable,
   isPubliclyListedForSite,
   kitepropApiFeedConfigured,
 } from '@avalon/core';
@@ -35,7 +36,7 @@ async function main(): Promise<void> {
   let avalonListableCount = 0;
   for (const r of raw) {
     if (hasPremierTag(r)) premierTagCount += 1;
-    if (hasPremierTag(r) && isPubliclyListedForSite(r, 'premier')) premierListableCount += 1;
+    if (isPremierSiteListable(r)) premierListableCount += 1;
     if (isPubliclyListedForSite(r, 'avalon')) avalonListableCount += 1;
   }
 
