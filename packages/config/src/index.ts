@@ -1,6 +1,7 @@
 import type { SiteBrandConfig, SiteType } from '@avalon/types';
 
 export { isFeatureEnabled, type AvalonFeatureId } from './features';
+export { PORTAL_LISTING_UX_COPY } from './portal-listing-ux-copy';
 
 function env(name: string, fallback = ''): string {
   if (typeof process !== 'undefined' && process.env[name]) {

@@ -6,7 +6,7 @@ import { SITE } from '@/lib/site';
 
 export const metadata: Metadata = {
   title: 'Contacto',
-  description: 'Consultas reservadas y atención directa — Avalon Premier.',
+  description: 'Atención reservada y canal directo al equipo — Avalon Premier.',
 };
 
 export default function ContactPage() {
@@ -18,8 +18,8 @@ export default function ContactPage() {
       <section className="border-b border-premier-line/50 bg-brand-surface-alt/30 py-20 md:py-28">
         <div className="mx-auto max-w-2xl px-6 text-center md:px-8">
           <p className="text-[11px] font-medium uppercase tracking-caps text-brand-accent">Premier</p>
-          <h1 className="mt-5 font-serif text-4xl font-medium text-brand-primary md:text-5xl">
-            Consulta reservada
+          <h1 className="mt-5 font-serif text-4xl font-normal tracking-tight text-brand-primary md:text-5xl">
+            Atención reservada
           </h1>
           <p className="mx-auto mt-6 max-w-lg text-sm leading-relaxed text-brand-text/65 md:text-base">
             {brand.description}

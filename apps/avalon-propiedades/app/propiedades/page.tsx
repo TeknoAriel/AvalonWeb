@@ -1,13 +1,17 @@
 import {
   filterNormalizedProperties,
+  propertyListFiltersToQuery,
   propertyTypeLabel,
   queryToPropertyListFilters,
   sortByFeaturedThenRecent,
 } from '@avalon/core';
 import type { Metadata } from 'next';
 import { NaturalSearchBar, SavedSearchesToolbar } from '@avalon/ui';
+import { ListingResultCard } from '@/components/listing-result-card';
 import { PropertyCardAvalon } from '@/components/property-card-avalon';
 import { PropertyFilters } from '@/components/property-filters';
+import { encodeListingReturnTo } from '@/lib/listing-return-to';
+import { listingFiltersHaveContext } from '@/lib/search-context-format';
 import { loadSortedSiteProperties } from '@/lib/site-property-list';
 import { SITE } from '@/lib/site';
 
@@ -49,6 +53,10 @@ export default async function PropertiesPage({
 
   const base = await loadSortedSiteProperties();
   const filtered = filterNormalizedProperties(base, filters);
+  const returnToToken =
+    listingFiltersHaveContext(filters) && propertyListFiltersToQuery(filters).length > 0
+      ? encodeListingReturnTo(propertyListFiltersToQuery(filters))
+      : '';
 
   const cities = Array.from(new Set(base.map((p) => p.location.city))).sort();
   const types = Array.from(new Set(base.map((p) => p.propertyType)))
@@ -68,7 +76,13 @@ export default async function PropertiesPage({
       <PropertyFilters cities={cities} types={types} />
       <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {filtered.map((p) => (
-          <PropertyCardAvalon key={p.id} property={p} site={SITE} />
+          <ListingResultCard key={p.id} listingId={p.id}>
+            <PropertyCardAvalon
+              property={p}
+              site={SITE}
+              returnToToken={returnToToken || null}
+            />
+          </ListingResultCard>
         ))}
       </div>
       {filtered.length === 0 ? (

@@ -6,21 +6,33 @@ import Link from 'next/link';
 export function PropertyCardAvalon({
   property,
   site,
+  returnToToken,
+  badges,
 }: {
   property: NormalizedProperty;
   site: SiteType;
+  /** Token `returnTo` (base64url del query del listado) para continuidad en ficha. */
+  returnToToken?: string | null;
+  badges?: readonly string[];
 }) {
   const img = property.media.images[0];
+  const href =
+    returnToToken && returnToToken.length > 0
+      ? `/propiedades/${property.slug}?returnTo=${encodeURIComponent(returnToToken)}`
+      : `/propiedades/${property.slug}`;
   return (
-    <div className="flex flex-col overflow-hidden rounded-xl border border-brand-primary/10 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
-      <Link href={`/propiedades/${property.slug}`} className="group flex flex-1 flex-col">
+    <div className="flex flex-col overflow-hidden rounded-xl border border-brand-primary/10 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-md">
+      <Link
+        href={href}
+        className="group flex flex-1 flex-col active:scale-[0.99]"
+      >
         <div className="relative aspect-[4/3] bg-brand-surface-alt">
           {img ? (
             <Image
               src={img.url}
               alt={img.alt}
               fill
-              className="object-cover transition duration-500 group-hover:scale-[1.02]"
+              className="object-cover transition duration-300 group-hover:scale-[1.02]"
               sizes="(max-width:768px) 100vw, 33vw"
             />
           ) : null}
@@ -40,6 +52,18 @@ export function PropertyCardAvalon({
             {property.location.zoneSecondary ? ` · ${property.location.zoneSecondary}` : ''} —{' '}
             {property.location.city}
           </p>
+          {badges && badges.length > 0 ? (
+            <div className="mt-1 flex flex-wrap gap-1.5">
+              {badges.slice(0, 2).map((b) => (
+                <span
+                  key={b}
+                  className="rounded bg-brand-primary/[0.06] px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-brand-primary/90"
+                >
+                  {b}
+                </span>
+              ))}
+            </div>
+          ) : null}
           <PriceSummary
             property={property}
             className="mt-auto text-sm font-bold text-brand-primary"

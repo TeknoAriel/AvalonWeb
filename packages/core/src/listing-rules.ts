@@ -25,26 +25,20 @@ const STATUS_ACTIVE_LIKE = new Set([
   'true',
 ]);
 
-/** Vendido / baja / inactiva: no listar en Premier aunque el CRM siga marcando segmento Premier. */
-const STATUS_TERMINAL = new Set([
+/**
+ * Premier: solo ocultar **cierres definitivos**. Strings tipo `inactive` / `baja` en la API a veces no
+ * coinciden con “fuera de cartera” en el CRM; si el segmento Premier está marcado, no los tratamos como terminal aquí.
+ */
+const STATUS_TERMINAL_PREMIER_SITE = new Set([
   'sold',
   'vendido',
   'rented',
   'alquilado',
-  'reserved',
-  'inactive',
-  'inactiva',
-  'inactivo',
-  'no_disponible',
-  'nodisponible',
-  'baja',
-  'dada_de_baja',
-  'fuera_de_mercado',
-  'suspended',
-  'deleted',
   'archived',
+  'deleted',
   'cancelled',
   'cancelado',
+  'reserved',
 ]);
 
 /** Catálogo Avalon estándar: solo `active` (valor del JSON/API KiteProp). */
@@ -54,14 +48,14 @@ export function isPubliclyListed(raw: RawProperty): boolean {
 }
 
 /**
- * **Premier (sitio):** una sola regla alineada con el listado y con `pnpm kp:ingest-stats` → `premierListableCount`:
- * segmento Premier (`hasPremierTag`) y **no** estado terminal (vendido, baja, inactiva, etc.).
- * Cualquier fila Premier “en curso” (activa, unpublished, draft, u otros strings del CRM no terminales) entra.
+ * **Premier (sitio):** alineado con `pnpm kp:ingest-stats` → `premierListableCount`:
+ * `hasPremierTag` y **no** cierre definitivo (`sold`, `archived`, `deleted`, … — ver `STATUS_TERMINAL_PREMIER_SITE`).
+ * Estados ambiguos del feed (`inactive`, `baja`, …) **no** sacan del listado Premier.
  */
 export function isPremierSiteListable(raw: RawProperty): boolean {
   if (!hasPremierTag(raw)) return false;
   const st = statusKey(raw);
-  if (STATUS_TERMINAL.has(st)) return false;
+  if (STATUS_TERMINAL_PREMIER_SITE.has(st)) return false;
   return true;
 }
 

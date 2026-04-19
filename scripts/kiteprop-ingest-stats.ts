@@ -13,10 +13,12 @@ import { writeFile } from 'node:fs/promises';
 
 import {
   fetchKitepropPropertyFeedAsRaw,
+  hasPremierSavedListMembership,
   hasPremierTag,
   isPremierSiteListable,
   isPubliclyListedForSite,
   kitepropApiFeedConfigured,
+  premierSavedListIdSet,
 } from '@avalon/core';
 
 async function main(): Promise<void> {
@@ -34,11 +36,15 @@ async function main(): Promise<void> {
   let premierTagCount = 0;
   let premierListableCount = 0;
   let avalonListableCount = 0;
+  let premierSavedListRowCount = 0;
   for (const r of raw) {
+    if (hasPremierSavedListMembership(r)) premierSavedListRowCount += 1;
     if (hasPremierTag(r)) premierTagCount += 1;
     if (isPremierSiteListable(r)) premierListableCount += 1;
     if (isPubliclyListedForSite(r, 'avalon')) avalonListableCount += 1;
   }
+
+  const listIds = premierSavedListIdSet();
 
   const statusHistogram: Record<string, number> = {};
   for (const r of raw) {
@@ -52,8 +58,11 @@ async function main(): Promise<void> {
 
   const report = {
     totalRows: raw.length,
+    /** Si definiste `KITEPROP_PREMIER_SAVED_LIST_IDS`, cuántas filas del feed traen ese id en campos conocidos. */
+    premierSavedListIdsConfigured: listIds.size > 0,
+    premierSavedListRowCount,
     premierTagCount,
-    /** Cuántas vería el listado Premier (tag + reglas de estado; excluye inactivas / terminal). */
+    /** Cuántas vería el listado Premier (segmento + no terminal). */
     premierListableCount,
     /** Cuántas vería el listado Avalon Web (`isPubliclyListedForSite` sitio avalon). */
     avalonListableCount,

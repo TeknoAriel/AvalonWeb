@@ -1,5 +1,6 @@
 import type { RawProperty } from '@avalon/types';
 import { nestedRecordPremierCandidates } from './kiteprop-api-mapper';
+import { hasPremierSavedListMembership } from './premier-list-membership';
 
 const PREMIER_NORMALIZED = 'premier';
 
@@ -20,14 +21,10 @@ function explicitPremierBool(v: unknown): boolean | null {
   return null;
 }
 
-/**
- * Catálogo REST KiteProp: si `premier` / `is_premier` (y alias) vienen definidos, eso define el segmento.
- * Cualquier `true` → Premier; si no hay `true` y hay algún `false` explícito → no Premier.
- * Si no mandan flags, se sigue con tags/labels y overrides (snapshot / difusiones legacy).
- */
-function restCatalogPremierFlag(raw: RawProperty): boolean | null {
+/** Flags CRM en raíz + `attributes` / `meta` / … (mismo orden que el mapper API). */
+function premierFlagCandidates(raw: RawProperty): unknown[] {
   const o = raw as unknown as Record<string, unknown>;
-  const candidates: unknown[] = [
+  return [
     o.premier,
     o.is_premier,
     o.isPremier,
@@ -37,8 +34,16 @@ function restCatalogPremierFlag(raw: RawProperty): boolean | null {
     raw.is_premier,
     ...nestedRecordPremierCandidates(o),
   ];
+}
+
+/**
+ * Catálogo REST KiteProp: si algún flag `premier` / `is_premier` (y alias) es **true** en raíz o anidado → segmento Premier.
+ * Si no hay ningún `true` y al menos un `false` explícito en esos campos → `false`; si todo ausente → `null`.
+ * (Los tags/modificadores se resuelven aparte en `hasPremierTag`.)
+ */
+function restCatalogPremierFlag(raw: RawProperty): boolean | null {
   let anyFalse = false;
-  for (const v of candidates) {
+  for (const v of premierFlagCandidates(raw)) {
     const e = explicitPremierBool(v);
     if (e === true) return true;
     if (e === false) anyFalse = true;
@@ -175,20 +180,24 @@ function scanPremierFromTagLikeFields(raw: RawProperty): boolean {
   return false;
 }
 
+/**
+ * Segmento Premier (feed general → web Premier):
+ * 1. Overrides por ID (`PREMIER_PROPERTY_IDS`).
+ * 2. Cualquier flag CRM **true** en raíz o anidado (`premier` / `is_premier` / alias) — **prioridad** sobre el resto.
+ * 3. Membresía de lista guardada / propsheet si configuraste `KITEPROP_PREMIER_SAVED_LIST_IDS`.
+ * 4. Tags, modificadores, labels, etc. (legacy / export JSON).
+ * 5. Si hubo solo flags explícitos **false** (sin tag ni lista) → no Premier.
+ */
 export function hasPremierTag(raw: RawProperty): boolean {
   if (premierOverrideIds().has(raw.id)) return true;
 
-  // Antes: `premier: 0` + `is_premier: 0` cortaba antes de leer tags/modificadores (API KiteProp vs CRM).
+  if (restCatalogPremierFlag(raw) === true) return true;
+
+  if (hasPremierSavedListMembership(raw)) return true;
+
   if (scanPremierFromTagLikeFields(raw)) return true;
 
-  const pF = explicitPremierBool(raw.premier);
-  const iF = explicitPremierBool(raw.is_premier);
-  if (pF === true || iF === true) return true;
-  if (pF === false && iF === false) return false;
-
-  const rest = restCatalogPremierFlag(raw);
-  if (rest === false) return false;
-  if (rest === true) return true;
+  if (restCatalogPremierFlag(raw) === false) return false;
 
   return false;
 }

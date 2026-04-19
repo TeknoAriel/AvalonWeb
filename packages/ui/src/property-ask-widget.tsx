@@ -56,10 +56,12 @@ export function PropertyAskWidget(props: {
       )}
     >
       <p className={cn('text-xs font-semibold', isPremier ? 'text-brand-primary' : 'text-brand-primary')}>
-        Preguntá por esta propiedad
+        {isPremier ? 'Consulta puntual' : 'Preguntá por esta propiedad'}
       </p>
-      <p className="mt-1 text-[11px] text-brand-muted">
-        Respuesta automática con los datos publicados; un asesor puede ampliar el detalle.
+      <p className={cn('mt-1 text-[11px]', isPremier ? 'text-brand-text/50' : 'text-brand-muted')}>
+        {isPremier
+          ? 'Respuesta automática según la ficha; un asesor puede ampliar el contexto.'
+          : 'Respuesta automática con los datos publicados; un asesor puede ampliar el detalle.'}
       </p>
       <div className="mt-3 flex flex-col gap-2 sm:flex-row">
         <input
@@ -82,7 +84,7 @@ export function PropertyAskWidget(props: {
             isPremier ? 'border border-brand-accent text-brand-accent' : 'bg-brand-primary text-white',
           )}
         >
-          {loading ? '…' : 'Preguntar'}
+          {loading ? '…' : isPremier ? 'Consultar' : 'Preguntar'}
         </button>
       </div>
       {answer ? <p className="mt-3 text-sm leading-relaxed text-brand-text">{answer}</p> : null}

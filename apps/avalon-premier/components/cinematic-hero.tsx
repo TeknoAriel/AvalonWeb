@@ -5,7 +5,9 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 
-const CAROUSEL_INTERVAL_MS = 8000;
+/** Rotación lenta: una imagen a la vez, sin sensación de carrusel agresivo. */
+const HERO_ROTATION_MS = 13_000;
+const FADE_MS = 2000;
 
 export function CinematicHero({
   posterUrl,
@@ -14,7 +16,7 @@ export function CinematicHero({
 }: {
   /** Una sola imagen (compat) */
   posterUrl?: string | null;
-  /** Varias imágenes → carrusel suave si no hay video */
+  /** Varias imágenes → crossfade suave si no hay video */
   posterUrls?: string[] | null;
   videoUrl: string | null;
 }) {
@@ -34,12 +36,12 @@ export function CinematicHero({
 
   useEffect(() => {
     if (videoUrl || urls.length <= 1) return;
-    const id = window.setInterval(() => setSlide((s) => (s + 1) % urls.length), CAROUSEL_INTERVAL_MS);
+    const id = window.setInterval(() => setSlide((s) => (s + 1) % urls.length), HERO_ROTATION_MS);
     return () => window.clearInterval(id);
   }, [videoUrl, urls.length]);
 
   return (
-    <section className="relative min-h-[100dvh] w-full overflow-hidden bg-stone-950">
+    <section className="relative min-h-[100dvh] w-full overflow-hidden bg-[#050a12]">
       <div className="absolute inset-0">
         {videoUrl ? (
           <video
@@ -62,53 +64,47 @@ export function CinematicHero({
                 alt=""
                 fill
                 className={cn(
-                  'object-cover transition-opacity duration-[1400ms] ease-in-out',
+                  'object-cover transition-opacity ease-in-out',
                   i === slide ? 'opacity-100' : 'opacity-0',
                 )}
+                style={{ transitionDuration: `${FADE_MS}ms` }}
                 priority={i === 0}
                 sizes="100vw"
               />
             ))}
           </div>
         ) : (
-          <div className="h-full w-full bg-gradient-to-br from-stone-900 via-premier-ink to-stone-950" />
+          <div className="h-full w-full bg-gradient-to-br from-[#0a1524] via-[#060d18] to-[#03060c]" />
         )}
       </div>
-      {/* Lente azul / navy editorial: armoniza con bloques inferiores y mejora contraste del copy */}
+      {/* Overlay azul marino ~58%: contraste del texto + imagen aún visible */}
       <div
-        className="absolute inset-0 bg-gradient-to-b from-brand-primary/45 via-brand-primary/22 to-brand-primary/72"
+        className="absolute inset-0 bg-[linear-gradient(180deg,rgba(6,12,24,0.62)_0%,rgba(4,10,22,0.56)_45%,rgba(3,8,18,0.64)_100%)]"
         aria-hidden
       />
-      <div
-        className="absolute inset-0 bg-gradient-to-b from-stone-950/35 via-transparent to-stone-950/55"
-        aria-hidden
-      />
-      <div className="relative z-10 flex min-h-[100dvh] flex-col justify-center px-6 pb-32 pt-32 md:px-12 md:pb-40 md:pt-36">
-        <div className="mx-auto max-w-5xl text-center">
-          <p className="text-[11px] font-medium uppercase tracking-caps text-premier-gold/90">
+      <div className="relative z-10 flex min-h-[100dvh] flex-col justify-center px-6 pb-32 pt-36 md:px-14 md:pb-44 md:pt-40">
+        <div className="mx-auto max-w-4xl text-center">
+          <p className="text-[10px] font-medium uppercase tracking-caps text-premier-gold/85 md:text-[11px]">
             Avalon Premier
           </p>
-          <h1 className="mt-10 font-serif text-4xl font-normal leading-[1.06] tracking-tight text-white md:text-6xl lg:text-7xl">
-            Selección. Experiencia. Confianza.
+          <h1 className="mt-8 font-serif text-[2rem] font-normal leading-[1.08] tracking-[-0.02em] text-white md:mt-10 md:text-5xl lg:text-[3.35rem] lg:leading-[1.06]">
+            Propiedades de categoría superior
           </h1>
-          <p className="mx-auto mt-10 max-w-2xl text-pretty text-base font-light leading-[1.75] text-white/88 md:text-lg md:leading-[1.8]">
-            Activos inmobiliarios de alto estándar con criterio patrimonial y visión internacional.
+          <p className="mx-auto mt-8 max-w-xl text-pretty text-[15px] font-light leading-[1.72] text-white/90 md:mt-9 md:text-lg md:leading-[1.75]">
+            Curaduría discreta y acompañamiento cercano — selección pensada, no volumen de catálogo.
           </p>
-          <p className="mx-auto mt-8 max-w-xl text-sm font-light italic leading-relaxed text-white/52 md:text-base">
-            No vendemos propiedades. Seleccionamos activos.
-          </p>
-          <div className="mt-14 flex flex-col items-center justify-center gap-4 sm:flex-row sm:gap-5">
+          <div className="mt-12 flex flex-col items-center justify-center gap-3 sm:mt-14 sm:flex-row sm:gap-4">
             <Link
               href="/propiedades"
-              className="min-w-[220px] border border-white/28 px-8 py-3.5 text-center text-[11px] font-medium uppercase tracking-caps text-white transition duration-400 hover:border-white/45 hover:bg-white/[0.06]"
+              className="min-w-[200px] border border-white/25 px-8 py-3 text-center text-[10px] font-medium uppercase tracking-caps text-white transition duration-300 hover:border-white/40 hover:bg-white/[0.05] md:min-w-[220px] md:py-3.5 md:text-[11px]"
             >
-              Explorar propiedades
+              Ver colección
             </Link>
             <Link
               href="/contacto"
-              className="min-w-[220px] bg-premier-gold px-8 py-3.5 text-center text-[11px] font-medium uppercase tracking-caps text-premier-ink transition duration-400 hover:bg-[#c9b088]"
+              className="min-w-[200px] border border-premier-gold/50 bg-premier-gold/95 px-8 py-3 text-center text-[10px] font-medium uppercase tracking-caps text-premier-ink transition duration-300 hover:bg-[#c9b088] md:min-w-[220px] md:py-3.5 md:text-[11px]"
             >
-              Hablar con un asesor
+              Consultar disponibilidad
             </Link>
           </div>
         </div>

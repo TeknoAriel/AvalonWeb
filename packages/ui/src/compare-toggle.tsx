@@ -51,7 +51,7 @@ export function CompareToggle({ site, propertyId, variant, className }: CompareT
           if (r.reason === 'max') setMaxWarn(true);
         }}
         className={cn(
-          'rounded-md px-3 py-2 text-xs font-semibold transition',
+          'rounded-md px-3 py-2 text-xs font-semibold transition active:scale-[0.98]',
           variant === 'avalon' &&
             (active
               ? 'bg-brand-primary text-white'

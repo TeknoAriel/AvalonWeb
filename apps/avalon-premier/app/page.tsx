@@ -1,8 +1,8 @@
 import { propertyTypeLabel, sortByFeaturedThenRecent } from '@avalon/core';
 import { getSiteBrandConfig } from '@avalon/config';
 import { RecentPropertiesStrip } from '@avalon/ui';
-import { pickHeroImageUrlsFromList } from '@/components/hero-premier';
 import { CinematicHero } from '@/components/cinematic-hero';
+import { resolvePremierHeroPosterUrls } from '@/lib/premier-hero-posters';
 import {
   PremierCoverVideosSection,
   PremierDestinationsSection,
@@ -21,7 +21,7 @@ export default async function HomePage() {
   const brand = getSiteBrandConfig(SITE);
   const all = sortByFeaturedThenRecent(await getPropertiesFromKitepropFeed(SITE));
   const featured = all.slice(0, 4);
-  const heroPosters = pickHeroImageUrlsFromList(all, 8);
+  const heroPosters = resolvePremierHeroPosterUrls(all, 8);
   const heroVideo = process.env.NEXT_PUBLIC_PREMIER_HERO_VIDEO_URL?.trim() || null;
 
   return (

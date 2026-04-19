@@ -6,12 +6,21 @@ import { useState } from 'react';
 
 type Variant = 'avalon' | 'premier';
 
-const LEAD_INTENTS: { id: string; label: string }[] = [
+const LEAD_INTENTS_AVALON: { id: string; label: string }[] = [
   { id: 'visita', label: 'Coordinar visita' },
   { id: 'contacto', label: 'Que me contacten' },
   { id: 'similar', label: 'Busco algo similar' },
   { id: 'zona', label: 'Invertir en esta zona' },
   { id: 'tasacion', label: 'Tasar una propiedad parecida' },
+];
+
+/** Mismos `id` (payload / analytics); copy más sobrio para Premier. */
+const LEAD_INTENTS_PREMIER: { id: string; label: string }[] = [
+  { id: 'visita', label: 'Coordinar visita' },
+  { id: 'contacto', label: 'Solicitar información' },
+  { id: 'similar', label: 'Ver opciones similares' },
+  { id: 'zona', label: 'Consultar por la zona' },
+  { id: 'tasacion', label: 'Orientación de valor' },
 ];
 
 export function PropertyConsultaForm(props: { propertyId?: number; variant: Variant }) {
@@ -25,6 +34,7 @@ export function PropertyConsultaForm(props: { propertyId?: number; variant: Vari
   const [leadIntent, setLeadIntent] = useState<string | undefined>();
 
   const isPremier = props.variant === 'premier';
+  const leadIntents = isPremier ? LEAD_INTENTS_PREMIER : LEAD_INTENTS_AVALON;
   const isProperty =
     typeof props.propertyId === 'number' &&
     Number.isFinite(props.propertyId) &&
@@ -34,7 +44,7 @@ export function PropertyConsultaForm(props: { propertyId?: number; variant: Vari
     e.preventDefault();
     if (hp) return;
     let effectiveMessage = message.trim();
-    const intentLabel = LEAD_INTENTS.find((x) => x.id === leadIntent)?.label;
+    const intentLabel = leadIntents.find((x) => x.id === leadIntent)?.label;
     if (effectiveMessage.length < 5 && intentLabel) {
       effectiveMessage = `${intentLabel}. ${effectiveMessage}`.trim();
     }
@@ -98,14 +108,16 @@ export function PropertyConsultaForm(props: { propertyId?: number; variant: Vari
         >
           {isProperty
             ? isPremier
-              ? 'Consulta por esta propiedad'
+              ? 'Solicitud por esta propiedad'
               : 'Enviá tu consulta'
             : isPremier
-              ? 'Consulta general'
+              ? 'Mensaje al equipo'
               : 'Escribinos'}
         </p>
         <p className={cn('mt-1 text-xs', isPremier ? 'text-brand-text/50' : 'text-brand-muted')}>
-          Respondemos a la brevedad. Los datos no se publican en la web.
+          {isPremier
+            ? 'Respuesta en horario comercial. Los datos no se publican.'
+            : 'Respondemos a la brevedad. Los datos no se publican en la web.'}
         </p>
       </div>
 
@@ -114,7 +126,7 @@ export function PropertyConsultaForm(props: { propertyId?: number; variant: Vari
           <span className={cn('w-full text-[11px] font-semibold', isPremier ? 'text-brand-text/55' : 'text-brand-muted')}>
             Motivo (opcional)
           </span>
-          {LEAD_INTENTS.map((it) => (
+          {leadIntents.map((it) => (
             <button
               key={it.id}
               type="button"
@@ -214,7 +226,7 @@ export function PropertyConsultaForm(props: { propertyId?: number; variant: Vari
               ? 'border-premier-line/50 bg-brand-bg text-brand-text placeholder:text-brand-text/35'
               : 'border-brand-primary/15 bg-brand-surface text-brand-text',
           )}
-          placeholder={isPremier ? 'Quisiera más información…' : 'Escribí tu consulta…'}
+          placeholder={isPremier ? 'Breve contexto de la solicitud…' : 'Escribí tu consulta…'}
         />
       </label>
 
@@ -228,7 +240,7 @@ export function PropertyConsultaForm(props: { propertyId?: number; variant: Vari
             : 'rounded-md bg-brand-primary text-white hover:bg-brand-primary-mid',
         )}
       >
-        {status === 'loading' ? 'Enviando…' : 'Enviar consulta'}
+        {status === 'loading' ? 'Enviando…' : isPremier ? 'Enviar solicitud' : 'Enviar consulta'}
       </button>
 
       {status === 'ok' ? (

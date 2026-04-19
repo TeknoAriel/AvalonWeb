@@ -1,6 +1,6 @@
 /**
  * Feed de propiedades: API KiteProp (con key) o snapshot en core (`loadKitepropCatalogMerged`).
- * Premier solo muestra activos con tag / flag Premier (`hasPremierTag` en @avalon/core).
+ * Premier lista lo que cumple `isPremierSiteListable` (segmento + estado — ver `@avalon/core`).
  */
 import { getSitePropertiesFromRaw } from '@avalon/core';
 import type { NormalizedProperty, SiteType } from '@avalon/types';
