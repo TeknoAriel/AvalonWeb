@@ -95,7 +95,7 @@ Debe imprimir `HTTP 200`.
 |------|----------------|
 | **Lint** | Código consistente. |
 | **Build** (`pnpm build`) | **Avalon Web y Avalon Premier** compilan (monorepo Turbo = ambas apps). |
-| **`pnpm check:premier-snapshot`** | El snapshot empaquetado sigue teniendo al menos un listable Premier (red de seguridad del repo). |
+| **`pnpm check:premier-snapshot`** | El snapshot empaquetado sigue teniendo al menos un listable Premier (red de seguridad del repo). En el log verás `hasPremierTag` vs `isPremierSiteListable` sobre el raw; si hay tags pero 0 listables, regenerá el JSON o revisá status en el feed. Si el comando falla con `EPERM` / `listen`, ejecutalo en terminal local o con permisos completos (algunos sandboxes bloquean el IPC de `tsx`). |
 | **`pnpm ci:verify-ingest`** | Si definís el secret **`KITEPROP_API_KEY`** (o `KITEPROP_API_TOKEN`) en el repo → descarga el feed real y falla si `totalRows` &lt; `MIN_INGEST_TOTAL_ROWS` (variable de repo **Vars** `MIN_INGEST_TOTAL_ROWS`, default 1). Opcional: **`MIN_PREMIER_TAG_COUNT`** (ej. `28`) para exigir mínimo de filas con `hasPremierTag`. |
 | **Artefacto** `kiteprop-ingest-report` | JSON del último reporte (solo si se generó `ingest-report.json`). |
 
