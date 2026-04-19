@@ -1,9 +1,8 @@
 'use client';
 
+import { FavoriteListCard } from '@avalon/ui';
 import type { FavoriteSnapshot } from '@avalon/utils';
 import { readFavoriteSnapshots, ENGAGEMENT_FAVORITES_EVENT } from '@avalon/utils';
-import Image from 'next/image';
-import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { SITE } from '@/lib/site';
 
@@ -33,21 +32,13 @@ export default function FavoritosPage() {
       ) : (
         <div className="mt-10 grid gap-6 sm:grid-cols-2">
           {list.map((p) => (
-            <Link
+            <FavoriteListCard
               key={p.id}
+              site={SITE}
+              snapshot={p}
+              variant="premier"
               href={`/propiedades/${p.slug}`}
-              className="overflow-hidden border border-premier-line/40 bg-brand-surface-alt/30"
-            >
-              <div className="relative aspect-[5/4] bg-brand-primary/[0.06]">
-                {p.thumbUrl ? (
-                  <Image src={p.thumbUrl} alt="" fill className="object-cover" sizes="50vw" />
-                ) : null}
-              </div>
-              <div className="space-y-2 px-2 py-5">
-                <h2 className="font-serif text-lg font-semibold text-brand-primary">{p.title}</h2>
-                <p className="text-xs text-brand-text/55">{p.subtitle}</p>
-              </div>
-            </Link>
+            />
           ))}
         </div>
       )}

@@ -8,7 +8,7 @@ import { useEffect, useState } from 'react';
 
 type Variant = 'avalon' | 'premier';
 
-export function HeaderEngagementLinks(props: { site: SiteType; variant: Variant }) {
+export function HeaderEngagementLinks(props: { site: SiteType; variant: Variant; compact?: boolean }) {
   const favOn = isFeatureEnabled('favorites');
   const [n, setN] = useState(0);
   const [mounted, setMounted] = useState(false);
@@ -27,29 +27,37 @@ export function HeaderEngagementLinks(props: { site: SiteType; variant: Variant 
 
   const isPremier = props.variant === 'premier';
   const countSuffix = favOn && mounted && n > 0 ? ` (${n})` : '';
+  const compact = Boolean(props.compact);
 
   return (
     <Link
       href="/favoritos"
       className={cn(
-        'text-sm font-medium',
-        isPremier ? 'text-brand-text/70 hover:text-brand-accent' : 'text-brand-primary hover:text-brand-primary-mid',
+        isPremier
+          ? compact
+            ? 'rounded-sm border border-premier-line/60 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-brand-primary hover:border-brand-accent/50 hover:text-brand-accent'
+            : 'rounded-sm border border-premier-line/60 px-2 py-1.5 text-[10px] font-semibold uppercase tracking-wide text-brand-primary hover:border-brand-accent/50 hover:text-brand-accent'
+          : 'text-sm font-medium text-brand-primary hover:text-brand-primary-mid',
       )}
     >
-      Favoritos{countSuffix}
+      {isPremier && compact ? 'Fav' : 'Favoritos'}
+      {countSuffix}
     </Link>
   );
 }
 
 /** Enlace al comparador (misma ruta en ambas apps). En Premier va estilo pill compacto junto a Inicio. */
-export function HeaderCompareLink(props: { variant: Variant }) {
+export function HeaderCompareLink(props: { variant: Variant; compact?: boolean }) {
   const isPremier = props.variant === 'premier';
+  const compact = Boolean(props.compact);
   return (
     <Link
       href="/propiedades/comparar"
       className={cn(
         isPremier
-          ? 'rounded-sm border border-premier-line/60 px-2 py-1.5 text-[10px] font-semibold uppercase tracking-wide text-brand-primary hover:border-brand-accent/50 hover:text-brand-accent'
+          ? compact
+            ? 'rounded-sm border border-premier-line/60 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-brand-primary hover:border-brand-accent/50 hover:text-brand-accent'
+            : 'rounded-sm border border-premier-line/60 px-2 py-1.5 text-[10px] font-semibold uppercase tracking-wide text-brand-primary hover:border-brand-accent/50 hover:text-brand-accent'
           : 'text-sm font-medium text-brand-primary hover:text-brand-primary-mid',
       )}
     >

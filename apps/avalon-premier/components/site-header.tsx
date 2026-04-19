@@ -11,6 +11,9 @@ import { SITE } from '@/lib/site';
 const HEADER_LOGO_WIDTH = 660;
 const HEADER_LOGO_HEIGHT = 156;
 
+const premierNavPill =
+  'rounded-sm border border-premier-line/60 px-2 py-1.5 text-[10px] font-semibold uppercase tracking-wide text-brand-primary transition hover:border-brand-accent/50 hover:text-brand-accent';
+
 export function SiteHeader() {
   const brand = getSiteBrandConfig(SITE);
   const assets = getBrandAssetPaths(SITE);
@@ -31,29 +34,25 @@ export function SiteHeader() {
             priority
           />
         </Link>
-        <nav className="hidden flex-wrap items-center justify-end gap-x-5 gap-y-2 text-[11px] font-medium uppercase tracking-caps text-brand-text md:flex">
-          <Link
-            href="/"
-            className="rounded-sm border border-premier-line/60 px-2 py-1.5 text-[10px] font-semibold tracking-wide text-brand-primary hover:border-brand-accent/50 hover:text-brand-accent"
-            title="Inicio"
-          >
+        <nav className="hidden flex-wrap items-center justify-end gap-x-3 gap-y-2 text-[11px] font-medium uppercase tracking-caps text-brand-text md:flex lg:gap-x-3.5">
+          <Link href="/" className={premierNavPill} title="Inicio">
             Inicio
           </Link>
-          <Link href="/propiedades" className="hover:text-brand-accent">
+          <Link href="/propiedades" className={premierNavPill}>
             Colección
           </Link>
-          <HeaderEngagementLinks site={SITE} variant="premier" />
-          <HeaderCompareLink variant="premier" />
-          <Link href="/institucional" className="hover:text-brand-accent">
+          <Link href="/institucional" className={premierNavPill}>
             Experiencia
           </Link>
-          <Link href="/contacto" className="hover:text-brand-accent">
+          <Link href="/contacto" className={premierNavPill}>
             Contacto
           </Link>
-          <Link
-            href={brand.urls.peerSite}
-            className="border-b border-brand-accent/40 pb-0.5 hover:border-brand-accent"
-          >
+          <span className="hidden h-4 w-px shrink-0 bg-premier-line/45 lg:block" aria-hidden />
+          <div className="flex flex-wrap items-center justify-end gap-1.5">
+            <HeaderEngagementLinks site={SITE} variant="premier" compact />
+            <HeaderCompareLink variant="premier" compact />
+          </div>
+          <Link href={brand.urls.peerSite} className={premierNavPill} title={brand.urls.peerLabel}>
             {brand.urls.peerCta}
           </Link>
         </nav>

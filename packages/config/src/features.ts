@@ -26,5 +26,10 @@ function disabledSet(): Set<string> {
 }
 
 export function isFeatureEnabled(id: AvalonFeatureId): boolean {
-  return !disabledSet().has(id);
+  if (disabledSet().has(id)) return false;
+  /** NL desactivado por defecto en listados; activar con `NEXT_PUBLIC_ENABLE_NL_SEARCH=1`. */
+  if (id === 'nl_search') {
+    return typeof process !== 'undefined' && process.env.NEXT_PUBLIC_ENABLE_NL_SEARCH === '1';
+  }
+  return true;
 }

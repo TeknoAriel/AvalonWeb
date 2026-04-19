@@ -49,10 +49,41 @@ function parseJson<T>(raw: string | null): T | null {
   }
 }
 
+/** Normaliza entradas viejas o corruptas (p. ej. `null` en JSON → texto "null" en UI). */
+function coerceFavorite(entry: unknown): FavoriteSnapshot | null {
+  if (!entry || typeof entry !== 'object') return null;
+  const o = entry as Record<string, unknown>;
+  const rawId = o.id;
+  const id =
+    typeof rawId === 'number' && Number.isFinite(rawId)
+      ? rawId
+      : typeof rawId === 'string'
+        ? Number.parseInt(rawId, 10)
+        : NaN;
+  if (!Number.isFinite(id)) return null;
+  const slugRaw = typeof o.slug === 'string' ? o.slug.trim() : '';
+  const slug =
+    slugRaw && slugRaw.toLowerCase() !== 'null' ? slugRaw : `propiedad-${id}`;
+  const titleRaw = typeof o.title === 'string' ? o.title.trim() : '';
+  const title =
+    titleRaw && titleRaw.toLowerCase() !== 'null' ? titleRaw : `Propiedad #${id}`;
+  const rawSub = typeof o.subtitle === 'string' ? o.subtitle : '';
+  const subtitle = rawSub
+    .replace(/\bnull\b/gi, '')
+    .replace(/\s*·\s*·+/g, ' · ')
+    .replace(/^\s*·\s*|\s*·\s*$/g, '')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+  const tu = o.thumbUrl;
+  const thumbUrl = typeof tu === 'string' && tu.trim() && tu.toLowerCase() !== 'null' ? tu.trim() : null;
+  return { id, slug, title, subtitle, thumbUrl };
+}
+
 export function readFavoriteSnapshots(site: SiteType): FavoriteSnapshot[] {
   if (typeof window === 'undefined') return [];
-  const list = parseJson<FavoriteSnapshot[]>(localStorage.getItem(favKey(site)));
-  return Array.isArray(list) ? list.filter((x) => x && typeof x.id === 'number') : [];
+  const list = parseJson<unknown[]>(localStorage.getItem(favKey(site)));
+  if (!Array.isArray(list)) return [];
+  return list.map(coerceFavorite).filter((x): x is FavoriteSnapshot => x !== null);
 }
 
 export function writeFavoriteSnapshots(site: SiteType, list: FavoriteSnapshot[]): void {

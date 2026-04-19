@@ -34,12 +34,15 @@ export function PropertyFavoriteToggle(props: {
   if (!enabled || !mounted) return null;
 
   const img = props.property.media.images[0];
+  const locBits = [props.property.location.zone, props.property.location.city]
+    .map((s) => (s == null ? '' : String(s).trim()))
+    .filter((s) => s.length > 0 && s.toLowerCase() !== 'null');
   const snap = {
     id: props.property.id,
     slug: props.property.slug,
-    title: props.property.title,
+    title: props.property.title?.trim() || `Propiedad #${props.property.id}`,
     thumbUrl: img?.url ?? null,
-    subtitle: `${props.property.location.zone} · ${props.property.location.city}`,
+    subtitle: locBits.join(' · '),
   };
 
   const isPremier = props.variant === 'premier';

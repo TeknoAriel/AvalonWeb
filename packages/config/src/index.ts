@@ -50,7 +50,7 @@ export function getSiteBrandConfig(site: SiteType): SiteBrandConfig {
       base,
       peerSite: env('NEXT_PUBLIC_PEER_SITE_URL', peerSiteDefault),
       peerLabel: isAvalon ? 'Avalon Premier' : 'Avalon Propiedades',
-      peerCta: isAvalon ? 'Ver Avalon Premier' : 'Explorar Avalon Propiedades',
+      peerCta: isAvalon ? 'Ver Avalon Premier' : 'Avalon Propiedades',
     },
     ogImage: isAvalon ? '/og-avalon.png' : '/og-premier.png',
   };

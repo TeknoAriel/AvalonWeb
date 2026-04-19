@@ -6,6 +6,8 @@ export { CompareToggle } from './compare-toggle';
 export { PropertyCompareView } from './property-compare-view';
 export { PropertyConsultaForm } from './property-consulta-form';
 export { PropertyFavoriteToggle } from './property-favorite-toggle';
+export { FavoriteRemoveButton } from './favorite-remove-button';
+export { FavoriteListCard } from './favorite-list-card';
 export { PropertyViewTracker } from './property-view-tracker';
 export { RecentPropertiesStrip } from './recent-properties-strip';
 export { NaturalSearchBar } from './natural-search-bar';
