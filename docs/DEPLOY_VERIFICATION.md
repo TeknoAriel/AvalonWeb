@@ -13,6 +13,23 @@ Si **ambos** están activos sobre el mismo proyecto, pueden generar **dos builds
 
 ---
 
+## Límites de deploy y cuotas (Vercel) — no confundir con bugs de código
+
+Vercel aplica **topes por plan** (deployments por día, minutos de build, rate limits de API, etc.). Los números **cambian** con el tiempo; el mail que recibiste (ej. “25 al día”) puede ser **de otra época, otro producto o otra métrica**. Siempre conviene mirar la doc **oficial del plan actual**: [Hobby](https://vercel.com/docs/plans/hobby) · [Pro](https://vercel.com/docs/plans/pro-plan) · [Usage en el dashboard](https://vercel.com/dashboard).
+
+**Referencia actual (revisá el enlace):** en la tabla del plan *Hobby* suele figurar del orden de **~100 deployments por día** y *Pro* miles; no tomes estos valores como eternos.
+
+**Síntomas típicos cuando te frenó el plan / la API:**
+
+- El CLI o la API responden **429**, “rate limit”, “too many requests”, mensajes de **quota** o de **deployment limit**.
+- El workflow **Deploy Vercel + ready** falla en el paso `vercel deploy` **sin** haber tocado código nuevo.
+
+**Qué hace este repo:** si el log del deploy parece un tope de Vercel, el script `scripts/ci-diagnose-vercel-deploy-log.sh` emite un **aviso** en GitHub Actions (`::notice`) para que no lo interpretes como fallo de la aplicación. Igual el job puede seguir en rojo hasta que Vercel acepte de nuevo el deploy.
+
+**Mitigación:** menos pushes que disparen deploy doble (Git + Actions), previews solo cuando hagan falta, o subir de plan / esperar al reset diario del contador según indique Vercel.
+
+---
+
 ## Verificación automática (Actions)
 
 En cada push, el workflow **Deploy Vercel + ready** (`.github/workflows/deploy-vercel.yml`):

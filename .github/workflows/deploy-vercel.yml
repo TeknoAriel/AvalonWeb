@@ -91,11 +91,20 @@ jobs:
             PROD=()
             echo "Modo: **preview** (${{ github.ref_name }})" >> "$GITHUB_STEP_SUMMARY"
           fi
+          set +e
           npx --yes "vercel@${VERCEL_CLI_VERSION}" deploy --yes "${PROD[@]}" --cwd apps/avalon-propiedades \
             --meta "githubCommit=${{ github.sha }}" \
             --meta "githubRef=${{ github.ref }}" \
             --meta "githubRepo=${{ github.repository }}" \
             2>&1 | tee "$LOG"
+          V_EC=${PIPESTATUS[0]}
+          set -e
+          if [ "$V_EC" -ne 0 ]; then
+            bash scripts/ci-diagnose-vercel-deploy-log.sh "$LOG" || true
+            echo "::error::vercel deploy (avalonweb) exit $V_EC — revisá el log arriba y Usage en Vercel."
+            tail -80 "$LOG" >&2
+            exit "$V_EC"
+          fi
           # URL típica: "Preview: https://…" o "Production: https://…"
           LINE=$(grep -iE '(Preview|Production):' "$LOG" | head -1 || true)
           URL=$(printf '%s' "$LINE" | sed -n 's/.*\(https:\/\/[^[:space:]]*\).*/\1/p' | head -1)
@@ -103,6 +112,7 @@ jobs:
             URL=$(grep -oE 'https://[a-zA-Z0-9./?=_-]+\.vercel\.app' "$LOG" | tail -1 || true)
           fi
           if [ -z "$URL" ]; then
+            bash scripts/ci-diagnose-vercel-deploy-log.sh "$LOG" || true
             echo "::error::No se pudo extraer URL de deploy desde el log de Vercel."
             tail -80 "$LOG" >&2
             exit 1
@@ -150,17 +160,27 @@ jobs:
           else
             PROD=()
           fi
+          set +e
           npx --yes "vercel@${VERCEL_CLI_VERSION}" deploy --yes "${PROD[@]}" --cwd apps/avalon-premier \
             --meta "githubCommit=${{ github.sha }}" \
             --meta "githubRef=${{ github.ref }}" \
             --meta "githubRepo=${{ github.repository }}" \
             2>&1 | tee "$LOG"
+          V_EC=${PIPESTATUS[0]}
+          set -e
+          if [ "$V_EC" -ne 0 ]; then
+            bash scripts/ci-diagnose-vercel-deploy-log.sh "$LOG" || true
+            echo "::error::vercel deploy (premier) exit $V_EC — revisá el log arriba y Usage en Vercel."
+            tail -80 "$LOG" >&2
+            exit "$V_EC"
+          fi
           LINE=$(grep -iE '(Preview|Production):' "$LOG" | head -1 || true)
           URL=$(printf '%s' "$LINE" | sed -n 's/.*\(https:\/\/[^[:space:]]*\).*/\1/p' | head -1)
           if [ -z "$URL" ]; then
             URL=$(grep -oE 'https://[a-zA-Z0-9./?=_-]+\.vercel\.app' "$LOG" | tail -1 || true)
           fi
           if [ -z "$URL" ]; then
+            bash scripts/ci-diagnose-vercel-deploy-log.sh "$LOG" || true
             echo "::error::No se pudo extraer URL de deploy desde el log de Vercel."
             tail -80 "$LOG" >&2
             exit 1
