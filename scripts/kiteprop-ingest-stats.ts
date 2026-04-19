@@ -37,11 +37,22 @@ async function main(): Promise<void> {
   let premierListableCount = 0;
   let avalonListableCount = 0;
   let premierSavedListRowCount = 0;
+  let premierTaggedAvalonListable = 0;
+  let premierTaggedNotAvalonListable = 0;
+  let premierTaggedTerminalOnly = 0;
   for (const r of raw) {
     if (hasPremierSavedListMembership(r)) premierSavedListRowCount += 1;
-    if (hasPremierTag(r)) premierTagCount += 1;
-    if (isPremierSiteListable(r)) premierListableCount += 1;
-    if (isPubliclyListedForSite(r, 'avalon')) avalonListableCount += 1;
+    const tag = hasPremierTag(r);
+    const avalonOk = isPubliclyListedForSite(r, 'avalon');
+    const premierOk = isPremierSiteListable(r);
+    if (tag) {
+      premierTagCount += 1;
+      if (avalonOk) premierTaggedAvalonListable += 1;
+      else premierTaggedNotAvalonListable += 1;
+      if (!premierOk) premierTaggedTerminalOnly += 1;
+    }
+    if (premierOk) premierListableCount += 1;
+    if (avalonOk) avalonListableCount += 1;
   }
 
   const listIds = premierSavedListIdSet();
@@ -56,17 +67,43 @@ async function main(): Promise<void> {
     Object.entries(statusHistogram).sort((a, b) => b[1] - a[1]),
   );
 
+  const statusAmongPremierTagged: Record<string, number> = {};
+  for (const r of raw) {
+    if (!hasPremierTag(r)) continue;
+    const k = String(r.status ?? '').trim() || '(vacío)';
+    statusAmongPremierTagged[k] = (statusAmongPremierTagged[k] ?? 0) + 1;
+  }
+  const sortedPremierTaggedStatuses = Object.fromEntries(
+    Object.entries(statusAmongPremierTagged).sort((a, b) => b[1] - a[1]),
+  );
+
+  const apiBaseResolved =
+    process.env.KITEPROP_API_BASE_URL?.trim() ||
+    process.env.KITEPROP_API_URL?.trim() ||
+    '(default https://www.kiteprop.com/api/v1)';
+
   const report = {
     totalRows: raw.length,
+    /** URL base usada para GET /properties (BASE tiene prioridad sobre API_URL). */
+    kitepropApiBaseResolved: apiBaseResolved,
     /** Si definiste `KITEPROP_PREMIER_SAVED_LIST_IDS`, cuántas filas del feed traen ese id en campos conocidos. */
     premierSavedListIdsConfigured: listIds.size > 0,
     premierSavedListRowCount,
     premierTagCount,
     /** Cuántas vería el listado Premier (segmento + no terminal). */
     premierListableCount,
-    /** Cuántas vería el listado Avalon Web (`isPubliclyListedForSite` sitio avalon). */
+    /** Cuántas vería el listado Avalon Web (`isPubliclyListedForSite` sitio avalon = estados “activos” tipo publicación). */
     avalonListableCount,
-    statusHistogram: sortedStatuses,
+    /** Total − listables Avalon (no entran al listado estándar Avalon por `status`). */
+    avalonNotListableCount: raw.length - avalonListableCount,
+    /** Con tag Premier y además listables en Avalon (activas/publicadas a la manera Avalon). */
+    premierTaggedAndAvalonListableCount: premierTaggedAvalonListable,
+    /** Con tag Premier pero estado no considerado listable en Avalon. */
+    premierTaggedButNotAvalonListableCount: premierTaggedNotAvalonListable,
+    /** Con tag Premier pero no en sitio Premier (p. ej. sold/archived/reserved…). */
+    premierTaggedExcludedFromPremierSiteCount: premierTaggedTerminalOnly,
+    statusHistogramAllRows: sortedStatuses,
+    statusHistogramPremierTaggedOnly: sortedPremierTaggedStatuses,
     generatedAt: new Date().toISOString(),
   };
 

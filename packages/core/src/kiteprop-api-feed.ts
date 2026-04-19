@@ -38,8 +38,12 @@ function apiKey(): string {
 }
 
 function apiBase(): string {
-  const raw = (process.env.KITEPROP_API_BASE_URL || 'https://www.kiteprop.com/api/v1').replace(/\/$/, '');
-  return sanitizeHttpLatin1(raw, 'KITEPROP_API_BASE_URL');
+  const fromEnv =
+    process.env.KITEPROP_API_BASE_URL?.trim() ||
+    process.env.KITEPROP_API_URL?.trim() ||
+    'https://www.kiteprop.com/api/v1';
+  const raw = fromEnv.replace(/\/$/, '');
+  return sanitizeHttpLatin1(raw, 'KITEPROP_API_BASE_URL o KITEPROP_API_URL');
 }
 
 function authHeaders(): HeadersInit {
