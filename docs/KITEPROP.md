@@ -131,6 +131,22 @@ Copiá valores concretos desde `.env.example` (comentado) en cada app o en Verce
 - **`CRON_SECRET`** en ambos si usás el cron de revalidación.
 - Si ves **403 / 1010** desde el servidor hacia KiteProp, probá **`KITEPROP_FETCH_USER_AGENT`** con un UA de navegador reciente; el core ya envía uno por defecto en `fetch` del catálogo y en consultas.
 
+## Informe Premier (cada fila del feed + descartes del sitio)
+
+Con la misma `KITEPROP_API_KEY` que en Vercel:
+
+```bash
+export KITEPROP_API_KEY='kp_…'
+pnpm kp:premier-feed-report
+```
+
+Imprime un **JSON resumen** (`totalRows`, `hasPremierTagCount`, `isPremierSiteListableCount`, histogramas) y lista en líneas las filas **descartadas del listado Premier** con `discard` + `detalle` en español.
+
+- **`PREMIER_FEED_REPORT_FULL=1`**: imprime el array JSON de **todas** las filas (mismo shape que `diagnosePremierFeedRow` en `@avalon/core`).
+- **`PREMIER_FEED_REPORT_JSON=/ruta/archivo.json`**: escribe resumen + filas en disco.
+
+Reglas: `hasPremierTag` = segmento Premier; `isPremierSiteListable` = entra al sitio Premier (segmento y **no** estado terminal tipo `sold` / `archived` / … — ver `listing-rules.ts`).
+
 ## Verificación API desde terminal (Premier / tags)
 
 Para comprobar si **`GET …/properties`** devuelve marcadores Premier (sin pegar la key en el chat ni en el repo):

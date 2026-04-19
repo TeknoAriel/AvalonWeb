@@ -6,6 +6,7 @@
     "bff:verify-catalog": "bash scripts/verify-bff-catalog.sh",
     "post-deploy:verify": "bash scripts/post-deploy-verify.sh",
     "kp:ingest-stats": "tsx scripts/kiteprop-ingest-stats.ts",
+    "kp:premier-feed-report": "tsx scripts/premier-feed-report.ts",
     "catalog:regenerate-snapshot": "tsx scripts/regenerate-properties-snapshot.ts",
     "ci:verify-ingest": "bash scripts/ci-verify-kiteprop-ingest.sh",
     "ci:verify-cron-prod": "bash scripts/ci-verify-production-cron.sh",

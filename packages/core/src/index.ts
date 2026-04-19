@@ -11,7 +11,12 @@ export {
 } from './kiteprop-catalog-load';
 export { ALL_RAW_PROPERTIES } from './load';
 export { normalizeProperty } from './normalize';
-export { hasPremierTag, isPremierInventory } from './premier';
+export { hasPremierTag, isPremierInventory, premierSegmentPrimarySource, type PremierSegmentPrimarySource } from './premier';
+export {
+  diagnosePremierFeedRow,
+  type PremierFeedRowDiagnosis,
+  type PremierSiteDiscardReason,
+} from './premier-feed-row-diagnostics';
 export { hasPremierSavedListMembership, premierSavedListIdSet } from './premier-list-membership';
 export * as catalogClassify from './catalog-classify';
 export { mergePremierMetadataFromRepoSnapshot } from './premier-snapshot-merge';
@@ -53,7 +58,13 @@ export {
   submitWebConsultaWithOptionalAvalonProxy,
   type WebConsultaSource,
 } from './consultas-submission';
-export { isPubliclyListed, isPubliclyListedForSite, isPremierSiteListable } from './listing-rules';
+export {
+  isPubliclyListed,
+  isPubliclyListedForSite,
+  isPremierSiteListable,
+  propertyStatusKey,
+  isPremierTerminalListingStatus,
+} from './listing-rules';
 export {
   parseListingSalePriceAmount,
   parseTotalM2,

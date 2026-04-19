@@ -9,6 +9,11 @@ function statusKey(raw: RawProperty): string {
     .replace(/\s+/g, '_');
 }
 
+/** Para diagnósticos / scripts (misma normalización que listados). */
+export function propertyStatusKey(raw: RawProperty): string {
+  return statusKey(raw);
+}
+
 /** Estados que KiteProp / CRM suelen usar como “en mercado” (además de `active`). */
 const STATUS_ACTIVE_LIKE = new Set([
   'active',
@@ -40,6 +45,11 @@ const STATUS_TERMINAL_PREMIER_SITE = new Set([
   'cancelado',
   'reserved',
 ]);
+
+/** Estados que excluyen del **sitio** Premier aunque haya segmento Premier (cierre definitivo). */
+export function isPremierTerminalListingStatus(raw: RawProperty): boolean {
+  return STATUS_TERMINAL_PREMIER_SITE.has(statusKey(raw));
+}
 
 /** Catálogo Avalon estándar: solo `active` (valor del JSON/API KiteProp). */
 export function isPubliclyListed(raw: RawProperty): boolean {

@@ -205,3 +205,22 @@ export function hasPremierTag(raw: RawProperty): boolean {
 export function isPremierInventory(raw: RawProperty): boolean {
   return hasPremierTag(raw);
 }
+
+/** Primera fuente que explica el segmento (misma prioridad que `hasPremierTag`). */
+export type PremierSegmentPrimarySource =
+  | 'PREMIER_PROPERTY_IDS'
+  | 'crm_flag_true'
+  | 'KITEPROP_PREMIER_SAVED_LIST'
+  | 'tags_labels_modifiers'
+  | 'crm_explicit_false'
+  | 'sin_señal';
+
+export function premierSegmentPrimarySource(raw: RawProperty): PremierSegmentPrimarySource {
+  if (premierOverrideIds().has(raw.id)) return 'PREMIER_PROPERTY_IDS';
+  const f = restCatalogPremierFlag(raw);
+  if (f === true) return 'crm_flag_true';
+  if (hasPremierSavedListMembership(raw)) return 'KITEPROP_PREMIER_SAVED_LIST';
+  if (scanPremierFromTagLikeFields(raw)) return 'tags_labels_modifiers';
+  if (f === false) return 'crm_explicit_false';
+  return 'sin_señal';
+}
