@@ -1,15 +1,14 @@
 # Deploy, verificación automática y “no veo el cambio”
 
-## Dos formas de deploy (no mezclar sin criterio)
+## Una sola fuente de deploy (recomendado en este repo)
 
-| Origen | Qué hace |
-|--------|-----------|
-| **Vercel ↔ Git** (Import en dashboard) | Cada push a la rama de producción construye y asigna el deployment al dominio canónico (`avalonweb.vercel.app`, dominio propio, etc.). |
-| **GitHub Actions** — workflow `Deploy Vercel + ready` | Ejecuta `vercel deploy` con el token del repo (`VERCEL_TOKEN` + `VERCEL_PROJECT_ID_*`). **Mismo proyecto** que Git si los IDs coinciden. |
+| Origen | Rol en este monorepo |
+|--------|----------------------|
+| **Vercel ↔ Git** (proyecto conectado al repo) | **Deploy automático** en cada push a la rama de producción. Es la vía principal. |
+| **GitHub Actions** — `Deploy Vercel + ready (manual)` | **Solo `workflow_dispatch`**: `vercel deploy` desde CI para casos excepcionales (preview, recuperación). No corre en push. |
+| **GitHub Actions** — `Verify production sites` | Tras **push a `main`**: espera ~50 s y ejecuta `post-deploy-verify.sh` contra las URLs de **producción** (secrets `PRODUCTION_URL_*`). No dispara deploy. |
 
-Si **ambos** están activos sobre el mismo proyecto, pueden generar **dos builds por commit**; el dominio público queda en el último que Vercel marque como *Current*. Si solo mirás el workflow de GitHub, la URL impresa es la del **deployment** (a veces `*.vercel.app` de preview); el dominio custom puede estar en **otro** deployment de la misma app.
-
-**Recomendación:** o bien confiás solo en **Git → Vercel** y desactivás el workflow de deploy del repo, o bien mantenés Actions y en Vercel desactivás “Ignored Build Step” / desconectás el auto deploy duplicado para esa rama. Lo importante es **una sola fuente** que defina qué build es *Production*.
+Así no hay **dos instancias** (Git + CLI) compitiendo por el mismo proyecto en cada commit.
 
 ---
 
@@ -22,37 +21,31 @@ Vercel aplica **topes por plan** (deployments por día, minutos de build, rate l
 **Síntomas típicos cuando te frenó el plan / la API:**
 
 - El CLI o la API responden **429**, “rate limit”, “too many requests”, mensajes de **quota** o de **deployment limit**.
-- El workflow **Deploy Vercel + ready** falla en el paso `vercel deploy` **sin** haber tocado código nuevo.
+- El workflow **Deploy Vercel + ready (manual)** falla en `vercel deploy` **sin** haber tocado código nuevo (solo si lo ejecutaste a mano).
 
-**Qué hace este repo:** si el log del deploy parece un tope de Vercel, el script `scripts/ci-diagnose-vercel-deploy-log.sh` emite un **aviso** en GitHub Actions (`::notice`) para que no lo interpretes como fallo de la aplicación. Igual el job puede seguir en rojo hasta que Vercel acepte de nuevo el deploy.
+**Qué hace este repo:** si el log del CLI parece tope de Vercel, `scripts/ci-diagnose-vercel-deploy-log.sh` emite un **`::notice`** para no confundirlo con bug de app.
 
-**Mitigación:** menos pushes que disparen deploy doble (Git + Actions), previews solo cuando hagan falta, o subir de plan / esperar al reset diario del contador según indique Vercel.
+**Mitigación:** deploy automático solo por **Vercel ↔ Git**; menos previews innecesarios; o subir de plan / esperar reset diario según Vercel.
 
 ---
 
 ## Verificación automática (Actions)
 
-En cada push, el workflow **Deploy Vercel + ready** (`.github/workflows/deploy-vercel.yml`):
+- **`CI`** (`.github/workflows/ci.yml`): en push/PR — lint, build, snapshot, ingesta opcional.
+- **`Verify production sites`** (`.github/workflows/verify-production-sites.yml`): en **push a `main`** — breve espera + **`scripts/post-deploy-verify.sh`** contra `PRODUCTION_URL_AVALON_WEB` y `PRODUCTION_URL_AVALON_PREMIER` (mismos secrets que el smoke del cron). Comprueba `GET /`, `/propiedades` y, si hay **`CRON_SECRET`**, el BFF `/api/internal/catalog` con Bearer.
 
-1. **Lint + build** de ambas apps.
-2. **Deploy** `apps/avalon-propiedades` → luego `apps/avalon-premier`.
-3. **`scripts/post-deploy-verify.sh`** sobre las **URLs devueltas por el CLI**:
-   - `GET /` y `GET /propiedades` en Web y Premier → **200** (reintentos compartidos ~3–4 min).
-   - Si existe el secret **`CRON_SECRET`** en GitHub (mismo valor que en Vercel Web): `GET …/api/internal/catalog` con **Bearer** → **200** y JSON array con al menos **`POST_DEPLOY_MIN_CATALOG_ROWS`** filas (variable del repo; default **1** en el script).
-
-Si falla el paso 3, el workflow sale en **rojo**: revisá el log del job *Verificar (HTTP + BFF opcional)*.
+Si falta algún `PRODUCTION_URL_*`, el job **no falla** (aviso en log): definí los secrets para activar la verificación.
 
 ### Secrets / variables en GitHub (repo → Settings → Secrets and variables → Actions)
 
-| Nombre | Obligatorio para deploy CLI | Obligatorio para BFF en verify |
-|--------|------------------------------|--------------------------------|
-| `VERCEL_TOKEN` | Sí | — |
-| `VERCEL_ORG_ID` | Sí (variable) | — |
-| `VERCEL_PROJECT_ID_AVALONWEB` | Sí (variable) | — |
-| `VERCEL_PROJECT_ID_PREMIER` | Sí (variable) | — |
-| `CRON_SECRET` | No | Sí, si querés que falle el build si el catálogo BFF no responde o viene vacío |
+| Nombre | Uso |
+|--------|-----|
+| `PRODUCTION_URL_AVALON_WEB` | Origen `https://…` de Avalon Web (sin `/` final). **Verify production sites** |
+| `PRODUCTION_URL_AVALON_PREMIER` | Origen Premier. **Verify production sites** + smoke cron |
+| `CRON_SECRET` | Bearer al BFF en verify; mismo valor que Vercel |
+| `VERCEL_TOKEN` + `VERCEL_ORG_ID` + `VERCEL_PROJECT_ID_*` | Solo si ejecutás **manual** `Deploy Vercel + ready` |
 
-Variable opcional: **`POST_DEPLOY_MIN_CATALOG_ROWS`** (ej. `150`) para exigir un mínimo de filas en el JSON del BFF (útil para detectar API caída o snapshot equivocado).
+Variable opcional: **`POST_DEPLOY_MIN_CATALOG_ROWS`** (ej. `150`) — mínimo de filas en el JSON del BFF.
 
 ### Probar el script en local
 
@@ -82,4 +75,5 @@ Revisá en orden:
 ## Otros workflows
 
 - **`CI`** (`ci.yml`): lint, build, snapshot, ingesta opcional con `KITEPROP_API_KEY` en secrets del repo.
-- **Verify production cron** (`verify-production-cron.yml`): smoke del cron en URLs fijas de producción (`PRODUCTION_URL_*`); no sustituye la verificación post-deploy por URL de CLI.
+- **`Verify production sites`** (`verify-production-sites.yml`): HTTP + BFF tras push a `main` (URLs `PRODUCTION_URL_*`).
+- **`Verify production cron`** (`verify-production-cron.yml`): smoke `GET /api/cron/refresh-catalog` (schedule / manual).

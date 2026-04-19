@@ -1,23 +1,15 @@
-# Deploy automático en **cada push a cualquier rama** + verificación HTTP “ready”.
-# No usa GitHub Environments (así todas las ramas ven las mismas vars sin aprobación manual).
+# **Solo manual** — evita dos deploys por commit (Vercel Git + CLI peleando el mismo proyecto).
+# Producción: dejá activo **Import Git** en Vercel (push → build). Verificación automática:
+# workflow `Verify production sites` (push main) + `scripts/post-deploy-verify.sh`.
 #
-# Una sola configuración en el repo (luego no depende de vos por rama):
-#   https://github.com/TeknoAriel/AvalonWeb/settings/secrets/actions
-#     Secret: VERCEL_TOKEN → https://vercel.com/account/tokens
-#   https://github.com/TeknoAriel/AvalonWeb/settings/variables/actions
-#     Variables: VERCEL_ORG_ID, VERCEL_PROJECT_ID_AVALONWEB, VERCEL_PROJECT_ID_PREMIER
-#     Opcional: POST_DEPLOY_MIN_CATALOG_ROWS (ej. 100) — exige mínimo de filas en GET /api/internal/catalog
-#
-# Opcional (recomendado): secret CRON_SECRET en el repo = mismo valor que en Vercel Web/Premier.
-# Así el job final valida el BFF de catálogo en la URL recién desplegada (además de / y /propiedades).
-#
-# main → deploy --prod en Vercel. Otras ramas → Preview (sin --prod).
-# Tras ambos deploys: scripts/post-deploy-verify.sh (rutas + BFF si hay CRON_SECRET).
+# Si ejecutás este workflow: secrets/vars en GitHub (mismo patrón que antes):
+#   VERCEL_TOKEN, variables VERCEL_ORG_ID, VERCEL_PROJECT_ID_AVALONWEB, VERCEL_PROJECT_ID_PREMIER
+#   Opcional: CRON_SECRET en el repo para validar BFF en la URL del deploy CLI.
+#   Opcional: POST_DEPLOY_MIN_CATALOG_ROWS
 
-name: Deploy Vercel + ready
+name: Deploy Vercel + ready (manual)
 
 on:
-  push:
   workflow_dispatch:
 
 concurrency:

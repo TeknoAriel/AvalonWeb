@@ -1,0 +1,43 @@
+# Tras cada merge/push a main: comprobar que **producción** (deploy por Vercel ↔ Git) responde.
+# No dispara deploy: evita la segunda instancia (CLI) peleando con Git.
+#
+# Secrets (mismos nombres que "Verify production cron"):
+#   PRODUCTION_URL_AVALON_WEB     ej. https://avalonweb.vercel.app
+#   PRODUCTION_URL_AVALON_PREMIER ej. https://avalon-premier.vercel.app
+#   CRON_SECRET                   opcional pero recomendado — valida GET /api/internal/catalog
+#
+# Variable opcional: POST_DEPLOY_MIN_CATALOG_ROWS
+
+name: Verify production sites
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: verify-prod-sites-${{ github.repository }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Espera inicial (build Vercel por Git)
+        run: sleep 50
+
+      - name: Rutas + BFF (post-deploy-verify)
+        env:
+          DEPLOY_URL_WEB: ${{ secrets.PRODUCTION_URL_AVALON_WEB }}
+          DEPLOY_URL_PREMIER: ${{ secrets.PRODUCTION_URL_AVALON_PREMIER }}
+          POST_DEPLOY_CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          POST_DEPLOY_MIN_CATALOG_ROWS: ${{ vars.POST_DEPLOY_MIN_CATALOG_ROWS }}
+        run: |
+          set -euo pipefail
+          if [ -z "${DEPLOY_URL_WEB:-}" ] || [ -z "${DEPLOY_URL_PREMIER:-}" ]; then
+            echo "::notice title=Verify production sites::Definí secrets PRODUCTION_URL_AVALON_WEB y PRODUCTION_URL_AVALON_PREMIER (origen https, sin barra final) para validar producción tras cada push a main."
+            exit 0
+          fi
+          bash scripts/post-deploy-verify.sh
