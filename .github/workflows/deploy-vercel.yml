@@ -6,9 +6,13 @@
 #     Secret: VERCEL_TOKEN → https://vercel.com/account/tokens
 #   https://github.com/TeknoAriel/AvalonWeb/settings/variables/actions
 #     Variables: VERCEL_ORG_ID, VERCEL_PROJECT_ID_AVALONWEB, VERCEL_PROJECT_ID_PREMIER
+#     Opcional: POST_DEPLOY_MIN_CATALOG_ROWS (ej. 100) — exige mínimo de filas en GET /api/internal/catalog
+#
+# Opcional (recomendado): secret CRON_SECRET en el repo = mismo valor que en Vercel Web/Premier.
+# Así el job final valida el BFF de catálogo en la URL recién desplegada (además de / y /propiedades).
 #
 # main → deploy --prod en Vercel. Otras ramas → Preview (sin --prod).
-# Tras cada deploy se parsea la URL del log y se hace curl hasta 200 (listo para tráfico).
+# Tras ambos deploys: scripts/post-deploy-verify.sh (rutas + BFF si hay CRON_SECRET).
 
 name: Deploy Vercel + ready
 
@@ -50,6 +54,8 @@ jobs:
     name: Deploy avalonweb
     needs: quality-gate
     runs-on: ubuntu-latest
+    outputs:
+      deploy_url: ${{ steps.deploy.outputs.deploy_url }}
     steps:
       - uses: actions/checkout@v4
 
@@ -105,24 +111,12 @@ jobs:
           echo "### Avalon Web deploy" >> "$GITHUB_STEP_SUMMARY"
           echo "- URL: $URL" >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Ready (HTTP 200)
-        env:
-          DEPLOY_URL: ${{ steps.deploy.outputs.deploy_url }}
-        run: |
-          set -euo pipefail
-          for i in $(seq 1 18); do
-            code=$(curl -sSL -o /dev/null -w '%{http_code}' --max-time 25 "$DEPLOY_URL" || echo 000)
-            if [ "$code" = "200" ]; then echo "Ready OK ($code): $DEPLOY_URL"; exit 0; fi
-            echo "HTTP $code — reintento $i/18…"
-            sleep 10
-          done
-          echo "::error::No llegó a 200: $DEPLOY_URL"
-          exit 1
-
   deploy-premier:
     name: Deploy avalon-premier
     needs: deploy-avalonweb
     runs-on: ubuntu-latest
+    outputs:
+      deploy_url: ${{ steps.deploy.outputs.deploy_url }}
     steps:
       - uses: actions/checkout@v4
 
@@ -175,28 +169,30 @@ jobs:
           echo "### Avalon Premier deploy" >> "$GITHUB_STEP_SUMMARY"
           echo "- URL: $URL" >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Ready (HTTP 200)
+  verify-post-deploy:
+    name: Verificar (HTTP + BFF opcional)
+    needs: [deploy-avalonweb, deploy-premier]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Post-deploy verify
         env:
-          DEPLOY_URL: ${{ steps.deploy.outputs.deploy_url }}
-        run: |
-          set -euo pipefail
-          for i in $(seq 1 18); do
-            code=$(curl -sSL -o /dev/null -w '%{http_code}' --max-time 25 "$DEPLOY_URL" || echo 000)
-            if [ "$code" = "200" ]; then echo "Ready OK ($code): $DEPLOY_URL"; exit 0; fi
-            echo "HTTP $code — reintento $i/18…"
-            sleep 10
-          done
-          echo "::error::No llegó a 200: $DEPLOY_URL"
-          exit 1
+          DEPLOY_URL_WEB: ${{ needs.deploy-avalonweb.outputs.deploy_url }}
+          DEPLOY_URL_PREMIER: ${{ needs.deploy-premier.outputs.deploy_url }}
+          POST_DEPLOY_CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          POST_DEPLOY_MIN_CATALOG_ROWS: ${{ vars.POST_DEPLOY_MIN_CATALOG_ROWS }}
+        run: bash scripts/post-deploy-verify.sh
 
   resumen:
     name: Resumen
-    needs: deploy-premier
+    needs: [verify-post-deploy, deploy-avalonweb, deploy-premier]
     runs-on: ubuntu-latest
     steps:
       - name: Alineación Git
         run: |
-          echo "## Deploy + ready" >> "$GITHUB_STEP_SUMMARY"
+          echo "## Deploy + verificación" >> "$GITHUB_STEP_SUMMARY"
           echo "- **Rama:** \`${{ github.ref_name }}\`" >> "$GITHUB_STEP_SUMMARY"
           echo "- **Commit:** \`${{ github.sha }}\`" >> "$GITHUB_STEP_SUMMARY"
-          echo "- **Orden:** avalonweb → premier" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **Orden:** avalonweb → premier → \`post-deploy-verify.sh\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **URLs deploy:** Web \`${{ needs.deploy-avalonweb.outputs.deploy_url }}\` · Premier \`${{ needs.deploy-premier.outputs.deploy_url }}\`" >> "$GITHUB_STEP_SUMMARY"
