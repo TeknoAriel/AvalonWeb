@@ -40,8 +40,11 @@ La URL correcta es **`/api/internal/catalog`** (no `/api/catalog`). Ejemplo: `ht
 | `CRON_SECRET` | Sí (cron + BFF interno) |
 | `NEXT_PUBLIC_SITE_URL` | Sí (URL canónica de este sitio) |
 | `NEXT_PUBLIC_WHATSAPP` | Recomendado |
+| `BLOB_READ_WRITE_TOKEN` | **Opcional** — si está, el cron guarda un manifiesto `id` + `last_update` en [Vercel Blob](https://vercel.com/docs/storage/vercel-blob) y **solo** llama `revalidateTag` si hubo cambios, altas o bajas (IDs que dejaron de venir en el ingest = baja lógica). Sin token, el cron sigue revalidando siempre como antes. |
 
 No definas `AVALON_CATALOG_INTERNAL_URL` aquí.
+
+**Cron (Vercel):** hoy el schedule en `vercel.json` es **1 vez al día** (`30 9 * * *` UTC). Podés volver a cada 2 h cuando quieras cambiando el `schedule`.
 
 ---
 

@@ -1,21 +1,54 @@
-# Deploy **avalon-premier** a producción (build en Vercel). Un solo paso: `vercel deploy`.
-# No `vercel link` (evita fallos por slug de team / proyecto).
+# Deploy automático en **cada push a cualquier rama** + verificación HTTP “ready”.
+# No usa GitHub Environments (así todas las ramas ven las mismas vars sin aprobación manual).
 #
-# Secrets en GitHub → Settings → Secrets and variables → Actions:
-#   VERCEL_TOKEN        https://vercel.com/account/tokens
-#   VERCEL_ORG_ID       Vercel → team → Settings → Team ID (o el de .vercel/project.json tras `vercel link` local)
-#   VERCEL_PROJECT_ID   Vercel → proyecto avalon-premier → Settings → General → Project ID
+# Una sola configuración en el repo (luego no depende de vos por rama):
+#   https://github.com/TeknoAriel/AvalonWeb/settings/secrets/actions
+#     Secret: VERCEL_TOKEN → https://vercel.com/account/tokens
+#   https://github.com/TeknoAriel/AvalonWeb/settings/variables/actions
+#     Variables: VERCEL_ORG_ID, VERCEL_PROJECT_ID_AVALONWEB, VERCEL_PROJECT_ID_PREMIER
+#
+# main → deploy --prod en Vercel. Otras ramas → Preview (sin --prod).
+# Tras cada deploy se parsea la URL del log y se hace curl hasta 200 (listo para tráfico).
 
-name: Deploy Vercel (Premier)
+name: Deploy Vercel + ready
 
 on:
   push:
-    branches: [main]
   workflow_dispatch:
 
+concurrency:
+  group: vercel-deploy-${{ github.repository }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  VERCEL_CLI_VERSION: '51.6.1'
+
 jobs:
-  deploy-premier:
-    name: avalon-premier
+  quality-gate:
+    name: Calidad (lint + build)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Build ambas apps
+        run: pnpm exec turbo run build --filter=avalon-propiedades --filter=avalon-premier
+
+  deploy-avalonweb:
+    name: Deploy avalonweb
+    needs: quality-gate
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -24,14 +57,146 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Deploy producción
+      - name: Comprobar variables Vercel
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID_AVALONWEB: ${{ vars.VERCEL_PROJECT_ID_AVALONWEB }}
         run: |
-          set -eu
-          : "${VERCEL_TOKEN:?Definí el secret VERCEL_TOKEN en GitHub Actions}"
-          : "${VERCEL_ORG_ID:?Definí el secret VERCEL_ORG_ID (Team ID en Vercel)}"
-          : "${VERCEL_PROJECT_ID:?Definí el secret VERCEL_PROJECT_ID (Project ID del proyecto avalon-premier)}"
-          npx --yes vercel@51.6.1 deploy --prod --yes --logs --cwd apps/avalon-premier
+          set -euo pipefail
+          for n in VERCEL_TOKEN VERCEL_ORG_ID VERCEL_PROJECT_ID_AVALONWEB; do
+            v=$(printenv "$n" || true)
+            if [ -z "$v" ]; then echo "::error::Falta $n (secret o variable del repositorio)"; exit 1; fi
+          done
+
+      - name: Deploy Vercel
+        id: deploy
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID_AVALONWEB }}
+        run: |
+          set -euo pipefail
+          LOG="$RUNNER_TEMP/vercel-avalonweb.log"
+          if [ "${{ github.ref }}" = "refs/heads/main" ]; then
+            PROD=(--prod)
+            echo "Modo: **production** (main)" >> "$GITHUB_STEP_SUMMARY"
+          else
+            PROD=()
+            echo "Modo: **preview** (${{ github.ref_name }})" >> "$GITHUB_STEP_SUMMARY"
+          fi
+          npx --yes "vercel@${VERCEL_CLI_VERSION}" deploy --yes "${PROD[@]}" --cwd apps/avalon-propiedades \
+            --meta "githubCommit=${{ github.sha }}" \
+            --meta "githubRef=${{ github.ref }}" \
+            --meta "githubRepo=${{ github.repository }}" \
+            2>&1 | tee "$LOG"
+          # URL típica: "Preview: https://…" o "Production: https://…"
+          LINE=$(grep -iE '(Preview|Production):' "$LOG" | head -1 || true)
+          URL=$(printf '%s' "$LINE" | sed -n 's/.*\(https:\/\/[^[:space:]]*\).*/\1/p' | head -1)
+          if [ -z "$URL" ]; then
+            URL=$(grep -oE 'https://[a-zA-Z0-9./?=_-]+\.vercel\.app' "$LOG" | tail -1 || true)
+          fi
+          if [ -z "$URL" ]; then
+            echo "::error::No se pudo extraer URL de deploy desde el log de Vercel."
+            tail -80 "$LOG" >&2
+            exit 1
+          fi
+          echo "deploy_url=$URL" >> "$GITHUB_OUTPUT"
+          echo "### Avalon Web deploy" >> "$GITHUB_STEP_SUMMARY"
+          echo "- URL: $URL" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Ready (HTTP 200)
+        env:
+          DEPLOY_URL: ${{ steps.deploy.outputs.deploy_url }}
+        run: |
+          set -euo pipefail
+          for i in $(seq 1 18); do
+            code=$(curl -sSL -o /dev/null -w '%{http_code}' --max-time 25 "$DEPLOY_URL" || echo 000)
+            if [ "$code" = "200" ]; then echo "Ready OK ($code): $DEPLOY_URL"; exit 0; fi
+            echo "HTTP $code — reintento $i/18…"
+            sleep 10
+          done
+          echo "::error::No llegó a 200: $DEPLOY_URL"
+          exit 1
+
+  deploy-premier:
+    name: Deploy avalon-premier
+    needs: deploy-avalonweb
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Comprobar variables Vercel
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID_PREMIER: ${{ vars.VERCEL_PROJECT_ID_PREMIER }}
+        run: |
+          set -euo pipefail
+          for n in VERCEL_TOKEN VERCEL_ORG_ID VERCEL_PROJECT_ID_PREMIER; do
+            v=$(printenv "$n" || true)
+            if [ -z "$v" ]; then echo "::error::Falta $n"; exit 1; fi
+          done
+
+      - name: Deploy Vercel
+        id: deploy
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID_PREMIER }}
+        run: |
+          set -euo pipefail
+          LOG="$RUNNER_TEMP/vercel-premier.log"
+          if [ "${{ github.ref }}" = "refs/heads/main" ]; then
+            PROD=(--prod)
+          else
+            PROD=()
+          fi
+          npx --yes "vercel@${VERCEL_CLI_VERSION}" deploy --yes "${PROD[@]}" --cwd apps/avalon-premier \
+            --meta "githubCommit=${{ github.sha }}" \
+            --meta "githubRef=${{ github.ref }}" \
+            --meta "githubRepo=${{ github.repository }}" \
+            2>&1 | tee "$LOG"
+          LINE=$(grep -iE '(Preview|Production):' "$LOG" | head -1 || true)
+          URL=$(printf '%s' "$LINE" | sed -n 's/.*\(https:\/\/[^[:space:]]*\).*/\1/p' | head -1)
+          if [ -z "$URL" ]; then
+            URL=$(grep -oE 'https://[a-zA-Z0-9./?=_-]+\.vercel\.app' "$LOG" | tail -1 || true)
+          fi
+          if [ -z "$URL" ]; then
+            echo "::error::No se pudo extraer URL de deploy desde el log de Vercel."
+            tail -80 "$LOG" >&2
+            exit 1
+          fi
+          echo "deploy_url=$URL" >> "$GITHUB_OUTPUT"
+          echo "### Avalon Premier deploy" >> "$GITHUB_STEP_SUMMARY"
+          echo "- URL: $URL" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Ready (HTTP 200)
+        env:
+          DEPLOY_URL: ${{ steps.deploy.outputs.deploy_url }}
+        run: |
+          set -euo pipefail
+          for i in $(seq 1 18); do
+            code=$(curl -sSL -o /dev/null -w '%{http_code}' --max-time 25 "$DEPLOY_URL" || echo 000)
+            if [ "$code" = "200" ]; then echo "Ready OK ($code): $DEPLOY_URL"; exit 0; fi
+            echo "HTTP $code — reintento $i/18…"
+            sleep 10
+          done
+          echo "::error::No llegó a 200: $DEPLOY_URL"
+          exit 1
+
+  resumen:
+    name: Resumen
+    needs: deploy-premier
+    runs-on: ubuntu-latest
+    steps:
+      - name: Alineación Git
+        run: |
+          echo "## Deploy + ready" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **Rama:** \`${{ github.ref_name }}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **Commit:** \`${{ github.sha }}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **Orden:** avalonweb → premier" >> "$GITHUB_STEP_SUMMARY"

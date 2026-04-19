@@ -15,6 +15,7 @@
     "@avalon/types": "workspace:*",
     "@avalon/ui": "workspace:*",
     "@avalon/utils": "workspace:*",
+    "@vercel/blob": "^2.3.3",
     "next": "^14.2.21",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"

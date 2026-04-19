@@ -1,5 +1,5 @@
 {
   "installCommand": "cd ../.. && pnpm install",
   "buildCommand": "cd ../.. && pnpm --filter avalon-propiedades exec next build",
-  "crons": [{ "path": "/api/cron/refresh-catalog", "schedule": "0 */2 * * *" }]
+  "crons": [{ "path": "/api/cron/refresh-catalog", "schedule": "30 9 * * *" }]
 }

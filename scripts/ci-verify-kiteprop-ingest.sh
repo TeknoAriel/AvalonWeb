@@ -21,6 +21,7 @@ with open(path) as f:
     d = json.load(f)
 print("totalRows:", d.get("totalRows"))
 print("premierTagCount:", d.get("premierTagCount"))
+print("premierListableCount:", d.get("premierListableCount"))
 min_total = int(os.environ.get("MIN_INGEST_TOTAL_ROWS") or "1")
 min_prem = os.environ.get("MIN_PREMIER_TAG_COUNT", "").strip()
 if d.get("totalRows", 0) < min_total:

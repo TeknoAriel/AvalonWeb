@@ -11,11 +11,22 @@ import { KITEPROP_PROPERTY_FEED_TAG } from './kiteprop-cache-tag';
 import { ALL_RAW_PROPERTIES } from './load';
 import { mergePremierMetadataFromRepoSnapshot } from './premier-snapshot-merge';
 
-/** ISR alineado con cron de catálogo en producción (2 h). */
+/** ISR alineado con cron de catálogo en producción (2 h) — solo lectura directa KiteProp. */
 const CATALOG_REVALIDATE_SECONDS = 7_200;
 
 const defaultFetchInit = {
   next: { revalidate: CATALOG_REVALIDATE_SECONDS, tags: [KITEPROP_PROPERTY_FEED_TAG] },
+} as RequestInit & { next: { revalidate: number; tags: string[] } };
+
+/**
+ * GET al BFF de Avalon: **sin** Data Cache larga en el consumidor (p. ej. Premier).
+ * Si usamos el mismo `revalidate` que KiteProp, el listado Premier puede quedar días con un JSON viejo
+ * mientras `pnpm kp:ingest-stats` (no-store) muestra el feed real → discrepancia tipo “24 vs 4”.
+ */
+const bffCatalogFetchInit = {
+  cache: 'no-store' as const,
+  /** 0 = sin ISR en el fetch al BFF (alineado con feed vivo); `tags` sigue permitiendo `revalidateTag` en rutas. */
+  next: { revalidate: 0, tags: [KITEPROP_PROPERTY_FEED_TAG] },
 } as RequestInit & { next: { revalidate: number; tags: string[] } };
 
 function finalizeWithSnapshotMerge(rows: RawProperty[]): RawProperty[] {
@@ -60,12 +71,21 @@ export async function loadKitepropCatalogMerged(): Promise<RawProperty[]> {
       return loadKitepropCatalogFromKitepropApi();
     }
     try {
-      const fromBff = await fetchRawCatalogFromAvalonBff(url, secret, defaultFetchInit);
+      const fromBff = await fetchRawCatalogFromAvalonBff(url, secret, bffCatalogFetchInit);
       if (fromBff.length > 0) {
         return fromBff;
       }
     } catch {
-      /* snapshot */
+      /* intentar API directa abajo */
+    }
+    // BFF vacío o error: no enmascarar con snapshot si podemos leer KiteProp en este runtime (p. ej. Premier con key).
+    if (kitepropApiFeedConfigured()) {
+      try {
+        const direct = await loadKitepropCatalogFromKitepropApi();
+        if (direct.length > 0) return direct;
+      } catch {
+        /* snapshot */
+      }
     }
     return finalizeWithSnapshotMerge(ALL_RAW_PROPERTIES);
   }

@@ -14,6 +14,7 @@ import { writeFile } from 'node:fs/promises';
 import {
   fetchKitepropPropertyFeedAsRaw,
   hasPremierTag,
+  isPubliclyListedForSite,
   kitepropApiFeedConfigured,
 } from '@avalon/core';
 
@@ -30,8 +31,12 @@ async function main(): Promise<void> {
   }
 
   let premierTagCount = 0;
+  let premierListableCount = 0;
+  let avalonListableCount = 0;
   for (const r of raw) {
     if (hasPremierTag(r)) premierTagCount += 1;
+    if (hasPremierTag(r) && isPubliclyListedForSite(r, 'premier')) premierListableCount += 1;
+    if (isPubliclyListedForSite(r, 'avalon')) avalonListableCount += 1;
   }
 
   const statusHistogram: Record<string, number> = {};
@@ -47,6 +52,10 @@ async function main(): Promise<void> {
   const report = {
     totalRows: raw.length,
     premierTagCount,
+    /** Cuántas vería el listado Premier (tag + reglas de estado; excluye inactivas / terminal). */
+    premierListableCount,
+    /** Cuántas vería el listado Avalon Web (`isPubliclyListedForSite` sitio avalon). */
+    avalonListableCount,
     statusHistogram: sortedStatuses,
     generatedAt: new Date().toISOString(),
   };

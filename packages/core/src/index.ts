@@ -1,4 +1,9 @@
 export { KITEPROP_PROPERTY_FEED_TAG } from './kiteprop-cache-tag';
+export {
+  computeCatalogSyncDiff,
+  type CatalogSyncManifest,
+  type CatalogSyncDiffResult,
+} from './kiteprop-catalog-sync';
 export { resolveServerToServerBearerSecret, isCatalogIngestDebug } from './avalon-internal-api';
 export {
   loadKitepropCatalogMerged,

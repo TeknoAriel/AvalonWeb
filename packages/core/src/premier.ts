@@ -108,18 +108,8 @@ function scanMaybeJsonStringArray(value: string): boolean {
   }
 }
 
-export function hasPremierTag(raw: RawProperty): boolean {
-  if (premierOverrideIds().has(raw.id)) return true;
-
-  const pF = explicitPremierBool(raw.premier);
-  const iF = explicitPremierBool(raw.is_premier);
-  if (pF === true || iF === true) return true;
-  if (pF === false && iF === false) return false;
-
-  const rest = restCatalogPremierFlag(raw);
-  if (rest === false) return false;
-  if (rest === true) return true;
-
+/** Tags, labels, categorías y claves CRM tipo modificadores (KiteProp suele mandar Premier ahí aunque `premier` sea 0). */
+function scanPremierFromTagLikeFields(raw: RawProperty): boolean {
   if (raw.tags !== undefined) {
     if (typeof raw.tags === 'string') {
       if (equalsPremierToken(raw.tags)) return true;
@@ -181,6 +171,24 @@ export function hasPremierTag(raw: RawProperty): boolean {
         return true;
     } else if (scanUnknownList(v)) return true;
   }
+
+  return false;
+}
+
+export function hasPremierTag(raw: RawProperty): boolean {
+  if (premierOverrideIds().has(raw.id)) return true;
+
+  // Antes: `premier: 0` + `is_premier: 0` cortaba antes de leer tags/modificadores (API KiteProp vs CRM).
+  if (scanPremierFromTagLikeFields(raw)) return true;
+
+  const pF = explicitPremierBool(raw.premier);
+  const iF = explicitPremierBool(raw.is_premier);
+  if (pF === true || iF === true) return true;
+  if (pF === false && iF === false) return false;
+
+  const rest = restCatalogPremierFlag(raw);
+  if (rest === false) return false;
+  if (rest === true) return true;
 
   return false;
 }
