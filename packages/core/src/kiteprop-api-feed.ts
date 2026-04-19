@@ -4,19 +4,50 @@ import { extractKitepropPropertyFeedRows } from './kiteprop-feed-payload';
 import { kitepropOutboundUserAgent } from './kiteprop-outbound';
 import { applyPremierMetadataFromDonor } from './premier-metadata-donor';
 
-function apiKey(): string {
+/**
+ * `fetch()` (undici) exige cabeceras en Latin-1; caracteres como … (U+2026) copiados desde
+ * Word/Slack rompen con "Cannot convert argument to a ByteString".
+ */
+function sanitizeHttpLatin1(value: string, label: string): string {
+  const normalized = value
+    .replace(/\u2026/g, '...')
+    .replace(/\u2013|\u2014/g, '-')
+    .replace(/\u00A0/g, ' ')
+    .trim();
+  for (let i = 0; i < normalized.length; i++) {
+    const c = normalized.charCodeAt(i);
+    if (c > 0xff) {
+      throw new TypeError(
+        `${label}: carácter no válido en HTTP en el índice ${i} (U+${c.toString(16).toUpperCase()}). ` +
+          'Revisá .env por puntos suspensivos tipográficos (…) o símbolos pegados desde otro editor.',
+      );
+    }
+  }
+  return normalized;
+}
+
+function apiKeyRaw(): string {
   return (process.env.KITEPROP_API_KEY || process.env.KITEPROP_API_TOKEN || '').trim();
 }
 
+/** Clave lista para cabeceras (Latin-1); puede lanzar si el .env tiene caracteres ilegales. */
+function apiKey(): string {
+  const raw = apiKeyRaw();
+  if (!raw) return '';
+  return sanitizeHttpLatin1(raw, 'KITEPROP_API_KEY / KITEPROP_API_TOKEN');
+}
+
 function apiBase(): string {
-  return (process.env.KITEPROP_API_BASE_URL || 'https://www.kiteprop.com/api/v1').replace(/\/$/, '');
+  const raw = (process.env.KITEPROP_API_BASE_URL || 'https://www.kiteprop.com/api/v1').replace(/\/$/, '');
+  return sanitizeHttpLatin1(raw, 'KITEPROP_API_BASE_URL');
 }
 
 function authHeaders(): HeadersInit {
   const key = apiKey();
+  const ua = sanitizeHttpLatin1(kitepropOutboundUserAgent(), 'KITEPROP_FETCH_USER_AGENT (o User-Agent por defecto)');
   const h: Record<string, string> = {
     Accept: 'application/json',
-    'User-Agent': kitepropOutboundUserAgent(),
+    'User-Agent': ua,
   };
   if (key) h['X-API-Key'] = key;
   return h;
@@ -57,7 +88,7 @@ function statusNorm(raw: RawProperty): string {
 function catalogStatusFilters(): string[] {
   const raw = (process.env.KITEPROP_API_STATUS_FILTER || 'active')
     .split(',')
-    .map((s) => s.trim())
+    .map((s) => sanitizeHttpLatin1(s.trim(), 'KITEPROP_API_STATUS_FILTER'))
     .filter(Boolean);
   const list = raw.length ? raw : ['active'];
   const lower = list.map((s) => s.toLowerCase());
@@ -138,11 +169,12 @@ async function fetchKitepropPropertyFeedPagesForStatus(
 export async function fetchKitepropPropertyFeedAsRaw(
   fetchInit?: RequestInit & { next?: { revalidate?: number } },
 ): Promise<RawProperty[] | null> {
-  const key = apiKey();
+  const key = apiKeyRaw();
   const base = apiBase();
   if (!key) return null;
 
-  const path = (process.env.KITEPROP_API_PROPERTIES_PATH || '/properties').trim();
+  const pathRaw = (process.env.KITEPROP_API_PROPERTIES_PATH || '/properties').trim();
+  const path = sanitizeHttpLatin1(pathRaw, 'KITEPROP_API_PROPERTIES_PATH');
   const pathNorm = path.startsWith('/') ? path : `/${path}`;
   const perPage = Math.min(
     100,
@@ -168,5 +200,5 @@ export async function fetchKitepropPropertyFeedAsRaw(
 }
 
 export function kitepropApiFeedConfigured(): boolean {
-  return Boolean(apiKey());
+  return Boolean(apiKeyRaw());
 }
