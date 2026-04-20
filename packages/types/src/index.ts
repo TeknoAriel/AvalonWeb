@@ -182,6 +182,14 @@ export interface NormalizedProperty {
   agency: RawAgency;
   /** true si el payload o overrides marcan Premier */
   isPremier: boolean;
+  /**
+   * Señales editoriales normalizadas para orden y módulos curados.
+   * `priorityRank`: menor = más prioridad (A=1, B=2, ...).
+   */
+  editorial: {
+    isFeatured: boolean;
+    priorityRank: number | null;
+  };
 }
 
 export interface SiteBrandConfig {

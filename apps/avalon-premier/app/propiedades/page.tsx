@@ -51,7 +51,7 @@ export default async function PropertiesPage({
   const filters = queryToPropertyListFilters(sp);
 
   const base = sortByFeaturedThenRecent(await getPropertiesFromKitepropFeed(SITE));
-  const filtered = filterNormalizedProperties(base, filters);
+  const filtered = sortByFeaturedThenRecent(filterNormalizedProperties(base, filters));
   const noPremierInventory = base.length === 0;
 
   const cities = Array.from(new Set(base.map((p) => p.location.city))).sort();
@@ -89,8 +89,8 @@ export default async function PropertiesPage({
               <p className="mt-3">
                 El listado solo incluye avisos del feed marcados como Premier (tags, labels, flags o IDs en{' '}
                 <code className="rounded bg-brand-primary/5 px-1 text-xs">PREMIER_PROPERTY_IDS</code>). No hay
-                Elasticsearch: es filtrado en servidor sobre el mismo catálogo que Avalon Web (en producción suele ser el BFF{' '}
-                <code className="rounded bg-brand-primary/5 px-0.5">/api/internal/catalog</code>; si no, API KiteProp o snapshot).
+                Elasticsearch: es filtrado en servidor sobre el mismo catálogo que Avalon Web (API KiteProp o BFF{' '}
+                <code className="rounded bg-brand-primary/5 px-0.5">/api/internal/catalog</code>).
               </p>
               <p className="mt-3 text-xs text-brand-text/50">
                 Si ves pocos ítems pero en CRM hay más Premier, revisá en Vercel{' '}

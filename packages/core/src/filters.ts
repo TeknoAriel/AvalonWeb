@@ -77,14 +77,22 @@ export function filterNormalizedProperties(
 }
 
 export function sortByFeaturedThenRecent(list: NormalizedProperty[]): NormalizedProperty[] {
-  const statusRank = (s: string) => {
-    if (s === 'active') return 0;
-    if (s === 'reserved') return 1;
-    return 2;
-  };
   return [...list].sort((a, b) => {
-    const sr = statusRank(a.status) - statusRank(b.status);
-    if (sr !== 0) return sr;
-    return new Date(b.lastUpdate).getTime() - new Date(a.lastUpdate).getTime();
+    const ar = a.editorial.priorityRank;
+    const br = b.editorial.priorityRank;
+    if (ar != null && br != null && ar !== br) return ar - br;
+    if (ar != null && br == null) return -1;
+    if (ar == null && br != null) return 1;
+
+    const ts = new Date(b.lastUpdate).getTime() - new Date(a.lastUpdate).getTime();
+    if (ts !== 0) return ts;
+    return b.id - a.id;
   });
+}
+
+export function pickHomeEditorialSelection(list: NormalizedProperty[], limit: number): NormalizedProperty[] {
+  const pool = sortByFeaturedThenRecent(list);
+  const featured = pool.filter((p) => p.editorial.isFeatured);
+  if (featured.length > 0) return featured.slice(0, limit);
+  return pool.slice(0, limit);
 }

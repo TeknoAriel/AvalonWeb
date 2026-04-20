@@ -1,6 +1,7 @@
 import type { NormalizedProperty, RawProperty } from '@avalon/types';
 import { stripHtml } from '@avalon/utils';
 import { extractAmenities } from './amenities';
+import { getEditorialSignals } from './editorial-priority';
 import { extractMedia } from './media';
 import { hasPremierTag } from './premier';
 import { propertyTypeLabel } from './property-type-labels';
@@ -15,6 +16,7 @@ function numOrNull(s: string | null | undefined): number | null {
 export function normalizeProperty(raw: RawProperty): NormalizedProperty {
   const media = extractMedia(raw);
   const amenities = extractAmenities(raw);
+  const editorial = getEditorialSignals(raw);
 
   return {
     id: raw.id,
@@ -76,5 +78,6 @@ export function normalizeProperty(raw: RawProperty): NormalizedProperty {
     agent: raw.agent,
     agency: raw.agency,
     isPremier: hasPremierTag(raw),
+    editorial,
   };
 }

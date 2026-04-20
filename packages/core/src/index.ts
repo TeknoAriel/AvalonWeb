@@ -27,10 +27,12 @@ export { buildPropertySlug, parsePropertySlugParam } from './slug';
 export { propertyTypeLabel } from './property-type-labels';
 export {
   filterNormalizedProperties,
+  pickHomeEditorialSelection,
   sortByFeaturedThenRecent,
   type PropertyListFilters,
   type OperationFilter,
 } from './filters';
+export { getEditorialSignals, type EditorialSignals } from './editorial-priority';
 export {
   getSiteProperties,
   getSitePropertiesFromRaw,

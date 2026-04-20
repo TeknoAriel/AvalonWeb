@@ -52,7 +52,7 @@ export default async function PropertiesPage({
   const filters = queryToPropertyListFilters(sp);
 
   const base = await loadSortedSiteProperties();
-  const filtered = filterNormalizedProperties(base, filters);
+  const filtered = sortByFeaturedThenRecent(filterNormalizedProperties(base, filters));
   const returnToToken =
     listingFiltersHaveContext(filters) && propertyListFiltersToQuery(filters).length > 0
       ? encodeListingReturnTo(propertyListFiltersToQuery(filters))

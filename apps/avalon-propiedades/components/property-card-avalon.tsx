@@ -16,6 +16,8 @@ export function PropertyCardAvalon({
   badges?: readonly string[];
 }) {
   const img = property.media.images[0];
+  const editorialBadge = property.editorial.isFeatured ? ['Destacada'] : [];
+  const mergedBadges = Array.from(new Set([...editorialBadge, ...(badges ?? [])]));
   const href =
     returnToToken && returnToToken.length > 0
       ? `/propiedades/${property.slug}?returnTo=${encodeURIComponent(returnToToken)}`
@@ -52,9 +54,9 @@ export function PropertyCardAvalon({
             {property.location.zoneSecondary ? ` · ${property.location.zoneSecondary}` : ''} —{' '}
             {property.location.city}
           </p>
-          {badges && badges.length > 0 ? (
+          {mergedBadges.length > 0 ? (
             <div className="mt-1 flex flex-wrap gap-1.5">
-              {badges.slice(0, 2).map((b) => (
+              {mergedBadges.slice(0, 2).map((b) => (
                 <span
                   key={b}
                   className="rounded bg-brand-primary/[0.06] px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-brand-primary/90"

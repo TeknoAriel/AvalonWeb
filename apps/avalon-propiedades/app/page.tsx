@@ -1,4 +1,4 @@
-import { propertyTypeLabel } from '@avalon/core';
+import { pickHomeEditorialSelection, propertyTypeLabel } from '@avalon/core';
 import { getSiteBrandConfig } from '@avalon/config';
 import { RecentPropertiesStrip } from '@avalon/ui';
 import { HeroAvalon, pickHeroImageFromList } from '@/components/hero-avalon';
@@ -10,7 +10,7 @@ import { SITE } from '@/lib/site';
 export default async function HomePage() {
   const brand = getSiteBrandConfig(SITE);
   const all = await loadSortedSiteProperties();
-  const featured = all.slice(0, 6);
+  const featured = pickHomeEditorialSelection(all, 9);
   const heroImage = pickHeroImageFromList(all);
   const types = Array.from(new Set(all.map((p) => p.propertyType))).slice(0, 6);
 

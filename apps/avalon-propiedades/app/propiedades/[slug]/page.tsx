@@ -121,8 +121,8 @@ export default async function PropertyDetailPage({ params, searchParams }: PageP
         <PropertyFavoriteToggle site={SITE} property={property} variant="avalon" />
       </div>
 
-      <div className="mt-8 grid gap-10 lg:grid-cols-[1.2fr_0.8fr]">
-        <div>
+      <div className="mt-8 grid items-start gap-10 lg:grid-cols-[1.2fr_0.8fr]">
+        <div className="lg:col-start-1 lg:row-start-1">
           <MediaGallery media={property.media} brand="avalon" />
           {property.media.youtubeUrl ? (
             <div className="mt-8 aspect-video overflow-hidden rounded-xl bg-black/5">
@@ -143,7 +143,7 @@ export default async function PropertyDetailPage({ params, searchParams }: PageP
             />
           ) : null}
         </div>
-        <aside className="space-y-6">
+        <aside className="space-y-6 lg:col-start-2 lg:row-start-1 lg:row-span-2 lg:self-start">
           <div>
             <p className="text-xs font-semibold uppercase tracking-wide text-brand-muted">
               {property.propertyTypeLabel} · {property.location.city}
@@ -219,36 +219,35 @@ export default async function PropertyDetailPage({ params, searchParams }: PageP
             </div>
           </div>
         </aside>
+        <section className="mt-8 grid gap-8 border-t border-brand-primary/10 pt-8 lg:col-start-1 lg:row-start-2 lg:mt-0 lg:border-t-0 lg:pt-0 lg:grid-cols-2">
+          <div>
+            <h2 className="text-xl font-bold text-brand-primary">Descripción</h2>
+            <div
+              className="property-html mt-4 max-w-none text-sm leading-relaxed text-brand-text [&_p]:mb-3 [&_ul]:list-disc [&_ul]:pl-5"
+              // eslint-disable-next-line react/no-danger
+              dangerouslySetInnerHTML={{ __html: property.descriptionHtml }}
+            />
+          </div>
+          <div>
+            <h2 className="text-xl font-bold text-brand-primary">Características</h2>
+            <ul className="mt-4 grid gap-2 sm:grid-cols-2">
+              {property.amenities.map((a) => (
+                <li
+                  key={a.id}
+                  className="rounded-lg border border-brand-primary/10 bg-brand-surface-alt px-3 py-2 text-sm"
+                >
+                  {a.label}
+                </li>
+              ))}
+            </ul>
+            {property.amenities.length === 0 ? (
+              <p className="mt-2 text-sm text-brand-muted">
+                Sin amenities estructuradas en la ficha; revisá la descripción.
+              </p>
+            ) : null}
+          </div>
+        </section>
       </div>
-
-      <section className="mt-14 grid gap-8 lg:grid-cols-2">
-        <div>
-          <h2 className="text-xl font-bold text-brand-primary">Descripción</h2>
-          <div
-            className="property-html mt-4 max-w-none text-sm leading-relaxed text-brand-text [&_p]:mb-3 [&_ul]:list-disc [&_ul]:pl-5"
-            // eslint-disable-next-line react/no-danger
-            dangerouslySetInnerHTML={{ __html: property.descriptionHtml }}
-          />
-        </div>
-        <div>
-          <h2 className="text-xl font-bold text-brand-primary">Características</h2>
-          <ul className="mt-4 grid gap-2 sm:grid-cols-2">
-            {property.amenities.map((a) => (
-              <li
-                key={a.id}
-                className="rounded-lg border border-brand-primary/10 bg-brand-surface-alt px-3 py-2 text-sm"
-              >
-                {a.label}
-              </li>
-            ))}
-          </ul>
-          {property.amenities.length === 0 ? (
-            <p className="mt-2 text-sm text-brand-muted">
-              Sin amenities estructuradas en la ficha; revisá la descripción.
-            </p>
-          ) : null}
-        </div>
-      </section>
 
       <section className="mt-14">
         <h2 className="text-xl font-bold text-brand-primary">Ubicación</h2>

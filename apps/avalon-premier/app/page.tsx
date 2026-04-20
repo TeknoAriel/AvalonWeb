@@ -1,4 +1,4 @@
-import { propertyTypeLabel, sortByFeaturedThenRecent } from '@avalon/core';
+import { pickHomeEditorialSelection, propertyTypeLabel, sortByFeaturedThenRecent } from '@avalon/core';
 import { getSiteBrandConfig } from '@avalon/config';
 import { RecentPropertiesStrip } from '@avalon/ui';
 import { CinematicHero } from '@/components/cinematic-hero';
@@ -20,7 +20,7 @@ export const dynamic = 'force-dynamic';
 export default async function HomePage() {
   const brand = getSiteBrandConfig(SITE);
   const all = sortByFeaturedThenRecent(await getPropertiesFromKitepropFeed(SITE));
-  const featured = all.slice(0, 4);
+  const featured = pickHomeEditorialSelection(all, 6);
   const heroPosters = resolvePremierHeroPosterUrls(all, 8);
   const heroVideo = process.env.NEXT_PUBLIC_PREMIER_HERO_VIDEO_URL?.trim() || null;
 
@@ -36,7 +36,7 @@ export default async function HomePage() {
             Propiedades destacadas
           </p>
           <h2 className="mt-4 font-serif text-3xl font-normal tracking-tight text-brand-primary md:text-4xl">
-            Selección actual
+            Selección Premier
           </h2>
           <p className="mt-4 text-sm font-light leading-relaxed text-brand-text/62 md:text-base">
             Piezas curadas del feed operativo. Cada ficha cumple criterios de calidad, documentación y
@@ -47,7 +47,7 @@ export default async function HomePage() {
           <div className="mx-auto mt-10 max-w-lg border border-premier-line/50 bg-brand-surface-alt/50 p-10 text-center md:p-12">
             <p className="font-serif text-xl font-normal text-brand-primary">Colección en preparación</p>
             <p className="mt-5 text-sm font-light text-brand-text/62">
-              Aún no hay activos con etiqueta Premier en la API KiteProp o en el snapshot. Cuando el CRM
+              Aun no hay activos con etiqueta Premier en la API KiteProp o en el BFF. Cuando el CRM
               marque <code className="rounded bg-brand-primary/5 px-1 text-xs">premier</code> en
               tags, labels o flags equivalentes, aparecerán automáticamente. Podés usar{' '}
               <code className="rounded bg-brand-primary/5 px-1 text-xs">PREMIER_PROPERTY_IDS</code>{' '}

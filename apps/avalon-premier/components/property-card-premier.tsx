@@ -30,9 +30,16 @@ export function PropertyCardPremier({
           </div>
         </div>
         <div className="space-y-2.5 px-3 py-5 md:px-5 md:py-6">
-          <p className="text-[9px] font-medium uppercase tracking-[0.18em] text-brand-text/48">
-            {property.propertyTypeLabel}
-          </p>
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="text-[9px] font-medium uppercase tracking-[0.18em] text-brand-text/48">
+              {property.propertyTypeLabel}
+            </p>
+            {property.editorial.isFeatured ? (
+              <span className="border border-premier-line/70 px-2 py-0.5 text-[9px] uppercase tracking-[0.14em] text-brand-accent/90">
+                Seleccion
+              </span>
+            ) : null}
+          </div>
           <h3 className="font-serif text-lg font-normal leading-[1.35] tracking-[-0.015em] text-brand-primary md:text-[1.15rem]">
             {property.title}
           </h3>
