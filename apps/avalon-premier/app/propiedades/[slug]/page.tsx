@@ -18,7 +18,7 @@ import {
   PropertyViewTracker,
   RecentPropertiesStrip,
 } from '@avalon/ui';
-import { toYouTubeEmbedUrl } from '@avalon/utils';
+import { extractYouTubeVideoId, toYouTubeEmbedUrl } from '@avalon/utils';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
@@ -77,6 +77,8 @@ export default async function PropertyDetailPage({ params }: Props) {
   const mapEmbedSrc = getPropertyMapEmbedSrc(property);
   const mapNote = propertyMapLocationNote(property);
   const mapsSearchHref = getPropertyMapsSearchUrl(property);
+  const hasVideo = extractYouTubeVideoId(property.media.youtubeUrl ?? '') != null;
+  const hasTour360 = Boolean(property.media.tour360Html?.trim());
 
   return (
     <article className="pb-28 md:pb-0">
@@ -91,20 +93,6 @@ export default async function PropertyDetailPage({ params }: Props) {
       <div className="mx-auto flex max-w-7xl justify-end px-6 md:px-8">
         <PropertyFavoriteToggle site={SITE} property={property} variant="premier" />
       </div>
-
-      {property.media.youtubeUrl ? (
-        <div className="border-b border-premier-line/30 bg-brand-primary">
-          <div className="mx-auto aspect-video max-h-[70vh] w-full max-w-7xl">
-            <iframe
-              title="Video principal"
-              src={toYouTubeEmbedUrl(property.media.youtubeUrl)}
-              className="h-full w-full"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-            />
-          </div>
-        </div>
-      ) : null}
 
       <div className="border-b border-premier-line/40 bg-brand-bg">
         <div className="mx-auto max-w-7xl px-0 md:px-8 md:py-4">
@@ -142,52 +130,44 @@ export default async function PropertyDetailPage({ params }: Props) {
             />
           </section>
 
-          <section>
-            <h2 className="font-serif text-lg font-normal tracking-wide text-brand-primary md:text-xl">
-              Video
-            </h2>
-            {property.media.youtubeUrl ? (
+          {hasVideo ? (
+            <section>
+              <h2 className="font-serif text-lg font-normal tracking-wide text-brand-primary md:text-xl">
+                Video
+              </h2>
               <div className="mt-6 aspect-video w-full max-w-3xl overflow-hidden border border-premier-line/40 bg-neutral-100">
                 <iframe
                   title="Video de la propiedad"
-                  src={toYouTubeEmbedUrl(property.media.youtubeUrl)}
+                  src={toYouTubeEmbedUrl(property.media.youtubeUrl ?? '')}
                   className="h-full w-full"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
                 />
               </div>
-            ) : (
-              <div className="mt-6 max-w-3xl border border-dashed border-premier-line/45 bg-brand-surface-alt/30 px-4 py-12 text-center text-sm font-light text-brand-text/50">
-                Esta ficha no incluye video en el feed.
-              </div>
-            )}
-          </section>
+            </section>
+          ) : null}
 
-          <section>
+          <section className="space-y-6">
             <PropertyConsultaForm propertyId={property.id} variant="premier" />
             <PropertyAskWidget propertyId={property.id} variant="premier" siteKey="premier" />
           </section>
 
-          <section>
-            <h2 className="font-serif text-lg font-normal tracking-wide text-brand-primary md:text-xl">
-              Recorrido 360
-            </h2>
-            {property.media.tour360Html ? (
+          {hasTour360 ? (
+            <section>
+              <h2 className="font-serif text-lg font-normal tracking-wide text-brand-primary md:text-xl">
+                Recorrido 360
+              </h2>
               <div
                 className="mt-6 min-h-[320px] overflow-hidden border border-premier-line/40 bg-neutral-100"
                 // eslint-disable-next-line react/no-danger
-                dangerouslySetInnerHTML={{ __html: property.media.tour360Html }}
+                dangerouslySetInnerHTML={{ __html: property.media.tour360Html ?? '' }}
               />
-            ) : (
-              <div className="mt-6 max-w-3xl border border-dashed border-premier-line/45 bg-brand-surface-alt/30 px-4 py-12 text-center text-sm font-light text-brand-text/50">
-                Sin recorrido 360 publicado en el feed.
-              </div>
-            )}
-          </section>
+            </section>
+          ) : null}
 
-          <section>
-            <h2 className="font-serif text-xl text-brand-primary md:text-2xl">Amenities</h2>
-            {property.amenities.length > 0 ? (
+          {property.amenities.length > 0 ? (
+            <section>
+              <h2 className="font-serif text-xl text-brand-primary md:text-2xl">Amenities</h2>
               <ul className="mt-6 columns-1 gap-x-10 gap-y-2 text-sm text-brand-text/70 sm:columns-2">
                 {property.amenities.map((a) => (
                   <li key={a.id} className="break-inside-avoid border-b border-premier-line/40 py-2">
@@ -195,12 +175,8 @@ export default async function PropertyDetailPage({ params }: Props) {
                   </li>
                 ))}
               </ul>
-            ) : (
-              <p className="mt-6 text-sm text-brand-text/50">
-                Sin listado estructurado; revisá la descripción completa.
-              </p>
-            )}
-          </section>
+            </section>
+          ) : null}
 
           <section>
             <h2 className="font-serif text-lg font-normal tracking-wide text-brand-primary md:text-xl">
@@ -251,18 +227,24 @@ export default async function PropertyDetailPage({ params }: Props) {
                 (orientativo).
               </p>
             ) : null}
-            <div className="mt-9 flex flex-col gap-2.5">
+            <div className="mt-9 flex flex-col gap-3">
               <a
                 href={waInfo}
-                className="border border-brand-primary/80 py-3.5 text-center text-[10px] font-medium uppercase tracking-caps text-brand-primary transition duration-300 hover:bg-brand-primary hover:text-brand-surface"
+                className="border border-brand-primary/70 py-3.5 text-center text-[10px] font-medium uppercase tracking-caps text-brand-primary transition duration-300 hover:border-brand-primary hover:bg-brand-primary/5"
               >
                 Solicitar información
               </a>
               <a
                 href={waVisit}
-                className="bg-brand-accent/95 py-3.5 text-center text-[10px] font-medium uppercase tracking-caps text-premier-ink transition duration-300 hover:brightness-[1.03]"
+                className="border border-premier-line/60 py-3.5 text-center text-[10px] font-medium uppercase tracking-caps text-brand-text/85 transition duration-300 hover:border-brand-accent/50 hover:text-brand-primary"
               >
                 Coordinar visita
+              </a>
+              <a
+                href={telHref}
+                className="py-1.5 text-center text-[11px] font-light tracking-wide text-brand-text/55 underline-offset-4 transition hover:text-brand-primary hover:underline"
+              >
+                Llamar
               </a>
             </div>
             <div className="mt-10 space-y-1 border-t border-premier-line/35 pt-8 text-[12px] text-brand-text/58">
@@ -316,7 +298,7 @@ export default async function PropertyDetailPage({ params }: Props) {
         </section>
       ) : null}
 
-      <PropertyCtaBar infoHref={waInfo} visitHref={waVisit} />
+      <PropertyCtaBar infoHref={waInfo} visitHref={waVisit} telHref={telHref} />
     </article>
   );
 }

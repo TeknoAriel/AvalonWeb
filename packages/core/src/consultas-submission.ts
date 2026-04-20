@@ -16,6 +16,16 @@ function parsePropertyId(body: Record<string, unknown>): number | undefined {
   return undefined;
 }
 
+const LEAD_INTENT_IDS = new Set(['visita', 'contacto', 'similar', 'zona', 'tasacion']);
+
+function parseLeadIntentId(body: Record<string, unknown>): string | undefined {
+  const raw = body.leadIntentId;
+  if (typeof raw !== 'string') return undefined;
+  const id = raw.trim().toLowerCase();
+  if (id.length > 24 || !/^[a-z_]+$/.test(id)) return undefined;
+  return LEAD_INTENT_IDS.has(id) ? id : undefined;
+}
+
 export type SubmitWebConsultaResult =
   | { ok: true }
   | { ok: false; status: number; message: string };
@@ -36,6 +46,7 @@ export async function submitWebConsulta(
     typeof body.leadIntent === 'string' && body.leadIntent.trim().length <= 120
       ? body.leadIntent.trim()
       : undefined;
+  const leadIntentId = parseLeadIntentId(body);
   const propertyId = parsePropertyId(body);
 
   if (name.length < 2 || name.length > 120) {
@@ -56,6 +67,7 @@ export async function submitWebConsulta(
     propertyId,
     source,
     leadIntent,
+    leadIntentId,
   };
 
   const result: KitepropConsultaResult = await postConsultaToKiteprop(input);

@@ -1,5 +1,5 @@
 import type { PropertyListFilters } from '@avalon/core';
-import { propertyTypeLabel } from '@avalon/core';
+import { propertyListFiltersHaveActiveContext, propertyTypeLabel } from '@avalon/core';
 import { PORTAL_LISTING_UX_COPY } from '@avalon/config';
 import { formatMoneyAmount } from '@avalon/utils';
 
@@ -11,21 +11,7 @@ function fmtUsd(n: number): string {
 }
 
 export function listingFiltersHaveContext(f: PropertyListFilters): boolean {
-  return Boolean(
-    (f.operation && f.operation !== 'all') ||
-      (f.propertyType && f.propertyType !== 'all') ||
-      (f.city && f.city !== 'all') ||
-      (f.zone && f.zone !== 'all') ||
-      (f.q && f.q.trim()) ||
-      (f.minSalePrice != null && Number.isFinite(f.minSalePrice)) ||
-      (f.maxSalePrice != null && Number.isFinite(f.maxSalePrice)) ||
-      (f.minBedrooms != null && Number.isFinite(f.minBedrooms)) ||
-      (f.minBathrooms != null && Number.isFinite(f.minBathrooms)) ||
-      (f.minTotalM2 != null && Number.isFinite(f.minTotalM2)) ||
-      (f.maxTotalM2 != null && Number.isFinite(f.maxTotalM2)) ||
-      f.hasParking === true ||
-      f.fitCredit === true,
-  );
+  return propertyListFiltersHaveActiveContext(f);
 }
 
 /** Una línea legible para el resumen de búsqueda; `null` si no hay nada que mostrar. */

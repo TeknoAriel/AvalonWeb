@@ -14,6 +14,8 @@ export type KitepropConsultaInput = {
   source?: string;
   /** Etiqueta corta de intención (se antepone al cuerpo del mensaje en el CRM) */
   leadIntent?: string;
+  /** Código estable del motivo (p. ej. visita, similar); opcional, no sustituye el texto humano. */
+  leadIntentId?: string;
 };
 
 export type KitepropConsultaResult =
@@ -37,6 +39,21 @@ function resolveKitepropApiRoot(): string {
   }
 
   return 'https://www.kiteprop.com';
+}
+
+const LEAD_INTENT_IDS = new Set(['visita', 'contacto', 'similar', 'zona', 'tasacion']);
+
+function buildIntentPrefix(input: KitepropConsultaInput): string {
+  const id = input.leadIntentId?.trim();
+  const label = input.leadIntent?.trim();
+  if (id && LEAD_INTENT_IDS.has(id)) {
+    const human = label && label.length <= 120 ? ` — ${label}` : '';
+    return `[Motivo: ${id}${human}]\n\n`;
+  }
+  if (label) {
+    return `[Intención: ${label}]\n\n`;
+  }
+  return '';
 }
 
 function splitName(full: string): { first_name: string; last_name?: string } {
@@ -85,9 +102,7 @@ export async function postConsultaToKiteprop(
   }
 
   const legacyUrl = process.env.KITEPROP_API_CONSULTA_URL?.trim();
-  const intentPrefix = input.leadIntent?.trim()
-    ? `[Intención: ${input.leadIntent.trim()}]\n\n`
-    : '';
+  const intentPrefix = buildIntentPrefix(input);
 
   if (legacyUrl) {
     const body = {

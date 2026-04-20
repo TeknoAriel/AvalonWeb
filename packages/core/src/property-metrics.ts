@@ -7,6 +7,13 @@ export function parseListingSalePriceAmount(p: NormalizedProperty): number | nul
   return Number.isFinite(n) ? n : null;
 }
 
+/** Precio de alquiler anual (u operación rent) si existe en el modelo normalizado. */
+export function parseListingRentAmount(p: NormalizedProperty): number | null {
+  if (!p.operation.forRent || p.operation.rentPrice == null || p.operation.rentPrice === '') return null;
+  const n = Number.parseFloat(String(p.operation.rentPrice).replace(',', '.'));
+  return Number.isFinite(n) ? n : null;
+}
+
 export function parseTotalM2(p: NormalizedProperty): number | null {
   if (p.surfaces.totalM2 == null || p.surfaces.totalM2 === '') return null;
   const n = Number.parseFloat(String(p.surfaces.totalM2).replace(',', '.'));

@@ -76,13 +76,54 @@ export function filterNormalizedProperties(
   });
 }
 
-export function sortByFeaturedThenRecent(list: NormalizedProperty[]): NormalizedProperty[] {
+export interface EditorialListSortOptions {
+  /**
+   * Dentro del mismo `priorityRank`, orden rotativo estable (no cruza niveles A/B/C).
+   * En listados con filtros activos suele desactivarse para priorizar recencia predecible.
+   */
+  rotateWithinPriorityRank?: boolean;
+  /** Semilla estable (p. ej. día); por defecto día UTC actual. */
+  rotationSeed?: number;
+}
+
+/** Día UTC entero — misma semilla durante ~24h para orden estable al volver atrás. */
+export function getEditorialListingDaySeed(): number {
+  return Math.floor(Date.now() / 86_400_000);
+}
+
+function editorialRotationKey(propertyId: number, seed: number): number {
+  const mixed = (propertyId ^ seed) | 0;
+  return Math.imul(mixed ^ (mixed >>> 16), 0x7feb352d) >>> 0;
+}
+
+function comparePriorityRank(a: NormalizedProperty, b: NormalizedProperty): number {
+  const ar = a.editorial.priorityRank;
+  const br = b.editorial.priorityRank;
+  if (ar != null && br != null && ar !== br) return ar - br;
+  if (ar != null && br == null) return -1;
+  if (ar == null && br != null) return 1;
+  return 0;
+}
+
+export function sortByFeaturedThenRecent(
+  list: NormalizedProperty[],
+  options?: EditorialListSortOptions,
+): NormalizedProperty[] {
+  const rotate = options?.rotateWithinPriorityRank !== false;
+  const seed = options?.rotationSeed ?? getEditorialListingDaySeed();
   return [...list].sort((a, b) => {
-    const ar = a.editorial.priorityRank;
-    const br = b.editorial.priorityRank;
-    if (ar != null && br != null && ar !== br) return ar - br;
-    if (ar != null && br == null) return -1;
-    if (ar == null && br != null) return 1;
+    const rankCmp = comparePriorityRank(a, b);
+    if (rankCmp !== 0) return rankCmp;
+
+    const fa = a.editorial.isFeatured ? 1 : 0;
+    const fb = b.editorial.isFeatured ? 1 : 0;
+    if (fa !== fb) return fb - fa;
+
+    if (rotate) {
+      const ka = editorialRotationKey(a.id, seed);
+      const kb = editorialRotationKey(b.id, seed);
+      if (ka !== kb) return ka - kb;
+    }
 
     const ts = new Date(b.lastUpdate).getTime() - new Date(a.lastUpdate).getTime();
     if (ts !== 0) return ts;

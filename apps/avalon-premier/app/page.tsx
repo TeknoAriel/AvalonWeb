@@ -46,12 +46,9 @@ export default async function HomePage() {
         {featured.length === 0 ? (
           <div className="mx-auto mt-10 max-w-lg border border-premier-line/50 bg-brand-surface-alt/50 p-10 text-center md:p-12">
             <p className="font-serif text-xl font-normal text-brand-primary">Colección en preparación</p>
-            <p className="mt-5 text-sm font-light text-brand-text/62">
-              Aun no hay activos con etiqueta Premier en la API KiteProp o en el BFF. Cuando el CRM
-              marque <code className="rounded bg-brand-primary/5 px-1 text-xs">premier</code> en
-              tags, labels o flags equivalentes, aparecerán automáticamente. Podés usar{' '}
-              <code className="rounded bg-brand-primary/5 px-1 text-xs">PREMIER_PROPERTY_IDS</code>{' '}
-              en entorno para pruebas.
+            <p className="mt-5 text-sm font-light leading-relaxed text-brand-text/62">
+              En este momento no hay piezas publicadas en la colección Premier. Podés explorar el
+              catálogo completo en Avalon Web o volver más adelante.
             </p>
             <Link
               href={brand.urls.peerSite}

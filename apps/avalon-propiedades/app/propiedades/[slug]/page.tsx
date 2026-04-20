@@ -17,6 +17,7 @@ import {
   PropertyViewTracker,
   RecentPropertiesStrip,
 } from '@avalon/ui';
+import { extractYouTubeVideoId, toYouTubeEmbedUrl } from '@avalon/utils';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
@@ -88,6 +89,9 @@ export default async function PropertyDetailPage({ params, searchParams }: PageP
   const mapNote = propertyMapLocationNote(property);
   const mapsSearchHref = getPropertyMapsSearchUrl(property);
 
+  const hasVideo = extractYouTubeVideoId(property.media.youtubeUrl ?? '') != null;
+  const hasTour360 = Boolean(property.media.tour360Html?.trim());
+
   return (
     <article className="mx-auto max-w-6xl px-4 py-10 pb-28 md:px-6 md:pb-10">
       <PropertyViewTracker site={SITE} property={property} />
@@ -124,38 +128,30 @@ export default async function PropertyDetailPage({ params, searchParams }: PageP
       <div className="mt-8 grid items-start gap-10 lg:grid-cols-[1.2fr_0.8fr]">
         <div className="space-y-8 lg:col-start-1 lg:row-start-1">
           <MediaGallery media={property.media} brand="avalon" />
-          <section>
-            <h2 className="text-base font-semibold text-brand-primary">Video</h2>
-            {property.media.youtubeUrl ? (
+          {hasVideo ? (
+            <section>
+              <h2 className="text-base font-semibold text-brand-primary">Video</h2>
               <div className="mt-3 aspect-video overflow-hidden rounded-xl bg-black/5">
                 <iframe
                   title="Video de la propiedad"
-                  src={property.media.youtubeUrl.replace('watch?v=', 'embed/')}
+                  src={toYouTubeEmbedUrl(property.media.youtubeUrl ?? '')}
                   className="h-full w-full"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
                 />
               </div>
-            ) : (
-              <div className="mt-3 rounded-xl border border-dashed border-brand-primary/15 bg-brand-surface-alt/50 px-4 py-10 text-center text-sm text-brand-muted">
-                Esta ficha no incluye video en el feed.
-              </div>
-            )}
-          </section>
-          <section>
-            <h2 className="text-base font-semibold text-brand-primary">Recorrido 360</h2>
-            {property.media.tour360Html ? (
+            </section>
+          ) : null}
+          {hasTour360 ? (
+            <section>
+              <h2 className="text-base font-semibold text-brand-primary">Recorrido 360</h2>
               <div
                 className="mt-3 min-h-[280px] overflow-hidden rounded-xl bg-black/5"
                 // eslint-disable-next-line react/no-danger
-                dangerouslySetInnerHTML={{ __html: property.media.tour360Html }}
+                dangerouslySetInnerHTML={{ __html: property.media.tour360Html ?? '' }}
               />
-            ) : (
-              <div className="mt-3 rounded-xl border border-dashed border-brand-primary/15 bg-brand-surface-alt/50 px-4 py-10 text-center text-sm text-brand-muted">
-                Sin recorrido 360 publicado en el feed.
-              </div>
-            )}
-          </section>
+            </section>
+          ) : null}
         </div>
         <aside className="space-y-6 lg:col-start-2 lg:row-start-1 lg:self-start">
           <div>
@@ -169,46 +165,46 @@ export default async function PropertyDetailPage({ params, searchParams }: PageP
               {property.location.address} — {property.location.zone}
             </p>
           </div>
-          <div className="rounded-xl border border-brand-primary/10 bg-white p-4 shadow-sm">
+          <div className="rounded-xl border border-brand-primary/10 bg-white p-5 shadow-sm">
             <PriceSummary property={property} className="text-lg font-bold text-brand-primary" />
-            <div className="mt-4 flex flex-col gap-2 text-sm">
+            <div className="mt-5 flex flex-col gap-3 text-sm">
+              <a
+                className="rounded-md bg-brand-primary py-3.5 text-center text-sm font-semibold text-white transition active:scale-[0.99]"
+                href={waDigits ? waConsult : telHref}
+              >
+                {C.consultThisProperty}
+              </a>
               {waDigits ? (
-                <>
+                <div className="flex flex-col gap-2.5">
                   <a
-                    className="rounded-md bg-brand-primary py-3 text-center text-sm font-semibold text-white transition active:scale-[0.99]"
-                    href={waConsult}
-                  >
-                    {C.consultThisProperty}
-                  </a>
-                  <a
-                    className="rounded-md border border-brand-primary py-3 text-center text-sm font-semibold text-brand-primary transition active:scale-[0.99]"
+                    className="rounded-md border border-brand-primary/35 py-3 text-center text-sm font-semibold text-brand-primary transition active:scale-[0.99]"
                     href={waVisit}
                   >
                     {C.scheduleVisit}
                   </a>
-                </>
+                  <a
+                    className="py-2 text-center text-sm font-medium text-brand-primary-mid underline-offset-2 hover:underline"
+                    href={telHref}
+                  >
+                    {C.call}
+                  </a>
+                </div>
               ) : (
                 <a
-                  className="rounded-md bg-brand-primary py-3 text-center text-sm font-semibold text-white transition active:scale-[0.99]"
+                  className="rounded-md border border-brand-primary/35 py-3 text-center text-sm font-semibold text-brand-primary transition active:scale-[0.99]"
                   href={telHref}
                 >
-                  {C.consultThisProperty}
+                  {C.scheduleVisit}
                 </a>
               )}
               <a
                 href="#consulta-propiedad"
-                className="rounded-md border border-brand-primary/15 bg-brand-surface-alt py-3 text-center text-sm font-semibold text-brand-primary transition active:scale-[0.99]"
+                className="rounded-md border border-brand-primary/12 bg-brand-surface-alt py-3 text-center text-sm font-medium text-brand-primary transition active:scale-[0.99]"
               >
                 {C.moreInfo}
               </a>
-              <a
-                className="rounded-md border border-brand-primary/20 py-2.5 text-center text-xs font-medium text-brand-muted transition active:scale-[0.99]"
-                href={telHref}
-              >
-                {C.call}
-              </a>
             </div>
-            <div id="consulta-propiedad" className="mt-6 scroll-mt-28">
+            <div id="consulta-propiedad" className="mt-7 scroll-mt-28">
               <PropertyConsultaForm propertyId={property.id} variant="avalon" />
             </div>
           </div>
@@ -244,24 +240,21 @@ export default async function PropertyDetailPage({ params, searchParams }: PageP
             dangerouslySetInnerHTML={{ __html: property.descriptionHtml }}
           />
         </section>
-        <section>
-          <h2 className="text-2xl font-bold text-brand-primary">Características</h2>
-          <ul className="mt-5 flex flex-wrap gap-2">
-            {property.amenities.map((a) => (
-              <li
-                key={a.id}
-                className="rounded-lg border border-brand-primary/10 bg-brand-surface-alt px-3 py-2 text-sm md:text-[15px]"
-              >
-                {a.label}
-              </li>
-            ))}
-          </ul>
-          {property.amenities.length === 0 ? (
-            <p className="mt-3 text-sm text-brand-muted">
-              Sin amenities estructuradas en la ficha; revisá la descripción.
-            </p>
-          ) : null}
-        </section>
+        {property.amenities.length > 0 ? (
+          <section>
+            <h2 className="text-2xl font-bold text-brand-primary">Características</h2>
+            <ul className="mt-5 flex flex-wrap gap-2">
+              {property.amenities.map((a) => (
+                <li
+                  key={a.id}
+                  className="rounded-lg border border-brand-primary/10 bg-brand-surface-alt px-3 py-2 text-sm md:text-[15px]"
+                >
+                  {a.label}
+                </li>
+              ))}
+            </ul>
+          </section>
+        ) : null}
         <section>
           <h2 className="text-2xl font-bold text-brand-primary">Ubicación</h2>
           {mapEmbedSrc ? (

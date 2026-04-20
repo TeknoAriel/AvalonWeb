@@ -36,9 +36,9 @@ export function PropertyFilters(props: {
   );
 
   return (
-    <div key={sp.toString()}>
-      <div className="grid gap-2 rounded-lg border border-brand-primary/10 bg-white p-3 md:grid-cols-4 md:gap-3 md:p-3.5">
-        <label className="flex flex-col gap-0.5 text-[11px] font-semibold uppercase tracking-wide text-brand-muted">
+    <div key={sp.toString()} className="space-y-3">
+      <div className="grid gap-3 rounded-lg border border-brand-primary/10 bg-white p-4 md:grid-cols-4 md:gap-4 md:p-5">
+        <label className="flex flex-col gap-1 text-[11px] font-semibold uppercase tracking-wide text-brand-muted">
           Operación
           <select
             className="rounded-md border border-brand-primary/20 bg-white px-2 py-1.5 text-sm font-normal text-brand-text"
@@ -53,10 +53,10 @@ export function PropertyFilters(props: {
             ))}
           </select>
         </label>
-        <label className="flex flex-col gap-1 text-xs font-semibold uppercase tracking-wide text-brand-muted">
+        <label className="flex flex-col gap-1 text-[11px] font-semibold uppercase tracking-wide text-brand-muted">
           Tipo
           <select
-            className="rounded-md border border-brand-primary/20 bg-white px-2 py-2 text-sm font-normal text-brand-text"
+            className="rounded-md border border-brand-primary/20 bg-white px-2 py-2.5 text-sm font-normal text-brand-text"
             defaultValue={sp.get('type') ?? 'all'}
             disabled={pending}
             onChange={(e) => setParam('type', e.target.value)}
@@ -69,10 +69,10 @@ export function PropertyFilters(props: {
             ))}
           </select>
         </label>
-        <label className="flex flex-col gap-0.5 text-[11px] font-semibold uppercase tracking-wide text-brand-muted">
+        <label className="flex flex-col gap-1 text-[11px] font-semibold uppercase tracking-wide text-brand-muted">
           Ciudad
           <select
-            className="rounded-md border border-brand-primary/20 bg-white px-2 py-1.5 text-sm font-normal text-brand-text"
+            className="rounded-md border border-brand-primary/20 bg-white px-2 py-2.5 text-sm font-normal text-brand-text"
             defaultValue={sp.get('city') ?? 'all'}
             disabled={pending}
             onChange={(e) => setParam('city', e.target.value)}
@@ -85,11 +85,11 @@ export function PropertyFilters(props: {
             ))}
           </select>
         </label>
-        <label className="flex flex-col gap-0.5 text-[11px] font-semibold uppercase tracking-wide text-brand-muted">
+        <label className="flex flex-col gap-1 text-[11px] font-semibold uppercase tracking-wide text-brand-muted">
           Palabra clave
           <input
             type="search"
-            className="rounded-md border border-brand-primary/20 px-2 py-1.5 text-sm"
+            className="rounded-md border border-brand-primary/20 px-2 py-2.5 text-sm"
             placeholder="Buscar…"
             defaultValue={sp.get('q') ?? ''}
             disabled={pending}
@@ -103,12 +103,12 @@ export function PropertyFilters(props: {
       </div>
 
       {advanced ? (
-        <details className="mt-2 rounded-lg border border-brand-primary/10 bg-white p-2.5 text-sm md:p-3">
+        <details className="rounded-lg border border-brand-primary/10 bg-white p-3.5 text-sm md:p-4">
           <summary className="cursor-pointer text-[11px] font-semibold uppercase tracking-wide text-brand-primary">
             Más filtros (precio, superficie, dormitorios…)
           </summary>
-          <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-            <label className="flex flex-col gap-1 text-xs text-brand-muted">
+          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <label className="flex flex-col gap-1.5 text-xs text-brand-muted">
               Zona / barrio (contiene)
               <input
                 type="text"

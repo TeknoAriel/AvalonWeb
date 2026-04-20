@@ -64,6 +64,7 @@ export function PropertyConsultaForm(props: { propertyId?: number; variant: Vari
           phone,
           message: effectiveMessage,
           ...(isProperty ? { propertyId: props.propertyId } : {}),
+          ...(leadIntent ? { leadIntentId: leadIntent } : {}),
           ...(intentLabel ? { leadIntent: intentLabel } : {}),
         }),
       });

@@ -66,3 +66,22 @@ function int(s: string | null): number | undefined {
   const n = Number.parseInt(s, 10);
   return Number.isFinite(n) ? n : undefined;
 }
+
+/** `true` si el usuario aplicó algún criterio de búsqueda (listado acotado). */
+export function propertyListFiltersHaveActiveContext(f: PropertyListFilters): boolean {
+  return Boolean(
+    (f.operation && f.operation !== 'all') ||
+      (f.propertyType && f.propertyType !== 'all') ||
+      (f.city && f.city !== 'all') ||
+      (f.zone && f.zone !== 'all') ||
+      (f.q && f.q.trim()) ||
+      (f.minSalePrice != null && Number.isFinite(f.minSalePrice)) ||
+      (f.maxSalePrice != null && Number.isFinite(f.maxSalePrice)) ||
+      (f.minBedrooms != null && Number.isFinite(f.minBedrooms)) ||
+      (f.minBathrooms != null && Number.isFinite(f.minBathrooms)) ||
+      (f.minTotalM2 != null && Number.isFinite(f.minTotalM2)) ||
+      (f.maxTotalM2 != null && Number.isFinite(f.maxTotalM2)) ||
+      f.hasParking === true ||
+      f.fitCredit === true,
+  );
+}

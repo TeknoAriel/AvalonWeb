@@ -7,6 +7,9 @@ import Link from 'next/link';
 import { loadSortedSiteProperties } from '@/lib/site-property-list';
 import { SITE } from '@/lib/site';
 
+/** Orden editorial (rotación diaria) puede actualizarse sin redeploy completo. */
+export const revalidate = 3600;
+
 export default async function HomePage() {
   const brand = getSiteBrandConfig(SITE);
   const all = await loadSortedSiteProperties();

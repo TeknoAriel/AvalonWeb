@@ -5,8 +5,14 @@
   "exports": {
     ".": "./src/index.ts"
   },
+  "scripts": {
+    "test": "vitest run"
+  },
   "dependencies": {
     "@avalon/types": "workspace:*",
     "@avalon/utils": "workspace:*"
+  },
+  "devDependencies": {
+    "vitest": "^2.1.9"
   }
 }

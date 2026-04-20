@@ -17,7 +17,8 @@
     "dev:premier": "turbo dev --filter=avalon-premier",
     "lint": "turbo lint",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md,css}\"",
-    "check:premier-snapshot": "tsx scripts/check-premier-snapshot.ts"
+    "check:premier-snapshot": "tsx scripts/check-premier-snapshot.ts",
+    "test:core": "pnpm --filter @avalon/core test"
   },
   "devDependencies": {
     "next": "^14.2.21",

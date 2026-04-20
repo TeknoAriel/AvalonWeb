@@ -36,9 +36,9 @@ export function PropertyFilters(props: {
   );
 
   return (
-    <div key={sp.toString()}>
-    <div className="grid gap-2 border border-brand-accent/15 bg-brand-surface-alt/30 p-3 md:grid-cols-4 md:gap-3 md:p-4">
-      <label className="flex flex-col gap-1 text-[9px] font-medium uppercase tracking-caps text-brand-text/60">
+    <div key={sp.toString()} className="space-y-3">
+    <div className="grid gap-3 border border-brand-accent/15 bg-brand-surface-alt/30 p-4 md:grid-cols-4 md:gap-4 md:p-5">
+      <label className="flex flex-col gap-1.5 text-[9px] font-medium uppercase tracking-caps text-brand-text/60">
         Operación
         <select
           className="border-b border-brand-primary/20 bg-transparent py-1.5 text-sm font-normal text-brand-text"
@@ -53,7 +53,7 @@ export function PropertyFilters(props: {
           ))}
         </select>
       </label>
-      <label className="flex flex-col gap-1 text-[9px] font-medium uppercase tracking-caps text-brand-text/60">
+      <label className="flex flex-col gap-1.5 text-[9px] font-medium uppercase tracking-caps text-brand-text/60">
         Tipo
         <select
           className="border-b border-brand-primary/20 bg-transparent py-1.5 text-sm font-normal text-brand-text"
@@ -69,7 +69,7 @@ export function PropertyFilters(props: {
           ))}
         </select>
       </label>
-      <label className="flex flex-col gap-1 text-[9px] font-medium uppercase tracking-caps text-brand-text/60">
+      <label className="flex flex-col gap-1.5 text-[9px] font-medium uppercase tracking-caps text-brand-text/60">
         Ciudad
         <select
           className="border-b border-brand-primary/20 bg-transparent py-1.5 text-sm font-normal text-brand-text"
@@ -85,7 +85,7 @@ export function PropertyFilters(props: {
           ))}
         </select>
       </label>
-      <label className="flex flex-col gap-1 text-[9px] font-medium uppercase tracking-caps text-brand-text/60">
+      <label className="flex flex-col gap-1.5 text-[9px] font-medium uppercase tracking-caps text-brand-text/60">
         Palabra clave
         <input
           type="search"
@@ -103,12 +103,12 @@ export function PropertyFilters(props: {
     </div>
 
     {advanced ? (
-      <details className="mt-2 border border-brand-accent/15 bg-brand-bg/40 p-2.5 text-sm md:p-3">
+      <details className="border border-brand-accent/15 bg-brand-bg/40 p-3.5 text-sm md:p-4">
         <summary className="cursor-pointer text-[9px] font-medium uppercase tracking-caps text-brand-text/60">
           Más filtros
         </summary>
-        <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-          <label className="flex flex-col gap-1 text-[10px] uppercase tracking-caps text-brand-text/55">
+        <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <label className="flex flex-col gap-1.5 text-[10px] uppercase tracking-caps text-brand-text/55">
             Zona
             <input
               type="text"

@@ -3,7 +3,7 @@ import { ALL_RAW_PROPERTIES } from './load';
 import { isPremierSiteListable, isPubliclyListedForSite } from './listing-rules';
 import { normalizeProperty } from './normalize';
 import { isPremierInventory } from './premier';
-import { pickSmartRelated } from './related-scoring';
+import { pickSmartRelated, type RelatedRankingHints } from './related-scoring';
 
 /** Listado normalizado a partir de un lote raw (feed empaquetado, JSON remoto o snapshot). */
 export function getSitePropertiesFromRaw(site: SiteType, rawList: RawProperty[]): NormalizedProperty[] {
@@ -46,17 +46,19 @@ export function getRelatedPropertiesFromRaw(
   current: NormalizedProperty,
   rawList: RawProperty[],
   limit = 4,
+  hints?: RelatedRankingHints,
 ): NormalizedProperty[] {
   const pool = getSitePropertiesFromRaw(site, rawList).filter((p) => p.id !== current.id);
-  return pickSmartRelated(current, pool, limit);
+  return pickSmartRelated(current, pool, limit, hints ? { hints } : undefined);
 }
 
 export function getRelatedProperties(
   site: SiteType,
   current: NormalizedProperty,
   limit = 4,
+  hints?: RelatedRankingHints,
 ): NormalizedProperty[] {
-  return getRelatedPropertiesFromRaw(site, current, ALL_RAW_PROPERTIES, limit);
+  return getRelatedPropertiesFromRaw(site, current, ALL_RAW_PROPERTIES, limit, hints);
 }
 
 /**

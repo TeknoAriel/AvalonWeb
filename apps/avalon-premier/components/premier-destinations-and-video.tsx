@@ -25,16 +25,6 @@ const DESTINATIONS = [
   },
 ] as const;
 
-function parseVideoIds(): string[] {
-  const raw = process.env.NEXT_PUBLIC_PREMIER_COVER_VIDEOS;
-  if (!raw) return [];
-  return raw
-    .split(',')
-    .map((s) => s.trim())
-    .filter(Boolean)
-    .slice(0, 3);
-}
-
 export function PremierDestinationsSection() {
   return (
     <section className="border-y border-stone-700/30 bg-gradient-to-b from-[#161e30] to-brand-primary py-24 text-stone-100 md:py-28">
@@ -83,6 +73,8 @@ export function PremierDestinationsSection() {
 export function PremierCoverVideosSection() {
   const videos = parsePremierCoverVideos(process.env.NEXT_PUBLIC_PREMIER_COVER_VIDEOS);
 
+  if (videos.length === 0) return null;
+
   return (
     <section className="mx-auto max-w-6xl border-t border-premier-line/35 px-4 py-24 md:px-6 md:py-28">
       <div className="mx-auto max-w-2xl text-center">
@@ -91,45 +83,31 @@ export function PremierCoverVideosSection() {
           Videos de portada
         </h2>
         <p className="mt-5 text-sm font-light leading-relaxed text-brand-text/65">
-          Espacio reservado para recorridos aéreos, presentaciones de propiedades y contenido editorial.
-          Configurá entradas en{' '}
-          <code className="rounded bg-brand-primary/5 px-1 text-xs">NEXT_PUBLIC_PREMIER_COVER_VIDEOS</code>
-          : id, <code className="rounded bg-brand-primary/5 px-1 text-xs">id@5-30</code> (segundos inicio-fin) o
-          URL con <code className="rounded bg-brand-primary/5 px-1 text-xs">start</code> y{' '}
-          <code className="rounded bg-brand-primary/5 px-1 text-xs">end</code>. Varias separadas por coma.
+          Selección curada de piezas en video para acompañar la experiencia Premier.
         </p>
       </div>
       <div className="mt-14 grid gap-10 md:grid-cols-2">
-        {videos.length > 0
-          ? videos.map((v) => {
-              const src = buildYouTubeNoCookieEmbedUrl(v.videoId, {
-                start: v.start,
-                end: v.end,
-              });
-              const key = `${v.videoId}-${v.start ?? ''}-${v.end ?? ''}`;
-              return (
-                <div
-                  key={key}
-                  className="aspect-video overflow-hidden border border-premier-line/55 bg-brand-surface shadow-sm shadow-stone-900/[0.04]"
-                >
-                  <iframe
-                    title={`Video ${v.videoId}`}
-                    src={src}
-                    className="h-full w-full"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                  />
-                </div>
-              );
-            })
-          : [0, 1].map((i) => (
-              <div
-                key={i}
-                className="flex aspect-video items-center justify-center border border-dashed border-premier-line/50 bg-brand-surface-alt/40 px-6 text-center text-sm font-light text-brand-text/55"
-              >
-                Próximamente: incorporá tus videos de portada vía variable de entorno.
-              </div>
-            ))}
+        {videos.map((v) => {
+          const src = buildYouTubeNoCookieEmbedUrl(v.videoId, {
+            start: v.start,
+            end: v.end,
+          });
+          const key = `${v.videoId}-${v.start ?? ''}-${v.end ?? ''}`;
+          return (
+            <div
+              key={key}
+              className="aspect-video overflow-hidden border border-premier-line/55 bg-brand-surface shadow-sm shadow-stone-900/[0.04]"
+            >
+              <iframe
+                title={`Video ${v.videoId}`}
+                src={src}
+                className="h-full w-full"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+            </div>
+          );
+        })}
       </div>
     </section>
   );

@@ -29,6 +29,8 @@ export {
   filterNormalizedProperties,
   pickHomeEditorialSelection,
   sortByFeaturedThenRecent,
+  getEditorialListingDaySeed,
+  type EditorialListSortOptions,
   type PropertyListFilters,
   type OperationFilter,
 } from './filters';
@@ -69,12 +71,17 @@ export {
 } from './listing-rules';
 export {
   parseListingSalePriceAmount,
+  parseListingRentAmount,
   parseTotalM2,
   parseCoveredM2,
   hasAmenity,
   pricePerM2,
 } from './property-metrics';
-export { pickSmartRelated } from './related-scoring';
+export {
+  pickSmartRelated,
+  type PickSmartRelatedOptions,
+  type RelatedRankingHints,
+} from './related-scoring';
 export { passesPremierListingQualityGate } from './premier-curation';
 export { buildCompareInsights, type CompareInsight } from './compare-insights';
 export {
@@ -88,7 +95,11 @@ export { resolveNaturalSearchInterpretation, type ResolvedNaturalSearch } from '
 export { invokeKitepropMcpTool, type McpToolName, type McpInvokeResult } from './mcp-kiteprop-bridge';
 export { buildLocalPropertyQaAnswer } from './property-qa-local';
 export { buildMarketSummaryForCity, type MarketSummaryLocal } from './market-summary-local';
-export { propertyListFiltersToQuery, queryToPropertyListFilters } from './list-filters-url';
+export {
+  propertyListFiltersToQuery,
+  queryToPropertyListFilters,
+  propertyListFiltersHaveActiveContext,
+} from './list-filters-url';
 export {
   getPropertyMapEmbedSrc,
   getPropertyMapsSearchUrl,

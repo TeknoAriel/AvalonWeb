@@ -1,5 +1,6 @@
 import {
   filterNormalizedProperties,
+  propertyListFiltersHaveActiveContext,
   propertyListFiltersToQuery,
   propertyTypeLabel,
   queryToPropertyListFilters,
@@ -19,6 +20,8 @@ export const metadata: Metadata = {
   title: 'Propiedades',
   description: 'Listado de propiedades en venta y alquiler.',
 };
+
+export const revalidate = 3600;
 
 function first(v: string | string[] | undefined): string | undefined {
   if (Array.isArray(v)) return v[0];
@@ -52,7 +55,9 @@ export default async function PropertiesPage({
   const filters = queryToPropertyListFilters(sp);
 
   const base = await loadSortedSiteProperties();
-  const filtered = sortByFeaturedThenRecent(filterNormalizedProperties(base, filters));
+  const filtered = sortByFeaturedThenRecent(filterNormalizedProperties(base, filters), {
+    rotateWithinPriorityRank: !propertyListFiltersHaveActiveContext(filters),
+  });
   const returnToToken =
     listingFiltersHaveContext(filters) && propertyListFiltersToQuery(filters).length > 0
       ? encodeListingReturnTo(propertyListFiltersToQuery(filters))
