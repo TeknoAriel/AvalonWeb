@@ -4,7 +4,29 @@
 
 **Ingest KiteProp (URL + key, cabecera `X-API-Key`) y alinear Premier con `premierListableCount`:** ver [`docs/KITEPROP.md`](./KITEPROP.md) (secciones *variables que no usa el código*, *Ingest local*, *Checklist Premier*).
 
-**Modelo:** un solo ingest a KiteProp en **Avalon Web**. **Avalon Premier** solo pide el catálogo por HTTP a Avalon Web y filtra Premier en código. **Un solo secreto servidor** compartido: `CRON_SECRET` (protege el cron de Vercel **y** el Bearer de `/api/internal/*`). Si ya tenías `INTERNAL_CATALOG_SECRET`, seguí usándolo; si no, **no hace falta crear otro**: usá solo `CRON_SECRET` en ambos proyectos.
+**Modelo:** el ingest canónico vive en **Avalon Web**. **Avalon Premier** prioriza la **misma API KiteProp** si definís `KITEPROP_API_KEY` ahí; el **BFF** (`AVALON_CATALOG_INTERNAL_URL`) queda como respaldo. **Un solo secreto servidor** compartido: `CRON_SECRET` (cron Vercel **y** Bearer de `/api/internal/*`). Si ya tenías `INTERNAL_CATALOG_SECRET`, seguí usándolo; si no, **no hace falta crear otro**: usá solo `CRON_SECRET` en ambos proyectos.
+
+---
+
+## Secrets locales (entorno reservado — **no subir al repo**)
+
+Los **valores** de claves y tokens **no** se documentan aquí ni en ningún archivo versionado.
+
+| Dónde | Uso |
+|--------|-----|
+| **Terminal (sesión actual)** | `export KITEPROP_API_KEY='kp_…'` (y el resto que necesites). Aplica solo a esa ventana de terminal hasta cerrarla. |
+| **`.env.local` en la raíz del monorepo** | Ignorado por git (`.gitignore`). Podés guardar ahí las mismas variables en formato `NOMBRE=valor` **una por línea**. Los scripts de la raíz (`pnpm kp:ingest-stats`, `pnpm catalog:regenerate-snapshot`, `pnpm prod:verify-alignment`, etc.) **no** cargan `.env.local` solos: antes del comando, en bash/zsh: `set -a && source .env.local && set +a` (o exportá a mano). |
+| **`apps/avalon-propiedades/.env.local`** | Next.js lo carga al hacer `pnpm dev:avalon` / build de esa app (catálogo, cron local, BFF). |
+| **`apps/avalon-premier/.env.local`** | Next.js lo carga al hacer `pnpm dev:premier` / build de Premier. |
+
+**Nombres que suelen ir en ese entorno reservado** (solo referencia; los valores solo en terminal o `.env.local`):
+
+- `KITEPROP_API_KEY` (y opcional `KITEPROP_API_URL` / `KITEPROP_API_BASE_URL`)
+- `CRON_SECRET`
+- `AVALON_CATALOG_INTERNAL_URL` (solo Premier, si usás BFF)
+- Opcionales según flujo: `PRODUCTION_URL_AVALON_WEB`, `PRODUCTION_URL_AVALON_PREMIER` (para scripts de verificación), `BLOB_READ_WRITE_TOKEN` (solo Web), etc. — detalle en [`docs/KITEPROP.md`](./KITEPROP.md).
+
+**Regla:** nunca `git add` archivos con secretos; si algo se filtró al historial, **rotá la clave** en KiteProp/Vercel.
 
 ---
 
@@ -57,12 +79,13 @@ No definas `AVALON_CATALOG_INTERNAL_URL` aquí.
 | Variable | Obligatorio |
 |----------|-------------|
 | `CRON_SECRET` | Sí (**mismo valor** que en Avalon Web) |
-| `AVALON_CATALOG_INTERNAL_URL` | Sí → `https://<dominio-avalon-web>/api/internal/catalog` |
+| `KITEPROP_API_KEY` | **Muy recomendado** (misma clave que Web + URL API) — catálogo alineado con `pnpm kp:ingest-stats` antes que depender solo del BFF |
+| `AVALON_CATALOG_INTERNAL_URL` | Recomendado → `https://<dominio-avalon-web>/api/internal/catalog` (respaldo si la API falla) |
 | `NEXT_PUBLIC_SITE_URL` | Sí (URL canónica Premier) |
 | `NEXT_PUBLIC_AVALON_URL` | Sí (URL base de Avalon Web, sin `/api/...`) |
 | `NEXT_PUBLIC_WHATSAPP` | Recomendado |
 
-`KITEPROP_API_KEY` en Premier: **no hace falta** si el BFF y el proxy de consultas responden.
+Sin `KITEPROP_API_KEY` en Premier, el catálogo depende del BFF y del snapshot; con la key, el flujo es el mismo que en ingest local.
 
 ---
 
@@ -99,7 +122,7 @@ Debe imprimir `HTTP 200`.
 |------|----------------|
 | **Lint** | Código consistente. |
 | **Build** (`pnpm build`) | **Avalon Web y Avalon Premier** compilan (monorepo Turbo = ambas apps). |
-| **`pnpm check:premier-snapshot`** | El snapshot empaquetado sigue teniendo al menos un listable Premier (red de seguridad del repo). En el log verás `hasPremierTag` vs `isPremierSiteListable` sobre el raw; si hay tags pero 0 listables, regenerá el JSON o revisá status en el feed. Si el comando falla con `EPERM` / `listen`, ejecutalo en terminal local o con permisos completos (algunos sandboxes bloquean el IPC de `tsx`). |
+| **`pnpm check:premier-snapshot`** | Si `properties.json` está vacío (`[]`), pasa con aviso (catálogo solo API/BFF). Si hay filas en el JSON pero 0 Premier listables con tags Premier, falla (inconsistencia del archivo opcional). |
 | **`pnpm ci:verify-ingest`** | Si definís el secret **`KITEPROP_API_KEY`** (o `KITEPROP_API_TOKEN`) en el repo → descarga el feed real y falla si `totalRows` &lt; `MIN_INGEST_TOTAL_ROWS` (variable de repo **Vars** `MIN_INGEST_TOTAL_ROWS`, default 1). Opcional: **`MIN_PREMIER_TAG_COUNT`** (ej. `28`) para exigir mínimo de filas con `hasPremierTag`. |
 | **Artefacto** `kiteprop-ingest-report` | JSON del último reporte (solo si se generó `ingest-report.json`). |
 

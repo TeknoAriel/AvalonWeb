@@ -26,7 +26,7 @@ packages/
 
 **Checklist corto de variables y BFF (un solo flujo):** [`docs/OPERACION.md`](docs/OPERACION.md).
 
-En **producción**, **Avalon Web** lee la **API KiteProp** (`GET /properties` + `KITEPROP_API_KEY`). **Avalon Premier** puede consumir el mismo catálogo vía **BFF** interno (sin duplicar la key). El snapshot `packages/core/data/properties.json` (~5 MB) es **fallback** y merge de metadata. **Regeneración desde la API** (recomendado, mismo pipeline que producción):
+En **producción**, el catálogo en runtime es **solo API KiteProp** o **BFF** (no se usa `properties.json` como fallback). **Avalon Premier** prioriza la misma API con `KITEPROP_API_KEY` o el BFF de Web. El JSON empaquetado es opcional (p. ej. `[]` o backup local). **Regeneración opcional desde la API:**
 
 ```bash
 export KITEPROP_API_KEY='kp_…'   # o definilo en .env.local

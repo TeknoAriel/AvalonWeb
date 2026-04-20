@@ -14,9 +14,9 @@ Este documento define **reglas no negociables** para el listado Premier. Cualqui
 
 Implementación: `packages/core/src/kiteprop-catalog-load.ts` — `loadKitepropCatalogMerged`.
 
-1. Con API key (`KITEPROP_API_KEY` / `KITEPROP_API_TOKEN`) → `GET /api/v1/properties` (paginado). Si devuelve filas → **ese es el catálogo** (CRM; tags Premier).
-2. Siempre después: `mergePremierMetadataFromRepoSnapshot` con `packages/core/data/properties.json` (red de seguridad por `id`).
-3. Sin key, o API falla o vacía → **solo** snapshot del repo.
+1. Con API key (`KITEPROP_API_KEY` / `KITEPROP_API_TOKEN`) → `GET /api/v1/properties` (paginado). Si devuelve filas → **ese es el catálogo** (CRM; tags Premier). **No** se mezcla con `properties.json` en runtime.
+2. Sin filas útiles y hay BFF configurado (p. ej. Premier) → `GET …/api/internal/catalog` en Avalon Web.
+3. Si nada devuelve datos → array **vacío** (no hay fallback al JSON empaquetado: evita mostrar inventario viejo).
 
 **No** se usa URL de JSON de difusión (`KITEPROP_PROPERTIES_JSON_URL`) en runtime: se eliminó para evitar divergencias con la API y pérdida de tags Premier.
 
@@ -27,7 +27,7 @@ Premier y Propiedades comparten la misma carga; Premier **solo** filtra con `has
 - En el **export JSON**, suele venir `tags: ["premier"]` de forma directa.
 - La **API v1** a veces devuelve **`tags: []`** o **`tags: ""`** mientras el dato útil está en **`property_tags`**, `kp_tags`, `tag_list`, etc.
 - Un **ingest / difusión nueva** puede dejar de mandar **cualquier** etiqueta Premier (ni en `tags` ni en alias). En ese caso **`hasPremierTag` sobre el remoto solo** da falso.
-- Mitigación en código: catálogo **solo API** + **`mergePremierMetadataFromRepoSnapshot`** con el repo por `id` si hace falta reponer metadata.
+- Mitigación en código: mapper API con **`pickFirstNonEmpty`** sobre tags/alias; opcional regenerar `properties.json` solo para herramientas locales, **no** como fuente del listado en producción.
 - Mitigación operativa: **`PREMIER_PROPERTY_IDS`** / **`NEXT_PUBLIC_PREMIER_PROPERTY_IDS`** (coma) para forzar IDs Premier cuando el export no trae nada y el snapshot aún no incluye ese `id`.
 - Usar **`p.tags ?? p.property_tags`** es **incorrecto**: `??` **no** sustituye arrays vacíos ni strings vacíos, así que se pierde el tag y **`hasPremierTag` da falso** → colección Premier vacía aunque el CRM esté bien.
 

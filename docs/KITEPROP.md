@@ -1,6 +1,6 @@
 # KiteProp — referencia única (Avalon)
 
-**Operación día a día (pocas variables, un solo flujo):** [`docs/OPERACION.md`](./OPERACION.md).
+**Operación día a día (pocas variables, un solo flujo):** [`docs/OPERACION.md`](./OPERACION.md) — incluye **Secrets locales** (terminal + `.env.local`, sin commitear valores).
 
 Este archivo es la referencia **técnica** (API, cron, troubleshooting). Evita duplicar reglas en otros archivos: si algo cambia, actualizá acá y enlazá desde README o brief.
 
@@ -29,9 +29,9 @@ Este archivo es la referencia **técnica** (API, cron, troubleshooting). Evita d
 
 El código aún acepta `KITEPROP_API_TOKEN` como respaldo en runtime, pero **en Vercel no hace falta definirla**: una sola regla (`KITEPROP_API_KEY`) evita confusiones.
 
-### Catálogo: modo recomendado (BFF en Avalon Web)
+### Catálogo: Avalon Web (BFF) + lectura directa en Premier
 
-**Un solo ingest contra KiteProp** lo hace **avalonweb** (`apps/avalon-propiedades`). Expone:
+**Ingest canónico** contra KiteProp lo hace **avalonweb** (`apps/avalon-propiedades`). Expone:
 
 | Ruta | Uso |
 |------|-----|
@@ -44,9 +44,13 @@ El código aún acepta `KITEPROP_API_TOKEN` como respaldo en runtime, pero **en 
 
 **Probar el BFF:** `export CRON_SECRET='…'` (y opcional `AVALON_CATALOG_INTERNAL_URL`) → `pnpm bff:verify-catalog` → `HTTP 200`.
 
-### Modo clásico (sin BFF)
+### Orden en `loadKitepropCatalogMerged` (Premier y Web)
 
-Si **no** definís `AVALON_CATALOG_INTERNAL_URL` en Premier, `loadKitepropCatalogMerged` vuelve a leer KiteProp desde esa app (necesitás `KITEPROP_API_KEY` ahí). Útil en local sin levantar las dos apps.
+1. **API KiteProp** si hay `KITEPROP_API_KEY` (y URL): misma fuente que `pnpm kp:ingest-stats`.  
+2. **BFF** `AVALON_CATALOG_INTERNAL_URL` + `CRON_SECRET` si la API no respondió o no hay key en ese proyecto.  
+3. Si no hay datos → **[]** (no se usa `properties.json` como fallback en runtime).
+
+Sin `AVALON_CATALOG_INTERNAL_URL` en Premier pero **con** key, todo sigue siendo lectura directa a KiteProp (útil en local sin levantar las dos apps).
 
 ### Vercel — variables que el código **no** usa (borralas en avalonweb y avalon-premier)
 
@@ -54,7 +58,7 @@ El runtime del catálogo **no** lee usuario/contraseña para `GET …/properties
 
 | Variable a borrar | Motivo |
 |-------------------|--------|
-| **`KITEPROP_PROPERTIES_JSON_URL`** | El catálogo **no** consume JSON de difusión por URL; solo API + snapshot. |
+| **`KITEPROP_PROPERTIES_JSON_URL`** | El catálogo **no** consume JSON de difusión por URL; solo API (y BFF en Premier si aplica). |
 | **`KITEPROP_API_USER`** | No existe en el código de este monorepo (no afecta al ingest). |
 | **`KITEPROP_API_PASSWORD`** | No existe en el código de este monorepo. |
 
@@ -98,8 +102,8 @@ Ejecuta `pnpm kp:ingest-stats`, luego **GET** al BFF con Bearer y finalmente el 
 
 1. **`pnpm kp:ingest-stats`** en local con la misma key que **Production** en **avalonweb** → anotá `premierListableCount` (ej. 24) y `totalRows` (o usá **`pnpm prod:verify-alignment`** arriba).
 2. **avalonweb (Vercel → Production):** `KITEPROP_API_KEY` + `KITEPROP_API_URL` o `KITEPROP_API_BASE_URL`; **Redeploy** tras cambiar env.
-3. **avalon-premier (Production):** `AVALON_CATALOG_INTERNAL_URL` = `https://<tu-dominio-avalonweb>/api/internal/catalog` (sin barra final extra rara) y **`CRON_SECRET` idéntico** al de avalonweb (Bearer del BFF). **Redeploy** Premier.
-4. **Probar BFF** (desde tu máquina): `curl -sS -H "Authorization: Bearer <CRON_SECRET>" "https://<avalonweb>/api/internal/catalog"` → debe ser **200** y un JSON array; su **longitud** debe ser del orden de `totalRows` del ingest (p. ej. ~229). Premier luego **filtra en código** a las **N** listables Premier (las 24): si el array del BFF es muy corto o vacío, el sitio no podrá mostrar 24 aunque el CRM las tenga.
+3. **avalon-premier (Production):** definí **`KITEPROP_API_KEY`** (la misma que avalonweb) para que el listado use el feed vivo **antes** que el BFF y coincida con `premierListableCount`. Además: `AVALON_CATALOG_INTERNAL_URL` = `https://<tu-dominio-avalonweb>/api/internal/catalog` y **`CRON_SECRET` idéntico** al de avalonweb (respaldo si la API falla). **Redeploy** Premier.
+4. **Probar BFF** (desde tu máquina): `curl -sSI -H "Authorization: Bearer <CRON_SECRET>" "https://<avalonweb>/api/internal/catalog"` → **200**, cabecera `X-Avalon-Catalog-Rows` ~`totalRows`, cuerpo JSON array. Premier **filtra** a las **N** listables (`isPremierSiteListable`). Si solo usás BFF sin key y el BFF devuelve poco, verás pocas fichas aunque el CRM tenga más.
 5. Si el BFF responde bien pero el sitio muestra pocas: revisá que no estés viendo **Preview** con env viejo, o un **dominio** distinto al del deploy *Current*.
 
 ### Proyecto **avalon-premier** — URLs públicas sin duplicar
@@ -110,7 +114,7 @@ Si **`NEXT_PUBLIC_SITE_URL`** ya es la URL canónica de Premier (p. ej. `https:/
 
 Si **`NEXT_PUBLIC_PEER_SITE_URL`** y **`NEXT_PUBLIC_AVALON_URL`** apuntan al **mismo** sitio (avalonweb), **borrá `NEXT_PUBLIC_PEER_SITE_URL`** y dejá solo **`NEXT_PUBLIC_AVALON_URL`** (queda una sola regla para “el sitio hermano”).
 
-**Lista mínima recomendada (avalon-premier, Production, con BFF):** `INTERNAL_CATALOG_SECRET`, `AVALON_CATALOG_INTERNAL_URL`, `NEXT_PUBLIC_SITE_URL`, `NEXT_PUBLIC_AVALON_URL`, `NEXT_PUBLIC_WHATSAPP`, **`CRON_SECRET`** si usás cron. Opcional: `KITEPROP_API_KEY` como respaldo si el BFF no responde (consultas y catálogo).
+**Lista mínima recomendada (avalon-premier, Production):** **`KITEPROP_API_KEY`** + URL API (misma que Web), **`CRON_SECRET`**, `AVALON_CATALOG_INTERNAL_URL` (respaldo), `NEXT_PUBLIC_SITE_URL`, `NEXT_PUBLIC_AVALON_URL`, `NEXT_PUBLIC_WHATSAPP`.
 
 ## Cron del catálogo vs “push” al cambiar una propiedad
 
@@ -127,11 +131,11 @@ Si **`NEXT_PUBLIC_PEER_SITE_URL`** y **`NEXT_PUBLIC_AVALON_URL`** apuntan al **m
 |--------|-----------|
 | **`CRON_SECRET`** | Un secreto largo solo servidor (ej. salida de `openssl rand -hex 32`). Lo definís en **Vercel → Project → Settings → Environment Variables** en cada proyecto que use el cron (**`avalonweb`** y **`avalon-premier`**). Podés usar el **mismo** valor en ambos para simplificar. |
 
-**Comportamiento:** Vercel Cron hace **`GET /api/cron/refresh-catalog`** a tu dominio. Si `CRON_SECRET` está definido en el proyecto, Vercel envía **`Authorization: Bearer <CRON_SECRET>`**; la ruta solo revalida si esa cabecera coincide con `process.env.CRON_SECRET`. Sin variable → respuesta **503** y no hay revalidación.
+**Comportamiento:** Vercel Cron hace **`GET /api/cron/refresh-catalog`** a tu dominio. Si `CRON_SECRET` está definido, Vercel envía **`Authorization: Bearer <CRON_SECRET>`**; la ruta valida el Bearer. **avalonweb** ingiere KiteProp y revalida si el manifiesto cambió; **avalon-premier** ejecuta `loadKitepropCatalogMerged()` y responde **503** si el catálogo queda vacío, además de revalidar; el JSON incluye `premierSiteListableCount` para auditoría.
 
 **Frecuencia:** revisá `apps/*/vercel.json` en el repo (hoy suele ser **1× día** en UTC, p. ej. `30 9 * * *`); no confundir con comentarios viejos de “cada 2 h” salvo que lo hayas cambiado en tu fork.
 
-**No hay otras variables específicas del cron:** en avalonweb el catálogo vivo sigue dependiendo de `KITEPROP_API_KEY` (y opcionales de feed). En Premier con BFF, del cron depende la revalidación del fetch hacia avalonweb.
+**Variables del cron:** en avalonweb sigue dependiendo de `KITEPROP_API_KEY` para ingest. En avalon-premier el cron usa el mismo `loadKitepropCatalogMerged` que las páginas (API primero, BFF después; sin fallback a `properties.json`).
 
 **Prueba manual:**  
 `curl -sS -H "Authorization: Bearer TU_CRON_SECRET" "https://<tu-dominio>/api/cron/refresh-catalog"`
@@ -153,7 +157,7 @@ No aparece en esa especificación un mecanismo paralelo tipo “enviar la misma 
 
 | Variable | Uso |
 |----------|-----|
-| **`KITEPROP_API_KEY`** (canónica en Vercel) | **Obligatorio para el catálogo en producción:** `X-API-Key` en `GET …/properties` (listado) y en POST de consultas. Sin key, el sitio usa solo el snapshot `properties.json` del repo. |
+| **`KITEPROP_API_KEY`** (canónica en Vercel) | **Obligatorio para el catálogo en producción:** `X-API-Key` en `GET …/properties` (listado) y en POST de consultas. Sin key (y sin BFF útil en Premier), el listado queda **vacío** — no hay fallback a `properties.json`. |
 | `KITEPROP_API_TOKEN` | **Solo respaldo en código** (mismo uso que la key). **No la definidas en Vercel** si ya tenés `KITEPROP_API_KEY`; ver **Paso 1** arriba. |
 | `KITEPROP_API_BASE_URL` | Base del listado `GET …/properties`; default `https://www.kiteprop.com/api/v1`. Opcionales: `KITEPROP_API_PROPERTIES_PATH`, `KITEPROP_API_STATUS_FILTER`, `KITEPROP_API_PER_PAGE`. |
 | `KITEPROP_API_URL` | Si **no** definiste `KITEPROP_API_BASE_URL`, el **feed del catálogo** usa este valor como base (misma URL con `/api/v1` está bien). Para **POST de consultas**, el core también usa `KITEPROP_API_URL` como host raíz (ver `kiteprop-consulta.ts`). |
@@ -170,7 +174,7 @@ Copiá valores concretos desde `.env.example` (comentado) en cada app o en Verce
 - **Deploy:** por defecto **Vercel ↔ Git** en cada push (ambos proyectos). El workflow **`.github/workflows/deploy-vercel.yml`** quedó **solo manual** (`workflow_dispatch`) para no duplicar deploys con el CLI. Opcional: **`.github/workflows/verify-production-sites.yml`** valida `/`, `/propiedades` y el BFF en producción tras push a `main` (secrets `PRODUCTION_URL_*` + `CRON_SECRET`).
 - **Vercel + Turbo — error `.../apps/avalon-premier/apps/avalon-premier`:** en el proyecto Vercel, **Root Directory** = `apps/avalon-premier` y **Output Directory** vacío o **`.next`** (nunca otra vez la ruta `apps/...`). Si no, Next queda en `.../apps/avalon-premier/.next` pero Vercel busca una carpeta mal compuesta. El `turbo.json` del repo declara `globalPassThroughEnv` para que **`KITEPROP_API_KEY`** (y otras) lleguen al `turbo build` en Vercel (sin eso Turbo las oculta y el build puede advertir o el runtime quedar sin API).
 - **Premier “en cero” con API:** confirmá **`KITEPROP_API_KEY`** en **Production** del proyecto **avalon-premier** (no solo Preview). Con la misma key, el script `scripts/verify_kiteprop_api_premier.py` cuenta filas con señal Premier. Si KiteProp manda el modificador en **`modificadores` / `modifiers`** u otro nombre, el core los trata como alias de etiquetas; si usan otro campo, hay que añadirlo a `KITEPROP_TAG_FIELD_ALIASES` en `kiteprop-api-mapper.ts`. Mientras tanto podés listar IDs en **`PREMIER_PROPERTY_IDS`** (coma) para forzar el listado Premier.
-- Declarar **`KITEPROP_API_KEY`** en **los dos** proyectos Vercel del monorepo: slug **`avalon-premier`** y slug **`avalonweb`** (carpetas `apps/avalon-premier` y `apps/avalon-propiedades`). Cada deploy tiene su propio env; si falta en Premier, el sitio cae al snapshot del repo, con muchos menos ítems Premier que la API.
+- Declarar **`KITEPROP_API_KEY`** en **los dos** proyectos Vercel del monorepo: slug **`avalon-premier`** y slug **`avalonweb`**. Si falta en Premier y el BFF falla, el listado puede quedar vacío.
 - El segmento Premier lee el flag **`premier` / `is_premier`** (y alias) en la fila API o anidado en **`attributes`**, **`meta`**, etc. Si el CRM solo marca Premier ahí, debe llegar en el JSON de `GET …/properties`.
 - **`CRON_SECRET`** en ambos si usás el cron de revalidación.
 - Si ves **403 / 1010** desde el servidor hacia KiteProp, probá **`KITEPROP_FETCH_USER_AGENT`** con un UA de navegador reciente; el core ya envía uno por defecto en `fetch` del catálogo y en consultas.

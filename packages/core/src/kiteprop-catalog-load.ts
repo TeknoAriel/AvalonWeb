@@ -8,8 +8,6 @@ import {
 } from './avalon-internal-api';
 import { kitepropApiFeedConfigured, fetchKitepropPropertyFeedAsRaw } from './kiteprop-api-feed';
 import { KITEPROP_PROPERTY_FEED_TAG } from './kiteprop-cache-tag';
-import { ALL_RAW_PROPERTIES } from './load';
-import { mergePremierMetadataFromRepoSnapshot } from './premier-snapshot-merge';
 
 /** ISR alineado con cron de catálogo en producción (2 h) — solo lectura directa KiteProp. */
 const CATALOG_REVALIDATE_SECONDS = 7_200;
@@ -29,66 +27,78 @@ const bffCatalogFetchInit = {
   next: { revalidate: 0, tags: [KITEPROP_PROPERTY_FEED_TAG] },
 } as RequestInit & { next: { revalidate: number; tags: string[] } };
 
-function finalizeWithSnapshotMerge(rows: RawProperty[]): RawProperty[] {
-  return mergePremierMetadataFromRepoSnapshot(rows, ALL_RAW_PROPERTIES);
+/**
+ * Una lectura **real** a KiteProp (si hay key). Si la API falla o devuelve 0 filas → `null`.
+ * **Sin** merge con `properties.json`: el listado refleja solo lo que viene del feed (alineado con ingest).
+ */
+async function loadLiveKitepropCatalogOrNull(): Promise<RawProperty[] | null> {
+  if (!kitepropApiFeedConfigured()) return null;
+  try {
+    const fromApi = await fetchKitepropPropertyFeedAsRaw(defaultFetchInit);
+    if (fromApi && fromApi.length > 0) {
+      return fromApi;
+    }
+  } catch (e) {
+    console.warn(
+      '[loadLiveKitepropCatalogOrNull] KiteProp API:',
+      e instanceof Error ? e.message : e,
+    );
+  }
+  return null;
 }
 
 /**
- * Solo KiteProp (API + key) o snapshot empaquetado. **Sin** BFF de Avalon.
+ * Solo KiteProp (API + key). Sin key o si la API falla → `[]` (**no** hay fallback a JSON empaquetado).
  * Usar en el servidor Avalon Web que expone `/api/internal/catalog` y en tests.
  */
 export async function loadKitepropCatalogFromKitepropApi(): Promise<RawProperty[]> {
-  if (kitepropApiFeedConfigured()) {
-    try {
-      const fromApi = await fetchKitepropPropertyFeedAsRaw(defaultFetchInit);
-      if (fromApi && fromApi.length > 0) {
-        return finalizeWithSnapshotMerge(fromApi);
-      }
-    } catch {
-      /* snapshot */
-    }
-  }
-
-  return finalizeWithSnapshotMerge(ALL_RAW_PROPERTIES);
+  const live = await loadLiveKitepropCatalogOrNull();
+  return live ?? [];
 }
 
 /**
- * Catálogo en servidor.
+ * Catálogo en servidor — **solo datos vivos** (misma fuente que `pnpm kp:ingest-stats` cuando la API responde):
  *
- * **Modo BFF (p. ej. Avalon Premier):** si hay `AVALON_CATALOG_INTERNAL_URL` y **`CRON_SECRET`**
- * (mismo valor que protege el cron; opcional legacy `INTERNAL_CATALOG_SECRET`), se hace `GET` a Avalon Web
- * (`/api/internal/catalog`) y se usa esa respuesta (ya mergeada en origen). Sin key KiteProp en Premier.
- *
- * **Modo directo (p. ej. Avalon Web):** `GET …/properties` con `KITEPROP_API_KEY` o snapshot si no hay key.
- *
- * Cada app sigue aplicando `getSitePropertiesFromRaw(site, raw)` sobre el mismo cuerpo de datos.
+ * 1. **API KiteProp** si hay `KITEPROP_API_KEY` (y URL).
+ * 2. **BFF** `AVALON_CATALOG_INTERNAL_URL` + `CRON_SECRET` si no hay key o la API no devolvió filas.
+ * 3. Si nada aplica → `[]` (no se sirve `properties.json` en runtime para no mostrar inventario viejo).
  */
 export async function loadKitepropCatalogMerged(): Promise<RawProperty[]> {
+  const live = await loadLiveKitepropCatalogOrNull();
+  if (live && live.length > 0) {
+    return live;
+  }
+
   if (isAvalonCatalogBffConfigured()) {
     const url = resolveAvalonCatalogBffUrl();
     const secret = resolveServerToServerBearerSecret();
-    if (!url || (!isCatalogIngestDebug() && !secret)) {
-      return loadKitepropCatalogFromKitepropApi();
-    }
-    try {
-      const fromBff = await fetchRawCatalogFromAvalonBff(url, secret, bffCatalogFetchInit);
-      if (fromBff.length > 0) {
-        return fromBff;
-      }
-    } catch {
-      /* intentar API directa abajo */
-    }
-    // BFF vacío o error: no enmascarar con snapshot si podemos leer KiteProp en este runtime (p. ej. Premier con key).
-    if (kitepropApiFeedConfigured()) {
+    if (url && (isCatalogIngestDebug() || secret)) {
       try {
-        const direct = await loadKitepropCatalogFromKitepropApi();
-        if (direct.length > 0) return direct;
-      } catch {
-        /* snapshot */
+        const fromBff = await fetchRawCatalogFromAvalonBff(url, secret, bffCatalogFetchInit);
+        if (fromBff.length > 0) {
+          return fromBff;
+        }
+        console.warn(
+          '[loadKitepropCatalogMerged] BFF devolvió 0 filas.',
+          { bffHost: safeUrlHost(url) },
+        );
+      } catch (e) {
+        console.error(
+          '[loadKitepropCatalogMerged] Falló el GET al BFF de catálogo:',
+          e instanceof Error ? e.message : e,
+          { bffHost: safeUrlHost(url) },
+        );
       }
     }
-    return finalizeWithSnapshotMerge(ALL_RAW_PROPERTIES);
   }
 
   return loadKitepropCatalogFromKitepropApi();
+}
+
+function safeUrlHost(u: string): string {
+  try {
+    return new URL(u).host;
+  } catch {
+    return '(url inválida)';
+  }
 }

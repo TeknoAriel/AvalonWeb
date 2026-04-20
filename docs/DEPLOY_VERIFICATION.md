@@ -61,12 +61,12 @@ pnpm post-deploy:verify
 
 ## Listado Premier “no muestra las +20 propiedades”
 
-El listado **no** viene de un tercer servidor: Premier lee el catálogo vía **`AVALON_CATALOG_INTERNAL_URL`** → Avalon Web **`/api/internal/catalog`**. En la app, `getPropertiesFromKitepropFeed` usa **`force-dynamic`** en `/propiedades` (no es una página estática vieja por ISR).
+El listado usa **`loadKitepropCatalogMerged`**: API KiteProp primero (si hay key en Premier), luego BFF → Web **`/api/internal/catalog`**. Las páginas usan **`force-dynamic`** en `/propiedades`.
 
 Revisá en orden:
 
-1. **Vercel Web:** `KITEPROP_API_KEY` definida y válida; sin ella el BFF devuelve poco o datos viejos según fallback.
-2. **Vercel Premier:** `AVALON_CATALOG_INTERNAL_URL` = `https://<tu-dominio-web>/api/internal/catalog` (origen correcto, no una preview vieja si esperás datos de producción).
+1. **Vercel Web:** `KITEPROP_API_KEY` válida; sin ella el BFF responde **503** o `[]` (ya no hay fallback a `properties.json`).
+2. **Vercel Premier:** `KITEPROP_API_KEY` (recomendado, misma que Web) y/o `AVALON_CATALOG_INTERNAL_URL` + `CRON_SECRET` correctos.
 3. **Reglas Premier** (`isPremierSiteListable`, tags, status): muchas filas en el feed pueden no ser “listables” en Premier; compará con `pnpm kp:ingest-stats` / `pnpm check:premier-snapshot` en local con la misma key.
 4. **Dominio que abrís:** confirmá en Vercel → *Deployments* cuál deployment está **Current** en producción y abrí la *Preview URL* de ese mismo commit para descartar caché de otro deployment.
 

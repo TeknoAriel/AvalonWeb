@@ -1,6 +1,6 @@
 /**
- * Comprueba que el snapshot del repo tenga al menos una fila listable en Premier.
- * No llama a la API (solo datos empaquetados); sirve de red de seguridad en CI.
+ * Comprueba el snapshot empaquetado del repo (`properties.json`).
+ * Con array vacío (catálogo solo por API en runtime) el check pasa con aviso.
  *
  * Si `pnpm check:premier-snapshot` falla con EPERM en un sandbox, ejecutalo fuera (p. ej. `all` en Cursor o terminal local).
  */
@@ -22,19 +22,26 @@ console.log(
   `[check-premier-snapshot] raw=${raw} premierListable(normalized)=${premier.length} avalon=${avalon.length} | raw: hasPremierTag=${tagRows} isPremierSiteListable=${listableRows}`,
 );
 
+if (raw === 0) {
+  console.log(
+    '[check-premier-snapshot] OK: snapshot vacío — el catálogo en runtime es solo API/BFF (ver docs/OPERACION.md).',
+  );
+  process.exit(0);
+}
+
 if (premier.length === 0) {
   if (tagRows > 0) {
     console.error(
       `[check-premier-snapshot] FAIL: el snapshot tiene ${tagRows} fila(s) con segmento Premier (hasPremierTag) pero ` +
         `0 listables en sitio Premier (isPremierSiteListable). Suele deberse a status del feed vs reglas de listado, o a un snapshot desactualizado. ` +
-        'Regenerá `packages/core/data/properties.json` con `pnpm catalog:regenerate-snapshot` (KITEPROP_API_KEY en el entorno). ' +
+        'Podés vaciar `packages/core/data/properties.json` a `[]` o regenerar con `pnpm catalog:regenerate-snapshot`. ' +
         'Ver docs/PREMIER_INVENTORY_INVARIANT.md.',
     );
   } else {
     console.error(
-      '[check-premier-snapshot] FAIL: inventario Premier en snapshot es 0. ' +
-        'Regenerá o enriquecé packages/core/data/properties.json, o revisá tags/flags Premier en la fuente. ' +
-        'Ver docs/PREMIER_INVENTORY_INVARIANT.md. En producción también hace falta KITEPROP_API_KEY en Vercel (proyecto avalon-premier).',
+      '[check-premier-snapshot] FAIL: inventario Premier en snapshot es 0 con filas en el archivo. ' +
+        'Vacía el JSON a `[]` si usás solo API, o regenerá con `pnpm catalog:regenerate-snapshot`. ' +
+        'Ver docs/PREMIER_INVENTORY_INVARIANT.md.',
     );
   }
   process.exit(1);

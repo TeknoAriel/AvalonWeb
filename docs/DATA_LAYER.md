@@ -36,9 +36,9 @@ La función `hasPremierTag` reconoce, entre otras:
 - Flags booleanos `premier` / `is_premier`, y strings en `segment`, `collection`, `tier`, `class`, `tag`, `tag_slug`.
 - Overrides por `PREMIER_PROPERTY_IDS` / `NEXT_PUBLIC_PREMIER_PROPERTY_IDS`.
 
-En **servidor**, `loadKitepropCatalogMerged` en **Avalon Web** usa `GET …/properties` con **`KITEPROP_API_KEY`** (o snapshot si no hay key / falla la API), luego `mergePremierMetadataFromRepoSnapshot`. En **Avalon Premier** puede usar el **BFF** `GET …/api/internal/catalog` en avalonweb (misma data, un solo ingest contra KiteProp); detalle en `docs/KITEPROP.md`. **No** hay ingest por URL de JSON de difusión en runtime. ISR **2 h**. [API v1](https://www.kiteprop.com/docs/api/v1).
+En **servidor**, `loadKitepropCatalogMerged` usa solo **API KiteProp** (con key) o **BFF**; **no** hay fallback a `properties.json` en runtime (evita listar inventario viejo). El archivo `packages/core/data/properties.json` puede quedar en `[]` o regenerarse solo para herramientas locales — ver `docs/KITEPROP.md`. ISR **2 h**. [API v1](https://www.kiteprop.com/docs/api/v1).
 
-El archivo `properties.json` del repo puede regenerarse manualmente desde un export JSON para **desarrollo o backup**; la app en producción no consume `KITEPROP_PROPERTIES_JSON_URL`.
+La app en producción no consume `KITEPROP_PROPERTIES_JSON_URL`.
 
 ## MCP vs visitante de la web
 
