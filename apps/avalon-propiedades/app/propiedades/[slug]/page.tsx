@@ -91,6 +91,7 @@ export default async function PropertyDetailPage({ params, searchParams }: PageP
 
   const hasVideo = extractYouTubeVideoId(property.media.youtubeUrl ?? '') != null;
   const hasTour360 = Boolean(property.media.tour360Html?.trim());
+  const compactMedia = !hasVideo && !hasTour360;
 
   return (
     <article className="mx-auto max-w-6xl px-4 py-10 pb-28 md:px-6 md:pb-10">
@@ -128,30 +129,60 @@ export default async function PropertyDetailPage({ params, searchParams }: PageP
       <div className="mt-8 grid items-start gap-10 lg:grid-cols-[1.2fr_0.8fr]">
         <div className="space-y-8 lg:col-start-1 lg:row-start-1">
           <MediaGallery media={property.media} brand="avalon" />
-          {hasVideo ? (
-            <section>
-              <h2 className="text-base font-semibold text-brand-primary">Video</h2>
-              <div className="mt-3 aspect-video overflow-hidden rounded-xl bg-black/5">
-                <iframe
-                  title="Video de la propiedad"
-                  src={toYouTubeEmbedUrl(property.media.youtubeUrl ?? '')}
-                  className="h-full w-full"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
+          {compactMedia ? (
+            <div className="max-w-3xl space-y-10">
+              <section>
+                <h2 className="text-2xl font-bold text-brand-primary md:text-[1.65rem]">Descripción</h2>
+                <div
+                  className="property-html mt-5 max-w-none text-lg leading-[1.82] text-brand-text md:text-xl md:leading-[1.9] [&_p]:mb-5 [&_ul]:list-disc [&_ul]:pl-5"
+                  // eslint-disable-next-line react/no-danger
+                  dangerouslySetInnerHTML={{ __html: property.descriptionHtml }}
                 />
-              </div>
-            </section>
-          ) : null}
-          {hasTour360 ? (
-            <section>
-              <h2 className="text-base font-semibold text-brand-primary">Recorrido 360</h2>
-              <div
-                className="mt-3 min-h-[280px] overflow-hidden rounded-xl bg-black/5"
-                // eslint-disable-next-line react/no-danger
-                dangerouslySetInnerHTML={{ __html: property.media.tour360Html ?? '' }}
-              />
-            </section>
-          ) : null}
+              </section>
+              {property.amenities.length > 0 ? (
+                <section>
+                  <h2 className="text-2xl font-bold text-brand-primary md:text-[1.65rem]">Características</h2>
+                  <ul className="mt-5 flex flex-wrap gap-2">
+                    {property.amenities.map((a) => (
+                      <li
+                        key={a.id}
+                        className="rounded-lg border border-brand-primary/10 bg-brand-surface-alt px-3 py-2 text-sm md:text-[15px]"
+                      >
+                        {a.label}
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              ) : null}
+            </div>
+          ) : (
+            <>
+              {hasVideo ? (
+                <section>
+                  <h2 className="text-base font-semibold text-brand-primary">Video</h2>
+                  <div className="mt-3 aspect-video overflow-hidden rounded-xl bg-black/5">
+                    <iframe
+                      title="Video de la propiedad"
+                      src={toYouTubeEmbedUrl(property.media.youtubeUrl ?? '')}
+                      className="h-full w-full"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    />
+                  </div>
+                </section>
+              ) : null}
+              {hasTour360 ? (
+                <section>
+                  <h2 className="text-base font-semibold text-brand-primary">Recorrido 360</h2>
+                  <div
+                    className="mt-3 min-h-[280px] overflow-hidden rounded-xl bg-black/5"
+                    // eslint-disable-next-line react/no-danger
+                    dangerouslySetInnerHTML={{ __html: property.media.tour360Html ?? '' }}
+                  />
+                </section>
+              ) : null}
+            </>
+          )}
         </div>
         <aside className="space-y-6 lg:col-start-2 lg:row-start-1 lg:self-start">
           <div>
@@ -232,28 +263,32 @@ export default async function PropertyDetailPage({ params, searchParams }: PageP
       </div>
 
       <div className="mt-12 max-w-4xl space-y-14">
-        <section>
-          <h2 className="text-2xl font-bold text-brand-primary">Descripción</h2>
-          <div
-            className="property-html mt-5 max-w-none text-base leading-[1.75] text-brand-text md:text-lg md:leading-[1.82] [&_p]:mb-4 [&_ul]:list-disc [&_ul]:pl-5"
-            // eslint-disable-next-line react/no-danger
-            dangerouslySetInnerHTML={{ __html: property.descriptionHtml }}
-          />
-        </section>
-        {property.amenities.length > 0 ? (
-          <section>
-            <h2 className="text-2xl font-bold text-brand-primary">Características</h2>
-            <ul className="mt-5 flex flex-wrap gap-2">
-              {property.amenities.map((a) => (
-                <li
-                  key={a.id}
-                  className="rounded-lg border border-brand-primary/10 bg-brand-surface-alt px-3 py-2 text-sm md:text-[15px]"
-                >
-                  {a.label}
-                </li>
-              ))}
-            </ul>
-          </section>
+        {!compactMedia ? (
+          <>
+            <section>
+              <h2 className="text-2xl font-bold text-brand-primary">Descripción</h2>
+              <div
+                className="property-html mt-5 max-w-none text-base leading-[1.75] text-brand-text md:text-lg md:leading-[1.82] [&_p]:mb-4 [&_ul]:list-disc [&_ul]:pl-5"
+                // eslint-disable-next-line react/no-danger
+                dangerouslySetInnerHTML={{ __html: property.descriptionHtml }}
+              />
+            </section>
+            {property.amenities.length > 0 ? (
+              <section>
+                <h2 className="text-2xl font-bold text-brand-primary">Características</h2>
+                <ul className="mt-5 flex flex-wrap gap-2">
+                  {property.amenities.map((a) => (
+                    <li
+                      key={a.id}
+                      className="rounded-lg border border-brand-primary/10 bg-brand-surface-alt px-3 py-2 text-sm md:text-[15px]"
+                    >
+                      {a.label}
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            ) : null}
+          </>
         ) : null}
         <section>
           <h2 className="text-2xl font-bold text-brand-primary">Ubicación</h2>

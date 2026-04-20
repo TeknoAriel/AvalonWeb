@@ -1,7 +1,7 @@
 import { pickHomeEditorialSelection, propertyTypeLabel } from '@avalon/core';
 import { getSiteBrandConfig } from '@avalon/config';
 import { RecentPropertiesStrip } from '@avalon/ui';
-import { HeroAvalon, pickHeroImageFromList } from '@/components/hero-avalon';
+import { HeroAvalon } from '@/components/hero-avalon';
 import { PropertyCardAvalon } from '@/components/property-card-avalon';
 import Link from 'next/link';
 import { loadSortedSiteProperties } from '@/lib/site-property-list';
@@ -14,7 +14,6 @@ export default async function HomePage() {
   const brand = getSiteBrandConfig(SITE);
   const all = await loadSortedSiteProperties();
   const featured = pickHomeEditorialSelection(all, 9);
-  const heroImage = pickHeroImageFromList(all);
   const types = Array.from(new Set(all.map((p) => p.propertyType))).slice(0, 6);
 
   const nSale = all.filter((p) => p.operation.forSale).length;
@@ -34,7 +33,7 @@ export default async function HomePage() {
 
   return (
     <>
-      <HeroAvalon featuredImageUrl={heroImage} />
+      <HeroAvalon tagline={brand.tagline} description={brand.description} />
       <section className="border-b border-brand-primary/10 bg-white py-8">
         <div className="mx-auto grid max-w-6xl grid-cols-2 gap-8 px-4 md:grid-cols-4 md:gap-6 md:px-6">
           {[

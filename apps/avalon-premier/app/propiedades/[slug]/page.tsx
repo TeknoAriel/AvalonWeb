@@ -79,6 +79,7 @@ export default async function PropertyDetailPage({ params }: Props) {
   const mapsSearchHref = getPropertyMapsSearchUrl(property);
   const hasVideo = extractYouTubeVideoId(property.media.youtubeUrl ?? '') != null;
   const hasTour360 = Boolean(property.media.tour360Html?.trim());
+  const compactMedia = !hasVideo && !hasTour360;
 
   return (
     <article className="pb-28 md:pb-0">
@@ -100,6 +101,33 @@ export default async function PropertyDetailPage({ params }: Props) {
         </div>
       </div>
 
+      {compactMedia ? (
+        <div className="mx-auto max-w-3xl space-y-12 border-b border-premier-line/30 px-6 py-12 md:px-8 md:py-14">
+          <section>
+            <h2 className="font-serif text-xl font-normal tracking-wide text-brand-primary md:text-2xl">
+              Descripción
+            </h2>
+            <div
+              className="property-html mt-6 max-w-none text-[17px] font-light leading-[1.9] text-brand-text/78 md:text-lg md:leading-[1.92] [&_p]:mb-5 [&_ul]:list-disc [&_ul]:pl-5"
+              // eslint-disable-next-line react/no-danger
+              dangerouslySetInnerHTML={{ __html: property.descriptionHtml }}
+            />
+          </section>
+          {property.amenities.length > 0 ? (
+            <section>
+              <h2 className="font-serif text-xl text-brand-primary md:text-2xl">Amenities</h2>
+              <ul className="mt-6 space-y-2 text-sm text-brand-text/72">
+                {property.amenities.map((a) => (
+                  <li key={a.id} className="border-b border-premier-line/35 py-2.5">
+                    {a.label}
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
+        </div>
+      ) : null}
+
       <div className="mx-auto grid max-w-7xl gap-16 px-6 py-16 lg:grid-cols-[1fr_minmax(300px,380px)] lg:gap-20 lg:px-8 lg:py-20">
         <div className="min-w-0 space-y-16 md:space-y-20">
           <header className="space-y-5">
@@ -119,16 +147,18 @@ export default async function PropertyDetailPage({ params }: Props) {
             {premierEditorialLead(property)}
           </p>
 
-          <section>
-            <h2 className="font-serif text-lg font-normal tracking-wide text-brand-primary md:text-xl">
-              Descripción
-            </h2>
-            <div
-              className="property-html mt-7 max-w-none text-base font-light leading-[1.85] text-brand-text/72 [&_p]:mb-5 [&_ul]:list-disc [&_ul]:pl-5 md:text-[17px] md:leading-[1.88]"
-              // eslint-disable-next-line react/no-danger
-              dangerouslySetInnerHTML={{ __html: property.descriptionHtml }}
-            />
-          </section>
+          {!compactMedia ? (
+            <section>
+              <h2 className="font-serif text-lg font-normal tracking-wide text-brand-primary md:text-xl">
+                Descripción
+              </h2>
+              <div
+                className="property-html mt-7 max-w-none text-base font-light leading-[1.85] text-brand-text/72 [&_p]:mb-5 [&_ul]:list-disc [&_ul]:pl-5 md:text-[17px] md:leading-[1.88]"
+                // eslint-disable-next-line react/no-danger
+                dangerouslySetInnerHTML={{ __html: property.descriptionHtml }}
+              />
+            </section>
+          ) : null}
 
           {hasVideo ? (
             <section>
@@ -165,7 +195,7 @@ export default async function PropertyDetailPage({ params }: Props) {
             </section>
           ) : null}
 
-          {property.amenities.length > 0 ? (
+          {!compactMedia && property.amenities.length > 0 ? (
             <section>
               <h2 className="font-serif text-xl text-brand-primary md:text-2xl">Amenities</h2>
               <ul className="mt-6 columns-1 gap-x-10 gap-y-2 text-sm text-brand-text/70 sm:columns-2">

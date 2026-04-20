@@ -6,19 +6,20 @@ import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 
 /** Rotación lenta: una imagen a la vez, sin sensación de carrusel agresivo. */
-const HERO_ROTATION_MS = 13_000;
-const FADE_MS = 2000;
+const HERO_ROTATION_MS = 16_000;
+const FADE_MS = 3200;
 
 export function CinematicHero({
   posterUrl,
   posterUrls,
-  videoUrl,
+  videoUrl = null,
 }: {
   /** Una sola imagen (compat) */
   posterUrl?: string | null;
   /** Varias imágenes → crossfade suave si no hay video */
   posterUrls?: string[] | null;
-  videoUrl: string | null;
+  /** Si no se pasa, solo imágenes (home Premier curado). */
+  videoUrl?: string | null;
 }) {
   const urls = (() => {
     if (posterUrls?.length) return posterUrls;
@@ -77,9 +78,9 @@ export function CinematicHero({
           <div className="h-full w-full bg-gradient-to-br from-[#0a1524] via-[#060d18] to-[#03060c]" />
         )}
       </div>
-      {/* Overlay azul marino ~58%: contraste del texto + imagen aún visible */}
+      {/* Overlay azul marino ~55–65%: legibilidad del texto sin matar la foto */}
       <div
-        className="absolute inset-0 bg-[linear-gradient(180deg,rgba(6,12,24,0.62)_0%,rgba(4,10,22,0.56)_45%,rgba(3,8,18,0.64)_100%)]"
+        className="absolute inset-0 bg-[linear-gradient(180deg,rgba(5,14,28,0.64)_0%,rgba(4,11,24,0.58)_42%,rgba(3,9,20,0.62)_100%)]"
         aria-hidden
       />
       <div className="relative z-10 flex min-h-[100dvh] flex-col justify-center px-6 pb-32 pt-36 md:px-14 md:pb-44 md:pt-40">
