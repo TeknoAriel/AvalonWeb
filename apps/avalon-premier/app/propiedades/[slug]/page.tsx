@@ -1,9 +1,12 @@
 import {
   buildMarketSummaryForCity,
   getPropertyByIdFromRaw,
+  getPropertyMapEmbedSrc,
+  getPropertyMapsSearchUrl,
   getRelatedPropertiesFromRaw,
   getSitePropertiesFromRaw,
   parsePropertySlugParam,
+  propertyMapLocationNote,
 } from '@avalon/core';
 import { getSiteBrandConfig, isFeatureEnabled } from '@avalon/config';
 import {
@@ -71,12 +74,9 @@ export default async function PropertyDetailPage({ params }: Props) {
     ? `https://wa.me/${waDigits}?text=${encodeURIComponent(`Deseo coordinar una visita: ${property.title}`)}`
     : '/contacto';
 
-  const mapUrl =
-    property.location.latitude != null &&
-    property.location.longitude != null &&
-    !property.location.hideExactLocation
-      ? `https://maps.google.com/maps?q=${property.location.latitude},${property.location.longitude}&z=15&output=embed`
-      : null;
+  const mapEmbedSrc = getPropertyMapEmbedSrc(property);
+  const mapNote = propertyMapLocationNote(property);
+  const mapsSearchHref = getPropertyMapsSearchUrl(property);
 
   return (
     <article className="pb-28 md:pb-0">
@@ -136,10 +136,31 @@ export default async function PropertyDetailPage({ params }: Props) {
               Descripción
             </h2>
             <div
-              className="property-html mt-7 max-w-none text-[15px] font-light leading-[1.82] text-brand-text/72 [&_p]:mb-5 [&_ul]:list-disc [&_ul]:pl-5 md:text-base md:leading-[1.85]"
+              className="property-html mt-7 max-w-none text-base font-light leading-[1.85] text-brand-text/72 [&_p]:mb-5 [&_ul]:list-disc [&_ul]:pl-5 md:text-[17px] md:leading-[1.88]"
               // eslint-disable-next-line react/no-danger
               dangerouslySetInnerHTML={{ __html: property.descriptionHtml }}
             />
+          </section>
+
+          <section>
+            <h2 className="font-serif text-lg font-normal tracking-wide text-brand-primary md:text-xl">
+              Video
+            </h2>
+            {property.media.youtubeUrl ? (
+              <div className="mt-6 aspect-video w-full max-w-3xl overflow-hidden border border-premier-line/40 bg-neutral-100">
+                <iframe
+                  title="Video de la propiedad"
+                  src={toYouTubeEmbedUrl(property.media.youtubeUrl)}
+                  className="h-full w-full"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              </div>
+            ) : (
+              <div className="mt-6 max-w-3xl border border-dashed border-premier-line/45 bg-brand-surface-alt/30 px-4 py-12 text-center text-sm font-light text-brand-text/50">
+                Esta ficha no incluye video en el feed.
+              </div>
+            )}
           </section>
 
           <section>
@@ -147,18 +168,22 @@ export default async function PropertyDetailPage({ params }: Props) {
             <PropertyAskWidget propertyId={property.id} variant="premier" siteKey="premier" />
           </section>
 
-          {property.media.tour360Html ? (
-            <section>
-              <h2 className="font-serif text-lg font-normal tracking-wide text-brand-primary md:text-xl">
-              Recorrido
+          <section>
+            <h2 className="font-serif text-lg font-normal tracking-wide text-brand-primary md:text-xl">
+              Recorrido 360
             </h2>
+            {property.media.tour360Html ? (
               <div
-                className="mt-6 min-h-[320px] overflow-hidden bg-neutral-100"
+                className="mt-6 min-h-[320px] overflow-hidden border border-premier-line/40 bg-neutral-100"
                 // eslint-disable-next-line react/no-danger
                 dangerouslySetInnerHTML={{ __html: property.media.tour360Html }}
               />
-            </section>
-          ) : null}
+            ) : (
+              <div className="mt-6 max-w-3xl border border-dashed border-premier-line/45 bg-brand-surface-alt/30 px-4 py-12 text-center text-sm font-light text-brand-text/50">
+                Sin recorrido 360 publicado en el feed.
+              </div>
+            )}
+          </section>
 
           <section>
             <h2 className="font-serif text-xl text-brand-primary md:text-2xl">Amenities</h2>
@@ -181,20 +206,33 @@ export default async function PropertyDetailPage({ params }: Props) {
             <h2 className="font-serif text-lg font-normal tracking-wide text-brand-primary md:text-xl">
               Ubicación
             </h2>
-            {mapUrl ? (
-              <iframe
-                title="Mapa"
-                src={mapUrl}
-                className="mt-6 aspect-video w-full border border-premier-line/50"
-                loading="lazy"
-                allowFullScreen
-              />
+            {mapEmbedSrc ? (
+              <>
+                <iframe
+                  title="Mapa de la propiedad"
+                  src={mapEmbedSrc}
+                  className="mt-6 aspect-video w-full max-w-3xl border border-premier-line/50"
+                  loading="lazy"
+                  allowFullScreen
+                />
+                {mapNote ? (
+                  <p className="mt-3 max-w-3xl text-sm font-light text-brand-text/55">{mapNote}</p>
+                ) : null}
+              </>
             ) : (
-              <p className="mt-6 text-sm text-brand-text/55">
-                {property.location.hideExactLocation
-                  ? 'Ubicación aproximada por privacidad del titular.'
-                  : 'Coordenadas no disponibles en el feed.'}
-              </p>
+              <div className="mt-6 max-w-3xl border border-dashed border-premier-line/45 bg-brand-surface-alt/25 px-4 py-12 text-center text-sm font-light text-brand-text/55">
+                <p>No hay datos suficientes de dirección para mostrar el mapa en esta ficha.</p>
+                {mapsSearchHref ? (
+                  <a
+                    href={mapsSearchHref}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-4 inline-block text-xs font-medium uppercase tracking-caps text-brand-accent underline-offset-4 hover:underline"
+                  >
+                    Abrir en Google Maps
+                  </a>
+                ) : null}
+              </div>
             )}
           </section>
         </div>

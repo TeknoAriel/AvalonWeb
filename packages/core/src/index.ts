@@ -89,3 +89,8 @@ export { invokeKitepropMcpTool, type McpToolName, type McpInvokeResult } from '.
 export { buildLocalPropertyQaAnswer } from './property-qa-local';
 export { buildMarketSummaryForCity, type MarketSummaryLocal } from './market-summary-local';
 export { propertyListFiltersToQuery, queryToPropertyListFilters } from './list-filters-url';
+export {
+  getPropertyMapEmbedSrc,
+  getPropertyMapsSearchUrl,
+  propertyMapLocationNote,
+} from './property-map-embed';

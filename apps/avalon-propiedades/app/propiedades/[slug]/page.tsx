@@ -1,7 +1,10 @@
 import {
   getPropertyByIdFromRaw,
+  getPropertyMapEmbedSrc,
+  getPropertyMapsSearchUrl,
   getRelatedPropertiesFromRaw,
   parsePropertySlugParam,
+  propertyMapLocationNote,
   queryToPropertyListFilters,
 } from '@avalon/core';
 import { getSiteBrandConfig, PORTAL_LISTING_UX_COPY } from '@avalon/config';
@@ -81,12 +84,9 @@ export default async function PropertyDetailPage({ params, searchParams }: PageP
     ? `https://wa.me/${waDigits}?text=${encodeURIComponent(`${C.scheduleVisit}: ${property.title}`)}`
     : telHref;
 
-  const mapUrl =
-    property.location.latitude != null &&
-    property.location.longitude != null &&
-    !property.location.hideExactLocation
-      ? `https://maps.google.com/maps?q=${property.location.latitude},${property.location.longitude}&z=15&output=embed`
-      : null;
+  const mapEmbedSrc = getPropertyMapEmbedSrc(property);
+  const mapNote = propertyMapLocationNote(property);
+  const mapsSearchHref = getPropertyMapsSearchUrl(property);
 
   return (
     <article className="mx-auto max-w-6xl px-4 py-10 pb-28 md:px-6 md:pb-10">
@@ -122,28 +122,42 @@ export default async function PropertyDetailPage({ params, searchParams }: PageP
       </div>
 
       <div className="mt-8 grid items-start gap-10 lg:grid-cols-[1.2fr_0.8fr]">
-        <div className="lg:col-start-1 lg:row-start-1">
+        <div className="space-y-8 lg:col-start-1 lg:row-start-1">
           <MediaGallery media={property.media} brand="avalon" />
-          {property.media.youtubeUrl ? (
-            <div className="mt-8 aspect-video overflow-hidden rounded-xl bg-black/5">
-              <iframe
-                title="Video"
-                src={property.media.youtubeUrl.replace('watch?v=', 'embed/')}
-                className="h-full w-full"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
+          <section>
+            <h2 className="text-base font-semibold text-brand-primary">Video</h2>
+            {property.media.youtubeUrl ? (
+              <div className="mt-3 aspect-video overflow-hidden rounded-xl bg-black/5">
+                <iframe
+                  title="Video de la propiedad"
+                  src={property.media.youtubeUrl.replace('watch?v=', 'embed/')}
+                  className="h-full w-full"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              </div>
+            ) : (
+              <div className="mt-3 rounded-xl border border-dashed border-brand-primary/15 bg-brand-surface-alt/50 px-4 py-10 text-center text-sm text-brand-muted">
+                Esta ficha no incluye video en el feed.
+              </div>
+            )}
+          </section>
+          <section>
+            <h2 className="text-base font-semibold text-brand-primary">Recorrido 360</h2>
+            {property.media.tour360Html ? (
+              <div
+                className="mt-3 min-h-[280px] overflow-hidden rounded-xl bg-black/5"
+                // eslint-disable-next-line react/no-danger
+                dangerouslySetInnerHTML={{ __html: property.media.tour360Html }}
               />
-            </div>
-          ) : null}
-          {property.media.tour360Html ? (
-            <div
-              className="mt-8 overflow-hidden rounded-xl bg-black/5"
-              // eslint-disable-next-line react/no-danger
-              dangerouslySetInnerHTML={{ __html: property.media.tour360Html }}
-            />
-          ) : null}
+            ) : (
+              <div className="mt-3 rounded-xl border border-dashed border-brand-primary/15 bg-brand-surface-alt/50 px-4 py-10 text-center text-sm text-brand-muted">
+                Sin recorrido 360 publicado en el feed.
+              </div>
+            )}
+          </section>
         </div>
-        <aside className="space-y-6 lg:col-start-2 lg:row-start-1 lg:row-span-2 lg:self-start">
+        <aside className="space-y-6 lg:col-start-2 lg:row-start-1 lg:self-start">
           <div>
             <p className="text-xs font-semibold uppercase tracking-wide text-brand-muted">
               {property.propertyTypeLabel} · {property.location.city}
@@ -219,54 +233,65 @@ export default async function PropertyDetailPage({ params, searchParams }: PageP
             </div>
           </div>
         </aside>
-        <section className="mt-8 grid gap-8 border-t border-brand-primary/10 pt-8 lg:col-start-1 lg:row-start-2 lg:mt-0 lg:border-t-0 lg:pt-0 lg:grid-cols-2">
-          <div>
-            <h2 className="text-xl font-bold text-brand-primary">Descripción</h2>
-            <div
-              className="property-html mt-4 max-w-none text-sm leading-relaxed text-brand-text [&_p]:mb-3 [&_ul]:list-disc [&_ul]:pl-5"
-              // eslint-disable-next-line react/no-danger
-              dangerouslySetInnerHTML={{ __html: property.descriptionHtml }}
-            />
-          </div>
-          <div>
-            <h2 className="text-xl font-bold text-brand-primary">Características</h2>
-            <ul className="mt-4 grid gap-2 sm:grid-cols-2">
-              {property.amenities.map((a) => (
-                <li
-                  key={a.id}
-                  className="rounded-lg border border-brand-primary/10 bg-brand-surface-alt px-3 py-2 text-sm"
-                >
-                  {a.label}
-                </li>
-              ))}
-            </ul>
-            {property.amenities.length === 0 ? (
-              <p className="mt-2 text-sm text-brand-muted">
-                Sin amenities estructuradas en la ficha; revisá la descripción.
-              </p>
-            ) : null}
-          </div>
-        </section>
       </div>
 
-      <section className="mt-14">
-        <h2 className="text-xl font-bold text-brand-primary">Ubicación</h2>
-        {mapUrl ? (
-          <iframe
-            title="Mapa"
-            src={mapUrl}
-            className="mt-4 aspect-video w-full rounded-xl border border-brand-primary/10"
-            loading="lazy"
-            allowFullScreen
+      <div className="mt-12 max-w-4xl space-y-14">
+        <section>
+          <h2 className="text-2xl font-bold text-brand-primary">Descripción</h2>
+          <div
+            className="property-html mt-5 max-w-none text-base leading-[1.75] text-brand-text md:text-lg md:leading-[1.82] [&_p]:mb-4 [&_ul]:list-disc [&_ul]:pl-5"
+            // eslint-disable-next-line react/no-danger
+            dangerouslySetInnerHTML={{ __html: property.descriptionHtml }}
           />
-        ) : (
-          <p className="mt-4 text-sm text-brand-muted">
-            {property.location.hideExactLocation
-              ? 'Ubicación aproximada por privacidad. Consultá con un asesor.'
-              : 'Coordenadas no disponibles.'}
-          </p>
-        )}
-      </section>
+        </section>
+        <section>
+          <h2 className="text-2xl font-bold text-brand-primary">Características</h2>
+          <ul className="mt-5 flex flex-wrap gap-2">
+            {property.amenities.map((a) => (
+              <li
+                key={a.id}
+                className="rounded-lg border border-brand-primary/10 bg-brand-surface-alt px-3 py-2 text-sm md:text-[15px]"
+              >
+                {a.label}
+              </li>
+            ))}
+          </ul>
+          {property.amenities.length === 0 ? (
+            <p className="mt-3 text-sm text-brand-muted">
+              Sin amenities estructuradas en la ficha; revisá la descripción.
+            </p>
+          ) : null}
+        </section>
+        <section>
+          <h2 className="text-2xl font-bold text-brand-primary">Ubicación</h2>
+          {mapEmbedSrc ? (
+            <>
+              <iframe
+                title="Mapa de la propiedad"
+                src={mapEmbedSrc}
+                className="mt-5 aspect-video w-full max-w-3xl rounded-xl border border-brand-primary/10"
+                loading="lazy"
+                allowFullScreen
+              />
+              {mapNote ? <p className="mt-2 max-w-3xl text-sm text-brand-muted">{mapNote}</p> : null}
+            </>
+          ) : (
+            <div className="mt-5 max-w-3xl rounded-xl border border-dashed border-brand-primary/15 bg-brand-surface-alt/40 px-4 py-10 text-center text-sm text-brand-muted">
+              <p>No hay datos suficientes de dirección para mostrar el mapa en esta ficha.</p>
+              {mapsSearchHref ? (
+                <a
+                  href={mapsSearchHref}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-4 inline-block text-sm font-semibold text-brand-primary-mid underline"
+                >
+                  Buscar en Google Maps
+                </a>
+              ) : null}
+            </div>
+          )}
+        </section>
+      </div>
 
       <RecentPropertiesStrip site={SITE} variant="avalon" propertyPathPrefix="/propiedades" />
 
