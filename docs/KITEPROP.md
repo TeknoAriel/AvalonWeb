@@ -79,9 +79,24 @@ pnpm kp:ingest-stats
 
 El JSON incluye `kitepropApiBaseResolved` y `premierListableCount`. Ese último es el número de filas que el **sitio Premier** mostraría **si** el `raw` del servidor fuera idéntico al de esta descarga.
 
+### Una sola orden (ingest + BFF + cron en producción)
+
+En la raíz del repo, con variables exportadas (sin pegar comentarios `#` en la misma línea que `export`):
+
+```bash
+export KITEPROP_API_KEY='kp_…'
+export KITEPROP_API_URL='https://www.kiteprop.com/api/v1'
+export CRON_SECRET='…'
+export PRODUCTION_URL_AVALON_WEB='https://avalonweb.vercel.app'
+export PRODUCTION_URL_AVALON_PREMIER='https://avalon-premier.vercel.app'
+pnpm prod:verify-alignment
+```
+
+Ejecuta `pnpm kp:ingest-stats`, luego **GET** al BFF con Bearer y finalmente el mismo smoke que `pnpm ci:verify-cron-prod` (evita errores de comillas de zsh en el `curl` manual).
+
 ### Checklist: que Premier muestre las mismas **N** que `premierListableCount`
 
-1. **`pnpm kp:ingest-stats`** en local con la misma key que **Production** en **avalonweb** → anotá `premierListableCount` (ej. 24) y `totalRows`.
+1. **`pnpm kp:ingest-stats`** en local con la misma key que **Production** en **avalonweb** → anotá `premierListableCount` (ej. 24) y `totalRows` (o usá **`pnpm prod:verify-alignment`** arriba).
 2. **avalonweb (Vercel → Production):** `KITEPROP_API_KEY` + `KITEPROP_API_URL` o `KITEPROP_API_BASE_URL`; **Redeploy** tras cambiar env.
 3. **avalon-premier (Production):** `AVALON_CATALOG_INTERNAL_URL` = `https://<tu-dominio-avalonweb>/api/internal/catalog` (sin barra final extra rara) y **`CRON_SECRET` idéntico** al de avalonweb (Bearer del BFF). **Redeploy** Premier.
 4. **Probar BFF** (desde tu máquina): `curl -sS -H "Authorization: Bearer <CRON_SECRET>" "https://<avalonweb>/api/internal/catalog"` → debe ser **200** y un JSON array; su **longitud** debe ser del orden de `totalRows` del ingest (p. ej. ~229). Premier luego **filtra en código** a las **N** listables Premier (las 24): si el array del BFF es muy corto o vacío, el sitio no podrá mostrar 24 aunque el CRM las tenga.

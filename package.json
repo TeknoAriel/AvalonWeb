@@ -10,6 +10,7 @@
     "catalog:regenerate-snapshot": "tsx scripts/regenerate-properties-snapshot.ts",
     "ci:verify-ingest": "bash scripts/ci-verify-kiteprop-ingest.sh",
     "ci:verify-cron-prod": "bash scripts/ci-verify-production-cron.sh",
+    "prod:verify-alignment": "bash scripts/verify-production-alignment.sh",
     "build": "turbo build",
     "dev": "turbo dev",
     "dev:avalon": "turbo dev --filter=avalon-propiedades",
