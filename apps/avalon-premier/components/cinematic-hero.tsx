@@ -78,32 +78,32 @@ export function CinematicHero({
           <div className="h-full w-full bg-gradient-to-br from-[#0a1524] via-[#060d18] to-[#03060c]" />
         )}
       </div>
-      {/* Overlay azul marino ~55–65%: legibilidad del texto sin matar la foto */}
+      {/* Overlay navy fuerte (~72–80 %): top/bottom más densos, centro apenas más liviano */}
       <div
-        className="absolute inset-0 bg-[linear-gradient(180deg,rgba(5,14,28,0.64)_0%,rgba(4,11,24,0.58)_42%,rgba(3,9,20,0.62)_100%)]"
+        className="absolute inset-0 bg-[linear-gradient(180deg,rgba(2,10,26,0.80)_0%,rgba(6,16,38,0.72)_46%,rgba(1,8,22,0.78)_100%)]"
         aria-hidden
       />
       <div className="relative z-10 flex min-h-[100dvh] flex-col justify-center px-6 pb-32 pt-36 md:px-14 md:pb-44 md:pt-40">
         <div className="mx-auto max-w-4xl text-center">
-          <p className="text-[10px] font-medium uppercase tracking-caps text-premier-gold/85 md:text-[11px]">
+          <p className="text-[10px] font-medium uppercase tracking-caps text-[#e8dcc8] md:text-[11px]">
             Avalon Premier
           </p>
-          <h1 className="mt-8 font-serif text-[2rem] font-normal leading-[1.08] tracking-[-0.02em] text-white md:mt-10 md:text-5xl lg:text-[3.35rem] lg:leading-[1.06]">
+          <h1 className="mt-8 font-serif text-[2rem] font-normal leading-[1.08] tracking-[-0.02em] text-[#f7f4ec] md:mt-10 md:text-5xl lg:text-[3.35rem] lg:leading-[1.06] [text-shadow:0_2px_28px_rgba(0,0,0,0.45)]">
             Propiedades de categoría superior
           </h1>
-          <p className="mx-auto mt-8 max-w-xl text-pretty text-[15px] font-light leading-[1.72] text-white/90 md:mt-9 md:text-lg md:leading-[1.75]">
-            Curaduría discreta y acompañamiento cercano — selección pensada, no volumen de catálogo.
+          <p className="mx-auto mt-8 max-w-xl text-pretty text-[15px] font-light leading-[1.75] text-[#f0ebe2]/95 md:mt-9 md:text-lg md:leading-[1.78] [text-shadow:0_1px_18px_rgba(0,0,0,0.4)]">
+            Selección discreta y acompañamiento cercano. Propiedades seleccionadas con criterio.
           </p>
           <div className="mt-12 flex flex-col items-center justify-center gap-3 sm:mt-14 sm:flex-row sm:gap-4">
             <Link
               href="/propiedades"
-              className="min-w-[200px] border border-white/25 px-8 py-3 text-center text-[10px] font-medium uppercase tracking-caps text-white transition duration-300 hover:border-white/40 hover:bg-white/[0.05] md:min-w-[220px] md:py-3.5 md:text-[11px]"
+              className="min-w-[200px] bg-[#f4f1ea] px-8 py-3 text-center text-[10px] font-semibold uppercase tracking-caps text-[#0a1628] shadow-md transition duration-300 hover:bg-[#ebe6dc] md:min-w-[220px] md:py-3.5 md:text-[11px]"
             >
               Ver colección
             </Link>
             <Link
               href="/contacto"
-              className="min-w-[200px] border border-premier-gold/50 bg-premier-gold/95 px-8 py-3 text-center text-[10px] font-medium uppercase tracking-caps text-premier-ink transition duration-300 hover:bg-[#c9b088] md:min-w-[220px] md:py-3.5 md:text-[11px]"
+              className="min-w-[200px] border-2 border-[#f4f1ea]/90 bg-transparent px-8 py-3 text-center text-[10px] font-semibold uppercase tracking-caps text-[#f7f4ec] transition duration-300 hover:border-[#f4f1ea] hover:bg-white/[0.08] md:min-w-[220px] md:py-3.5 md:text-[11px]"
             >
               Consultar disponibilidad
             </Link>

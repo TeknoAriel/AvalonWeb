@@ -6,8 +6,8 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { AVALON_HERO_IMAGES } from '@/lib/avalon-hero-images';
 
-const ROTATION_MS = 14_000;
-const FADE_MS = 2800;
+const ROTATION_MS = 15_000;
+const FADE_MS = 3200;
 
 type HeroAvalonProps = {
   tagline: string;
@@ -53,37 +53,41 @@ export function HeroAvalon(props: HeroAvalonProps) {
           <div className="h-full w-full bg-gradient-to-br from-brand-primary via-brand-primary-mid to-brand-primary" />
         )}
       </div>
-      {/* Overlay sobrio: azul de marca + leve calidez, ~55–62 % para contraste del texto */}
+      {/* Overlay más liviano que Premier: azul marca + calor suave, sin apagar la foto */}
       <div
-        className="absolute inset-0 bg-[linear-gradient(180deg,rgba(22,36,58,0.62)_0%,rgba(36,32,30,0.52)_48%,rgba(18,32,52,0.66)_100%)]"
+        className="absolute inset-0 bg-[linear-gradient(180deg,rgba(24,48,88,0.50)_0%,rgba(42,36,32,0.40)_48%,rgba(20,44,78,0.54)_100%)]"
         aria-hidden
       />
       <div className="relative z-10 mx-auto flex max-w-6xl flex-col gap-10 px-4 py-16 md:flex-row md:items-end md:justify-between md:px-6 md:py-24">
-        <div className="max-w-xl space-y-4 drop-shadow-sm">
-          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-white/88">
-            Inmobiliaria en Rosario y zona
+        <div className="max-w-xl space-y-4">
+          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[#fdf9f3]/92 [text-shadow:0_1px_12px_rgba(0,0,0,0.35)]">
+            Rosario, río y zona
           </p>
-          <h1 className="text-3xl font-bold leading-tight md:text-5xl">{props.tagline}</h1>
-          <p className="text-base text-white/92 md:text-lg md:leading-relaxed">{props.description}</p>
+          <h1 className="text-3xl font-bold leading-tight text-[#fdf9f3] [text-shadow:0_2px_20px_rgba(0,0,0,0.35)] md:text-5xl">
+            {props.tagline}
+          </h1>
+          <p className="text-base leading-relaxed text-[#f5f0e8]/95 [text-shadow:0_1px_14px_rgba(0,0,0,0.3)] md:text-lg">
+            {props.description}
+          </p>
           <div className="flex flex-wrap gap-3">
             <Link
               href="/propiedades"
-              className="inline-flex items-center justify-center rounded-md bg-white px-5 py-3 text-sm font-semibold text-brand-primary shadow-md transition hover:bg-white/95"
+              className="inline-flex items-center justify-center rounded-md bg-[#fdf9f3] px-5 py-3 text-sm font-semibold text-brand-primary shadow-md transition hover:bg-[#f2ebe0]"
             >
               Ver propiedades
             </Link>
             <Link
               href="/contacto"
-              className="inline-flex items-center justify-center rounded-md border border-white/70 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/12"
+              className="inline-flex items-center justify-center rounded-md border-2 border-[#fdf9f3]/85 bg-transparent px-5 py-3 text-sm font-semibold text-[#fdf9f3] transition hover:bg-white/10"
             >
               Asesoramiento
             </Link>
           </div>
         </div>
-        <div className="w-full max-w-md rounded-xl border border-white/20 bg-white/[0.12] p-4 shadow-lg backdrop-blur-md">
-          <p className="text-sm font-semibold text-white/95">Buscador rápido</p>
-          <p className="mt-2 text-sm leading-relaxed text-white/85">
-            Operaciones en venta, alquiler o temporario, con filtros por tipo y zona.
+        <div className="w-full max-w-md rounded-xl border border-white/25 bg-[rgba(8,24,48,0.35)] p-4 shadow-lg backdrop-blur-md">
+          <p className="text-sm font-semibold text-[#fdf9f3]">Buscador rápido</p>
+          <p className="mt-2 text-sm leading-relaxed text-[#f0ebe2]/90">
+            Venta, alquiler o temporario, con filtros por tipo y zona.
           </p>
           <Link
             href="/propiedades"
