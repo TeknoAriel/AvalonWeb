@@ -1,6 +1,8 @@
 import { getSiteBrandConfig } from '@avalon/config';
 import type { Metadata } from 'next';
+import Image from 'next/image';
 import Link from 'next/link';
+import { ROSARIO_LETRAS_EDITORIAL_SRC } from '@/lib/avalon-editorial-assets';
 import { SITE } from '@/lib/site';
 
 export const metadata: Metadata = {
@@ -15,7 +17,22 @@ export default function InstitutionalPage() {
     <div className="mx-auto max-w-3xl px-4 py-14 md:px-6">
       <h1 className="text-3xl font-bold text-brand-primary">Quiénes somos</h1>
 
-      <div className="mt-8 space-y-6 text-brand-muted">
+      <figure className="mt-8 overflow-hidden rounded-2xl border border-brand-primary/10 bg-brand-surface-alt shadow-sm">
+        <Image
+          src={ROSARIO_LETRAS_EDITORIAL_SRC}
+          alt="Letras emblemáticas de Rosario frente al río Paraná"
+          width={612}
+          height={408}
+          className="h-auto w-full object-cover"
+          sizes="(max-width: 768px) 100vw, 42rem"
+          unoptimized
+        />
+        <figcaption className="border-t border-brand-primary/10 px-4 py-3 text-center text-xs text-brand-muted">
+          Rosario — ciudad donde trabajamos y conocemos el mercado inmobiliario.
+        </figcaption>
+      </figure>
+
+      <div className="mt-10 space-y-6 text-brand-muted">
         <p>
           Somos una empresa inmobiliaria de la ciudad de Rosario con amplia trayectoria en el mercado
           local. A lo largo de los años hemos construido una reputación basada en la confianza, la
