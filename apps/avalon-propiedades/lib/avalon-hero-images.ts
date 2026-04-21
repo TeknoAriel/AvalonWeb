@@ -1,7 +1,7 @@
 /**
  * Hero home Avalon Web — 8 fotos en `public/avalon/hero/`:
- * 5 Rosario (río / skyline / altura) + 3 casas barrio privado / fin de semana.
- * Reemplazá los archivos manteniendo los mismos nombres.
+ * 01–05 Rosario (Wikimedia Commons, mismas rutas de archivo) + 3 casas locales.
+ * Reemplazá 06–08 manteniendo nombres; 01–05 conviene no pisar salvo actualización editorial.
  */
 export const AVALON_HERO_IMAGES: readonly string[] = [
   '/avalon/hero/01-rosario-rio-skyline.jpg',

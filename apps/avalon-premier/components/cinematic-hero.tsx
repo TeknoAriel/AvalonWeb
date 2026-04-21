@@ -78,20 +78,15 @@ export function CinematicHero({
           <div className="h-full w-full bg-gradient-to-br from-[#0a1524] via-[#060d18] to-[#03060c]" />
         )}
       </div>
-      {/* Overlay navy fuerte (~72–80 %): top/bottom más densos, centro apenas más liviano */}
-      <div
-        className="absolute inset-0 bg-[linear-gradient(180deg,rgba(2,10,26,0.80)_0%,rgba(6,16,38,0.72)_46%,rgba(1,8,22,0.78)_100%)]"
-        aria-hidden
-      />
       <div className="relative z-10 flex min-h-[100dvh] flex-col justify-center px-6 pb-32 pt-36 md:px-14 md:pb-44 md:pt-40">
         <div className="mx-auto max-w-4xl text-center">
-          <p className="text-[10px] font-medium uppercase tracking-caps text-[#e8dcc8] md:text-[11px]">
+          <p className="inline-block rounded-sm bg-[#0a1628] px-4 py-2.5 text-[10px] font-medium uppercase tracking-caps text-[#f7f4ec] shadow-md md:px-5 md:text-[11px]">
             Avalon Premier
           </p>
-          <h1 className="mt-8 font-serif text-[2rem] font-normal leading-[1.08] tracking-[-0.02em] text-[#f7f4ec] md:mt-10 md:text-5xl lg:text-[3.35rem] lg:leading-[1.06] [text-shadow:0_2px_28px_rgba(0,0,0,0.45)]">
+          <h1 className="mt-8 font-serif text-[2rem] font-normal leading-[1.08] tracking-[-0.02em] text-[#f7f4ec] md:mt-10 md:text-5xl lg:text-[3.35rem] lg:leading-[1.06] [text-shadow:0_2px_28px_rgba(0,0,0,0.55)]">
             Propiedades de categoría superior
           </h1>
-          <p className="mx-auto mt-8 max-w-xl text-pretty text-[15px] font-light leading-[1.75] text-[#f0ebe2]/95 md:mt-9 md:text-lg md:leading-[1.78] [text-shadow:0_1px_18px_rgba(0,0,0,0.4)]">
+          <p className="mx-auto mt-8 max-w-xl text-pretty text-[15px] font-light leading-[1.75] text-[#f7f4ec] md:mt-9 md:text-lg md:leading-[1.78] [text-shadow:0_1px_20px_rgba(0,0,0,0.5)]">
             Selección discreta y acompañamiento cercano. Propiedades seleccionadas con criterio.
           </p>
           <div className="mt-12 flex flex-col items-center justify-center gap-3 sm:mt-14 sm:flex-row sm:gap-4">
@@ -103,7 +98,7 @@ export function CinematicHero({
             </Link>
             <Link
               href="/contacto"
-              className="min-w-[200px] border-2 border-[#f4f1ea]/90 bg-transparent px-8 py-3 text-center text-[10px] font-semibold uppercase tracking-caps text-[#f7f4ec] transition duration-300 hover:border-[#f4f1ea] hover:bg-white/[0.08] md:min-w-[220px] md:py-3.5 md:text-[11px]"
+              className="min-w-[200px] border-2 border-white bg-[#0a1628] px-8 py-3 text-center text-[10px] font-semibold uppercase tracking-caps text-white shadow-md transition duration-300 hover:bg-[#0d1f36] md:min-w-[220px] md:py-3.5 md:text-[11px]"
             >
               Consultar disponibilidad
             </Link>

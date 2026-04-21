@@ -29,7 +29,7 @@ export function HeroAvalon(props: HeroAvalonProps) {
   }, [n]);
 
   return (
-    <section className="relative min-h-[78dvh] w-full overflow-hidden bg-brand-primary text-white md:min-h-[82dvh]">
+    <section className="relative min-h-[82dvh] w-full overflow-hidden bg-brand-primary text-white md:min-h-[88dvh]">
       <div className="absolute inset-0">
         {n > 0 ? (
           <div className="absolute inset-0">
@@ -39,6 +39,7 @@ export function HeroAvalon(props: HeroAvalonProps) {
                 src={src}
                 alt=""
                 fill
+                unoptimized
                 className={cn(
                   'object-cover transition-opacity ease-in-out',
                   i === slide ? 'opacity-100' : 'opacity-0',
@@ -53,9 +54,9 @@ export function HeroAvalon(props: HeroAvalonProps) {
           <div className="h-full w-full bg-gradient-to-br from-brand-primary via-brand-primary-mid to-brand-primary" />
         )}
       </div>
-      {/* Overlay más liviano que Premier: azul marca + calor suave, sin apagar la foto */}
+      {/* Ligero: la foto (Rosario + casas) debe leerse clara; solo sostiene legibilidad del texto */}
       <div
-        className="absolute inset-0 bg-[linear-gradient(180deg,rgba(24,48,88,0.50)_0%,rgba(42,36,32,0.40)_48%,rgba(20,44,78,0.54)_100%)]"
+        className="absolute inset-0 bg-[linear-gradient(180deg,rgba(24,48,88,0.28)_0%,rgba(42,36,32,0.22)_45%,rgba(20,44,78,0.32)_100%)]"
         aria-hidden
       />
       <div className="relative z-10 mx-auto flex max-w-6xl flex-col gap-10 px-4 py-16 md:flex-row md:items-end md:justify-between md:px-6 md:py-24">
