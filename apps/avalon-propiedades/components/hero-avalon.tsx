@@ -16,7 +16,7 @@ type HeroAvalonProps = {
 
 /**
  * Hero con rotación suave entre imágenes locales (ver `AVALON_HERO_IMAGES`).
- * Overlay sobrio y ligeramente cálido para legibilidad sin look “postal turística”.
+ * Overlay ~50 % azul marino para legibilidad del texto.
  */
 export function HeroAvalon(props: HeroAvalonProps) {
   const [slide, setSlide] = useState(0);
@@ -54,11 +54,8 @@ export function HeroAvalon(props: HeroAvalonProps) {
           <div className="h-full w-full bg-gradient-to-br from-brand-primary via-brand-primary-mid to-brand-primary" />
         )}
       </div>
-      {/* Ligero: la foto (Rosario + casas) debe leerse clara; solo sostiene legibilidad del texto */}
-      <div
-        className="absolute inset-0 bg-[linear-gradient(180deg,rgba(24,48,88,0.28)_0%,rgba(42,36,32,0.22)_45%,rgba(20,44,78,0.32)_100%)]"
-        aria-hidden
-      />
+      {/* ~50 % azul marino uniforme para contraste con tipografía marfil */}
+      <div className="absolute inset-0 bg-[#0a1628]/50" aria-hidden />
       <div className="relative z-10 mx-auto flex max-w-6xl flex-col gap-10 px-4 py-16 md:flex-row md:items-end md:justify-between md:px-6 md:py-24">
         <div className="max-w-xl space-y-4">
           <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[#fdf9f3]/92 [text-shadow:0_1px_12px_rgba(0,0,0,0.35)]">
