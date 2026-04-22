@@ -151,7 +151,10 @@ export function mapKitepropApiV1PropertyToRaw(p: Record<string, unknown>): RawPr
     })
     .filter((x): x is RawPropertyImage => x != null);
 
-  const agent = mapUserToAgent(p.assigned_user ?? p.user);
+  const assignedUser = mapUserToAgent(p.assigned_user);
+  const user = mapUserToAgent(p.user);
+  const broker = mapUserToAgent(p.broker);
+  const agent = mapUserToAgent(p.assigned_user ?? p.user ?? p.agent ?? p.broker);
 
   const publicUrl =
     typeof p.public_url === 'string'
@@ -218,6 +221,10 @@ export function mapKitepropApiV1PropertyToRaw(p: Record<string, unknown>): RawPr
     link_360_iframe: p.link_360 != null ? str(p.link_360) : null,
     agency: emptyAgency,
     agent,
+    assigned_user: assignedUser.id > 0 || assignedUser.name ? assignedUser : null,
+    user: user.id > 0 || user.name ? user : null,
+    broker: broker.id > 0 || broker.name ? broker : null,
+    property_code: p.property_code != null ? str(p.property_code) : p.code != null ? str(p.code) : null,
     tags: pickFirstNonEmpty(p, KITEPROP_TAG_FIELD_ALIASES),
     labels: pickFirstNonEmpty(p, KITEPROP_LABEL_FIELD_ALIASES),
     categories: pickFirstNonEmpty(p, KITEPROP_CATEGORY_FIELD_ALIASES),
@@ -273,6 +280,28 @@ export function enrichRawPropertyFromKitepropAliases(
   if (raw.is_premier === undefined) {
     const b = coalescePremierApiFlag(src.is_premier, src.isPremier, ...nestedRecordPremierCandidates(src));
     if (b !== undefined) next.is_premier = b;
+  }
+
+  if (!next.property_code) {
+    const code = pickFirstNonEmpty(src, ['property_code', 'code', 'reference', 'reference_code', 'public_id']);
+    if (typeof code === 'string' && code.trim()) {
+      next.property_code = code.trim();
+    } else if (typeof code === 'number' && Number.isFinite(code)) {
+      next.property_code = String(code);
+    }
+  }
+
+  if (!next.assigned_user) {
+    const assigned = mapUserToAgent(src.assigned_user);
+    if (assigned.id > 0 || assigned.name) next.assigned_user = assigned;
+  }
+  if (!next.user) {
+    const user = mapUserToAgent(src.user);
+    if (user.id > 0 || user.name) next.user = user;
+  }
+  if (!next.broker) {
+    const broker = mapUserToAgent(src.broker);
+    if (broker.id > 0 || broker.name) next.broker = broker;
   }
 
   return next;

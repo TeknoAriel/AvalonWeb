@@ -1,6 +1,8 @@
 import {
   buildMarketSummaryForCity,
+  getPropertyAssignedContact,
   getPropertyByIdFromRaw,
+  getPropertyCode,
   getPropertyMapEmbedSrc,
   getPropertyMapsSearchUrl,
   getRelatedPropertiesFromRaw,
@@ -63,16 +65,30 @@ export default async function PropertyDetailPage({ params }: Props) {
   const bucket =
     market && market.sampleSize >= 5 ? market.bucketForProperty(property) : null;
   const brand = getSiteBrandConfig(SITE);
-  const waDigits =
-    property.agent.phone_whatsapp?.replace(/\D/g, '') || brand.contact.whatsapp || '';
-  const telRaw = (property.agent.phone ?? brand.contact.phoneTel).replace(/\s/g, '');
+  const rawProperty = raw.find((r) => r.id === property.id);
+  const assignedContact = getPropertyAssignedContact(rawProperty ?? property, {
+    full_name: brand.contact.professionalName,
+    phone: brand.contact.phoneTel,
+    phone_whatsapp: brand.contact.whatsapp ?? null,
+  });
+  const contactName = assignedContact.full_name || brand.contact.professionalName;
+  const propertyCode = getPropertyCode(rawProperty ?? property) ?? String(property.id);
+  const waDigits = (assignedContact.phone_whatsapp ?? assignedContact.phone ?? '').replace(/\D/g, '');
+  const telRaw = (assignedContact.phone ?? brand.contact.phoneTel).replace(/\s/g, '');
   const telHref = `tel:${telRaw}`;
+  const baseWaMessage = [
+    `Hola, me interesa ${property.title}.`,
+    propertyCode ? `Código: ${propertyCode}.` : null,
+    `URL: ${brand.urls.base.replace(/\/$/, '')}/propiedades/${property.slug}-${property.id}.`,
+  ]
+    .filter(Boolean)
+    .join(' ');
   const waInfo = waDigits
-    ? `https://wa.me/${waDigits}?text=${encodeURIComponent(`Solicito información: ${property.title}`)}`
+    ? `https://wa.me/${waDigits}?text=${encodeURIComponent(baseWaMessage)}`
     : telHref;
   const waVisit = waDigits
-    ? `https://wa.me/${waDigits}?text=${encodeURIComponent(`Deseo coordinar una visita: ${property.title}`)}`
-    : '/contacto';
+    ? `https://wa.me/${waDigits}?text=${encodeURIComponent(`${baseWaMessage} Deseo coordinar una visita.`)}`
+    : telHref;
 
   const mapEmbedSrc = getPropertyMapEmbedSrc(property);
   const mapNote = propertyMapLocationNote(property);
@@ -178,7 +194,21 @@ export default async function PropertyDetailPage({ params }: Props) {
           ) : null}
 
           <section className="space-y-6">
-            <PropertyConsultaForm propertyId={property.id} variant="premier" />
+            <PropertyConsultaForm
+              propertyId={property.id}
+              variant="premier"
+              propertyContext={{
+                property_id: property.id,
+                property_code: propertyCode,
+                property_title: property.title,
+                site: 'avalon-premier',
+                assigned_user_id: assignedContact.id ?? undefined,
+                user_id: assignedContact.id ?? undefined,
+                assigned_user_name: contactName,
+                contact_phone: assignedContact.phone,
+                contact_whatsapp: assignedContact.phone_whatsapp,
+              }}
+            />
             <PropertyAskWidget propertyId={property.id} variant="premier" siteKey="premier" />
           </section>
 
@@ -262,20 +292,29 @@ export default async function PropertyDetailPage({ params }: Props) {
                 href={waInfo}
                 className="border border-brand-primary/70 py-3.5 text-center text-[10px] font-medium uppercase tracking-caps text-brand-primary transition duration-300 hover:border-brand-primary hover:bg-brand-primary/5"
               >
-                Solicitar información
+                Consultar con {contactName}
               </a>
-              <a
-                href={waVisit}
-                className="border border-premier-line/60 py-3.5 text-center text-[10px] font-medium uppercase tracking-caps text-brand-text/85 transition duration-300 hover:border-brand-accent/50 hover:text-brand-primary"
-              >
-                Coordinar visita
-              </a>
+              {waDigits ? (
+                <a
+                  href={waVisit}
+                  className="border border-premier-line/60 py-3.5 text-center text-[10px] font-medium uppercase tracking-caps text-brand-text/85 transition duration-300 hover:border-brand-accent/50 hover:text-brand-primary"
+                >
+                  WhatsApp
+                </a>
+              ) : null}
               <a
                 href={telHref}
                 className="py-1.5 text-center text-[11px] font-light tracking-wide text-brand-text/55 underline-offset-4 transition hover:text-brand-primary hover:underline"
               >
                 Llamar
               </a>
+            </div>
+            <div className="mt-8 border-t border-premier-line/35 pt-6 text-[12px] font-light text-brand-text/60">
+              <p className="text-[9px] font-medium uppercase tracking-[0.18em] text-brand-text/38">Contacto asignado</p>
+              <p className="mt-2 text-[13px] text-brand-primary">{contactName}</p>
+              {assignedContact.phone ? <p className="mt-1">Tel: {assignedContact.phone}</p> : null}
+              {assignedContact.phone_whatsapp ? <p>WhatsApp: {assignedContact.phone_whatsapp}</p> : null}
+              {assignedContact.email ? <p>Email: {assignedContact.email}</p> : null}
             </div>
             <div className="mt-10 space-y-1 border-t border-premier-line/35 pt-8 text-[12px] text-brand-text/58">
               <p className="pb-2 text-[9px] font-medium uppercase tracking-[0.18em] text-brand-text/38">
@@ -328,7 +367,7 @@ export default async function PropertyDetailPage({ params }: Props) {
         </section>
       ) : null}
 
-      <PropertyCtaBar infoHref={waInfo} visitHref={waVisit} telHref={telHref} />
+      <PropertyCtaBar infoHref={waInfo} visitHref={waDigits ? waVisit : undefined} telHref={telHref} />
     </article>
   );
 }

@@ -31,14 +31,15 @@ export default async function HomePage() {
       <section className="mx-auto max-w-6xl px-6 pb-20 pt-10 md:px-8 md:pb-24 md:pt-12">
         <div className="mx-auto max-w-2xl text-center">
           <p className="text-[11px] font-medium uppercase tracking-caps text-brand-accent/90">
-            Propiedades destacadas
+            Selección Premier
           </p>
           <h2 className="mt-4 font-serif text-3xl font-normal tracking-tight text-brand-primary md:text-4xl">
             Selección Premier
           </h2>
           <p className="mt-4 text-sm font-light leading-relaxed text-brand-text/62 md:text-base">
-            Piezas curadas del feed operativo. Cada ficha cumple criterios de calidad, documentación y
-            encaje con el posicionamiento Premier.
+            Propiedades elegidas por su calidad, su ubicación y el tipo de oportunidad que representan.
+            Una selección pensada para quienes valoran el criterio, la confianza y una mirada seria sobre
+            el mercado.
           </p>
         </div>
         {featured.length === 0 ? (

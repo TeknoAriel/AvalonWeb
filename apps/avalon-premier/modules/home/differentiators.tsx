@@ -1,15 +1,15 @@
 const ITEMS = [
   {
     title: 'Confianza',
-    body: 'Información verificada, tiempos acordados y comunicación clara con un único interlocutor senior.',
+    body: 'Información clara, seguimiento ordenado y una comunicación directa durante todo el proceso. Cada operación se trabaja con seriedad, criterio y una atención realmente personalizada.',
   },
   {
     title: 'Experiencia',
-    body: 'Procesos de compra y venta diseñados para patrimonios exigentes, con foco en resultado y privacidad.',
+    body: 'Años de trayectoria, conocimiento del mercado y una mirada práctica sobre cada operación. Acompañamos decisiones de compra, venta e inversión con criterio comercial y foco en resultado.',
   },
   {
-    title: 'Discreción',
-    body: 'Listados sensibles bajo criterio de exposición. Visitas coordinadas y acuerdos de confidencialidad cuando corresponde.',
+    title: 'Oportunidades',
+    body: 'Identificamos propiedades con valor real, buen posicionamiento y potencial de negocio. Analizamos cada caso con una mirada atenta sobre mercado, ubicación y proyección, tanto a nivel local como internacional.',
   },
 ] as const;
 

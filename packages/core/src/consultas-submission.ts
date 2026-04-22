@@ -7,11 +7,28 @@ export type WebConsultaSource = 'avalon-propiedades' | 'avalon-premier';
 const emailOk = (s: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s);
 
 function parsePropertyId(body: Record<string, unknown>): number | undefined {
-  const raw = body.propertyId;
+  const raw = body.property_id ?? body.propertyId;
   if (typeof raw === 'number' && Number.isFinite(raw)) return raw;
   if (typeof raw === 'string') {
     const n = Number.parseInt(raw, 10);
     if (Number.isFinite(n)) return n;
+  }
+  return undefined;
+}
+
+function cleanBoundedString(v: unknown, max: number): string | undefined {
+  if (typeof v !== 'string') return undefined;
+  const s = v.trim();
+  if (!s || s.length > max) return undefined;
+  return s;
+}
+
+function parseOptionalUserId(body: Record<string, unknown>, key: 'assigned_user_id' | 'user_id'): number | undefined {
+  const raw = body[key];
+  if (typeof raw === 'number' && Number.isFinite(raw) && raw > 0) return Math.trunc(raw);
+  if (typeof raw === 'string') {
+    const n = Number.parseInt(raw.trim(), 10);
+    if (Number.isFinite(n) && n > 0) return n;
   }
   return undefined;
 }
@@ -48,6 +65,13 @@ export async function submitWebConsulta(
       : undefined;
   const leadIntentId = parseLeadIntentId(body);
   const propertyId = parsePropertyId(body);
+  const propertyCode = cleanBoundedString(body.property_code, 120);
+  const propertyTitle = cleanBoundedString(body.property_title, 200);
+  const site = cleanBoundedString(body.site, 64);
+  const pageUrl = cleanBoundedString(body.page_url, 500);
+  const assignedUserId = parseOptionalUserId(body, 'assigned_user_id');
+  const userId = parseOptionalUserId(body, 'user_id');
+  const assignedUserName = cleanBoundedString(body.assigned_user_name, 160);
 
   if (name.length < 2 || name.length > 120) {
     return { ok: false, status: 400, message: 'Nombre inválido' };
@@ -65,6 +89,13 @@ export async function submitWebConsulta(
     phone,
     message,
     propertyId,
+    propertyCode,
+    propertyTitle,
+    site,
+    pageUrl,
+    assignedUserId,
+    userId,
+    assignedUserName,
     source,
     leadIntent,
     leadIntentId,

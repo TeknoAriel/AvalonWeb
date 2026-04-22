@@ -85,6 +85,14 @@ export interface RawProperty {
   link_360_iframe: string | null;
   agency: RawAgency;
   agent: RawAgent;
+  /** Algunas respuestas API v1 incluyen asignación explícita */
+  assigned_user?: RawAgent | null;
+  /** Alias frecuente en APIs legacy */
+  user?: RawAgent | null;
+  /** Alias alternativo observado en algunos feeds */
+  broker?: RawAgent | null;
+  /** Código comercial del aviso cuando el feed lo incluye */
+  property_code?: string | null;
   /** Puede existir en futuras versiones del export / API */
   tags?: unknown;
   labels?: unknown;

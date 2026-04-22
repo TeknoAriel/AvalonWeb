@@ -12,10 +12,12 @@ export function PropertyMobileCtaAvalon(props: {
   telHref: string;
   className?: string;
 }) {
-  if (!props.waDigits) return null;
-
-  const consult = `https://wa.me/${props.waDigits}?text=${encodeURIComponent(`${C.consultThisProperty}: ${props.propertyTitle}`)}`;
-  const visit = `https://wa.me/${props.waDigits}?text=${encodeURIComponent(`${C.scheduleVisit}: ${props.propertyTitle}`)}`;
+  const consult = props.waDigits
+    ? `https://wa.me/${props.waDigits}?text=${encodeURIComponent(`${C.consultThisProperty}: ${props.propertyTitle}`)}`
+    : props.telHref;
+  const visit = props.waDigits
+    ? `https://wa.me/${props.waDigits}?text=${encodeURIComponent(`${C.scheduleVisit}: ${props.propertyTitle}`)}`
+    : props.telHref;
 
   return (
     <div
@@ -29,14 +31,14 @@ export function PropertyMobileCtaAvalon(props: {
           href={consult}
           className="flex min-h-[48px] items-center justify-center rounded-md bg-brand-primary px-3 py-2.5 text-center text-[11px] font-semibold uppercase leading-tight tracking-wide text-white active:scale-[0.98]"
         >
-          {C.consultThisProperty}
+          {props.waDigits ? C.consultThisProperty : 'Llamar al asesor'}
         </a>
         <div className="grid grid-cols-2 gap-2">
           <a
             href={visit}
             className="flex min-h-[44px] items-center justify-center rounded-md border border-brand-primary/40 px-2 py-2 text-center text-[10px] font-semibold uppercase leading-tight tracking-wide text-brand-primary active:scale-[0.98]"
           >
-            {C.scheduleVisit}
+            {props.waDigits ? 'WhatsApp' : 'Llamar'}
           </a>
           <Link
             href="#consulta-propiedad"

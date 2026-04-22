@@ -1,4 +1,5 @@
 import { kitepropOutboundUserAgent } from './kiteprop-outbound';
+import { submitConsultaViaLeadAdapters } from './kiteprop-leads-adapter';
 
 /**
  * POST al CRM KiteProp (`/api/v1/messages`, `/api/v1/contacts` o URL legacy).
@@ -10,6 +11,13 @@ export type KitepropConsultaInput = {
   phone?: string;
   message: string;
   propertyId?: number;
+  propertyCode?: string;
+  propertyTitle?: string;
+  site?: string;
+  pageUrl?: string;
+  assignedUserId?: number;
+  userId?: number;
+  assignedUserName?: string;
   /** Origen CRM (ej. avalon-propiedades / avalon-premier / Web Avalon) */
   source?: string;
   /** Etiqueta corta de intención (se antepone al cuerpo del mensaje en el CRM) */
@@ -26,21 +34,6 @@ function apiKey(): string {
   return (process.env.KITEPROP_API_KEY || process.env.KITEPROP_API_TOKEN || '').trim();
 }
 
-/** Host sin path final (ej. https://www.kiteprop.com). */
-function resolveKitepropApiRoot(): string {
-  const direct = process.env.KITEPROP_API_URL?.trim();
-  if (direct) return direct.replace(/\/$/, '');
-
-  const base = process.env.KITEPROP_API_BASE_URL?.trim() ?? '';
-  if (base) {
-    const b = base.replace(/\/$/, '');
-    if (b.endsWith('/api/v1')) return b.slice(0, -'/api/v1'.length);
-    return b;
-  }
-
-  return 'https://www.kiteprop.com';
-}
-
 const LEAD_INTENT_IDS = new Set(['visita', 'contacto', 'similar', 'zona', 'tasacion']);
 
 function buildIntentPrefix(input: KitepropConsultaInput): string {
@@ -54,15 +47,6 @@ function buildIntentPrefix(input: KitepropConsultaInput): string {
     return `[Intención: ${label}]\n\n`;
   }
   return '';
-}
-
-function splitName(full: string): { first_name: string; last_name?: string } {
-  const parts = full.trim().split(/\s+/).filter(Boolean);
-  if (!parts.length) return { first_name: 'Consulta' };
-  const first_name = parts[0]!;
-  const rest = parts.slice(1).join(' ');
-  if (!rest) return { first_name };
-  return { first_name, last_name: rest };
 }
 
 async function postJson(
@@ -105,46 +89,40 @@ export async function postConsultaToKiteprop(
   const intentPrefix = buildIntentPrefix(input);
 
   if (legacyUrl) {
+    const extras = [
+      input.propertyTitle ? `Propiedad: ${input.propertyTitle}` : null,
+      input.propertyCode ? `Código: ${input.propertyCode}` : null,
+      input.pageUrl ? `URL: ${input.pageUrl}` : null,
+      input.assignedUserName ? `Asesor: ${input.assignedUserName}` : null,
+    ]
+      .filter(Boolean)
+      .join(' · ');
     const body = {
       full_name: input.name.trim(),
       email: input.email.trim(),
       phone: (input.phone ?? '').trim(),
-      body: `${intentPrefix}${input.message.trim()}`,
+      body: `${intentPrefix}${input.message.trim()}${extras ? `\n\n${extras}` : ''}`,
       property_id: input.propertyId ?? null,
-      source: input.source ?? 'avalon_web',
+      source: input.source ?? input.site ?? 'avalon_web',
     };
     return postJson(legacyUrl, key, body);
   }
 
-  const root = resolveKitepropApiRoot();
-  const pid = input.propertyId;
-  const hasProperty =
-    pid != null && Number.isFinite(pid) && typeof pid === 'number' && pid > 0;
+  const extras = [
+    input.propertyTitle ? `Propiedad: ${input.propertyTitle}` : null,
+    input.propertyCode ? `Código: ${input.propertyCode}` : null,
+    input.pageUrl ? `URL: ${input.pageUrl}` : null,
+    input.assignedUserName ? `Asesor: ${input.assignedUserName}` : null,
+  ]
+    .filter(Boolean)
+    .join(' · ');
+  const composed = `${intentPrefix}${input.message.trim()}${extras ? `\n\n${extras}` : ''}`;
 
-  if (hasProperty) {
-    const footer = [
-      `Nombre: ${input.name.trim()}`,
-      input.phone?.trim() ? `Tel: ${input.phone.trim()}` : null,
-    ]
-      .filter(Boolean)
-      .join(' · ');
-    const bodyText = `${intentPrefix}${input.message.trim()}\n\n— ${footer}`;
-    return postJson(`${root}/api/v1/messages`, key, {
-      email: input.email.trim(),
-      body: bodyText,
-      property_id: pid,
-    });
-  }
-
-  const { first_name, last_name } = splitName(input.name);
-  const payload: Record<string, unknown> = {
-    first_name,
-    email: input.email.trim(),
-    summary: `${intentPrefix}${input.message.trim()}`,
-    source: input.source ?? 'Web Avalon',
-  };
-  if (last_name) payload.last_name = last_name;
-  if (input.phone?.trim()) payload.phone = input.phone.trim();
-
-  return postJson(`${root}/api/v1/contacts`, key, payload);
+  return submitConsultaViaLeadAdapters(
+    {
+      ...input,
+      source: input.source ?? input.site,
+    },
+    composed,
+  );
 }

@@ -4,7 +4,7 @@ import { cn } from '@avalon/utils';
 
 export function PropertyCtaBar(props: {
   infoHref: string;
-  visitHref: string;
+  visitHref?: string;
   telHref?: string;
   className?: string;
 }) {
@@ -23,12 +23,14 @@ export function PropertyCtaBar(props: {
           >
             Solicitar información
           </a>
-          <a
-            href={props.visitHref}
-            className="flex-1 border border-premier-line/55 py-3 text-center text-[10px] font-medium uppercase tracking-caps text-brand-text/85"
-          >
-            Coordinar visita
-          </a>
+          {props.visitHref ? (
+            <a
+              href={props.visitHref}
+              className="flex-1 border border-premier-line/55 py-3 text-center text-[10px] font-medium uppercase tracking-caps text-brand-text/85"
+            >
+              WhatsApp
+            </a>
+          ) : null}
         </div>
         {props.telHref ? (
           <a

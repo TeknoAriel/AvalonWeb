@@ -1,5 +1,7 @@
 import {
+  getPropertyAssignedContact,
   getPropertyByIdFromRaw,
+  getPropertyCode,
   getPropertyMapEmbedSrc,
   getPropertyMapsSearchUrl,
   getRelatedPropertiesFromRaw,
@@ -74,15 +76,29 @@ export default async function PropertyDetailPage({ params, searchParams }: PageP
 
   const related = getRelatedPropertiesFromRaw(SITE, property, raw, 3);
   const brand = getSiteBrandConfig(SITE);
-  const waDigits =
-    property.agent.phone_whatsapp?.replace(/\D/g, '') || brand.contact.whatsapp || '';
+  const rawProperty = raw.find((r) => r.id === property.id);
+  const assignedContact = getPropertyAssignedContact(rawProperty ?? property, {
+    full_name: brand.contact.professionalName,
+    phone: brand.contact.phoneTel,
+    phone_whatsapp: brand.contact.whatsapp ?? null,
+  });
+  const contactName = assignedContact.full_name || brand.contact.professionalName;
+  const waDigits = (assignedContact.phone_whatsapp ?? assignedContact.phone ?? '').replace(/\D/g, '');
   const C = PORTAL_LISTING_UX_COPY.cta;
-  const telHref = `tel:${(property.agent.phone ?? brand.contact.phoneTel).replace(/\s/g, '')}`;
+  const propertyCode = getPropertyCode(rawProperty ?? property) ?? String(property.id);
+  const telHref = `tel:${(assignedContact.phone ?? brand.contact.phoneTel).replace(/\s/g, '')}`;
+  const baseWaMessage = [
+    `Hola, quiero consultar por ${property.title}.`,
+    propertyCode ? `Código: ${propertyCode}.` : null,
+    `URL: ${brand.urls.base.replace(/\/$/, '')}/propiedades/${property.slug}-${property.id}.`,
+  ]
+    .filter(Boolean)
+    .join(' ');
   const waConsult = waDigits
-    ? `https://wa.me/${waDigits}?text=${encodeURIComponent(`${C.consultThisProperty}: ${property.title}`)}`
+    ? `https://wa.me/${waDigits}?text=${encodeURIComponent(baseWaMessage)}`
     : telHref;
   const waVisit = waDigits
-    ? `https://wa.me/${waDigits}?text=${encodeURIComponent(`${C.scheduleVisit}: ${property.title}`)}`
+    ? `https://wa.me/${waDigits}?text=${encodeURIComponent(`${baseWaMessage} Deseo coordinar una visita.`)}`
     : telHref;
 
   const mapEmbedSrc = getPropertyMapEmbedSrc(property);
@@ -198,12 +214,21 @@ export default async function PropertyDetailPage({ params, searchParams }: PageP
           </div>
           <div className="rounded-xl border border-brand-primary/10 bg-white p-5 shadow-sm">
             <PriceSummary property={property} className="text-lg font-bold text-brand-primary" />
+            <div className="mt-5 rounded-lg border border-brand-primary/12 bg-brand-surface-alt/45 p-4">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-brand-muted">Asesor asignado</p>
+              <p className="mt-1 text-sm font-semibold text-brand-primary">{contactName}</p>
+              <div className="mt-2 space-y-1 text-xs text-brand-muted">
+                {assignedContact.phone ? <p>Tel: {assignedContact.phone}</p> : null}
+                {assignedContact.phone_whatsapp ? <p>WhatsApp: {assignedContact.phone_whatsapp}</p> : null}
+                {assignedContact.email ? <p>Email: {assignedContact.email}</p> : null}
+              </div>
+            </div>
             <div className="mt-5 flex flex-col gap-3 text-sm">
               <a
                 className="rounded-md bg-brand-primary py-3.5 text-center text-sm font-semibold text-white transition active:scale-[0.99]"
                 href={waDigits ? waConsult : telHref}
               >
-                {C.consultThisProperty}
+                Consultar con {contactName}
               </a>
               {waDigits ? (
                 <div className="flex flex-col gap-2.5">
@@ -211,13 +236,13 @@ export default async function PropertyDetailPage({ params, searchParams }: PageP
                     className="rounded-md border border-brand-primary/35 py-3 text-center text-sm font-semibold text-brand-primary transition active:scale-[0.99]"
                     href={waVisit}
                   >
-                    {C.scheduleVisit}
+                    WhatsApp
                   </a>
                   <a
                     className="py-2 text-center text-sm font-medium text-brand-primary-mid underline-offset-2 hover:underline"
                     href={telHref}
                   >
-                    {C.call}
+                    Llamar
                   </a>
                 </div>
               ) : (
@@ -225,7 +250,7 @@ export default async function PropertyDetailPage({ params, searchParams }: PageP
                   className="rounded-md border border-brand-primary/35 py-3 text-center text-sm font-semibold text-brand-primary transition active:scale-[0.99]"
                   href={telHref}
                 >
-                  {C.scheduleVisit}
+                  Llamar
                 </a>
               )}
               <a
@@ -236,7 +261,21 @@ export default async function PropertyDetailPage({ params, searchParams }: PageP
               </a>
             </div>
             <div id="consulta-propiedad" className="mt-7 scroll-mt-28">
-              <PropertyConsultaForm propertyId={property.id} variant="avalon" />
+              <PropertyConsultaForm
+                propertyId={property.id}
+                variant="avalon"
+                propertyContext={{
+                  property_id: property.id,
+                  property_code: propertyCode,
+                  property_title: property.title,
+                  site: 'avalon-propiedades',
+                  assigned_user_id: assignedContact.id ?? undefined,
+                  user_id: assignedContact.id ?? undefined,
+                  assigned_user_name: contactName,
+                  contact_phone: assignedContact.phone,
+                  contact_whatsapp: assignedContact.phone_whatsapp,
+                }}
+              />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-3 text-sm">
@@ -343,13 +382,7 @@ export default async function PropertyDetailPage({ params, searchParams }: PageP
         </section>
       ) : null}
 
-      {waDigits ? (
-        <PropertyMobileCtaAvalon
-          waDigits={waDigits}
-          propertyTitle={property.title}
-          telHref={telHref}
-        />
-      ) : null}
+      <PropertyMobileCtaAvalon waDigits={waDigits} propertyTitle={property.title} telHref={telHref} />
     </article>
   );
 }

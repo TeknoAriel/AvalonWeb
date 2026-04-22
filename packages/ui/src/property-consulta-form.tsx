@@ -2,9 +2,22 @@
 
 import { isFeatureEnabled } from '@avalon/config';
 import { cn, trackAvalonEvent } from '@avalon/utils';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 type Variant = 'avalon' | 'premier';
+type SiteSource = 'avalon-propiedades' | 'avalon-premier';
+
+type PropertyInquiryContext = {
+  property_id: number;
+  property_code?: string | null;
+  property_title?: string;
+  site?: SiteSource;
+  assigned_user_id?: number | null;
+  user_id?: number | null;
+  assigned_user_name?: string | null;
+  contact_phone?: string | null;
+  contact_whatsapp?: string | null;
+};
 
 const LEAD_INTENTS_AVALON: { id: string; label: string }[] = [
   { id: 'visita', label: 'Coordinar visita' },
@@ -23,7 +36,11 @@ const LEAD_INTENTS_PREMIER: { id: string; label: string }[] = [
   { id: 'tasacion', label: 'Orientación de valor' },
 ];
 
-export function PropertyConsultaForm(props: { propertyId?: number; variant: Variant }) {
+export function PropertyConsultaForm(props: {
+  propertyId?: number;
+  variant: Variant;
+  propertyContext?: PropertyInquiryContext;
+}) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -32,13 +49,32 @@ export function PropertyConsultaForm(props: { propertyId?: number; variant: Vari
   const [status, setStatus] = useState<'idle' | 'loading' | 'ok' | 'err'>('idle');
   const [errMsg, setErrMsg] = useState('');
   const [leadIntent, setLeadIntent] = useState<string | undefined>();
+  const [pageUrl, setPageUrl] = useState('');
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') setPageUrl(window.location.href);
+  }, []);
 
   const isPremier = props.variant === 'premier';
   const leadIntents = isPremier ? LEAD_INTENTS_PREMIER : LEAD_INTENTS_AVALON;
+  const context = props.propertyContext;
+  const effectivePropertyId = context?.property_id ?? props.propertyId;
   const isProperty =
-    typeof props.propertyId === 'number' &&
-    Number.isFinite(props.propertyId) &&
-    props.propertyId > 0;
+    typeof effectivePropertyId === 'number' &&
+    Number.isFinite(effectivePropertyId) &&
+    effectivePropertyId > 0;
+  const sourceSite: SiteSource = context?.site ?? (isPremier ? 'avalon-premier' : 'avalon-propiedades');
+  const waDigits = (context?.contact_whatsapp ?? context?.contact_phone ?? '').replace(/\D/g, '');
+  const waPrefill = [
+    `Hola, me interesa la propiedad ${context?.property_title ?? 'publicada en Avalon'}.`,
+    context?.property_code ? `Código: ${context.property_code}.` : null,
+    pageUrl ? `URL: ${pageUrl}` : null,
+    name.trim() ? `Soy ${name.trim()}.` : null,
+    'Quedo atento/a a más información.',
+  ]
+    .filter(Boolean)
+    .join(' ');
+  const whatsappHref = waDigits ? `https://wa.me/${waDigits}?text=${encodeURIComponent(waPrefill)}` : null;
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -63,7 +99,22 @@ export function PropertyConsultaForm(props: { propertyId?: number; variant: Vari
           email,
           phone,
           message: effectiveMessage,
-          ...(isProperty ? { propertyId: props.propertyId } : {}),
+          ...(isProperty
+            ? {
+                property_id: effectivePropertyId,
+                property_code: context?.property_code ?? null,
+                property_title: context?.property_title ?? null,
+                site: sourceSite,
+                page_url: pageUrl || null,
+                assigned_user_id: context?.assigned_user_id ?? null,
+                user_id: context?.user_id ?? null,
+                assigned_user_name: context?.assigned_user_name ?? null,
+              }
+            : {
+                site: sourceSite,
+                page_url: pageUrl || null,
+              }),
+          ...(isProperty ? { propertyId: effectivePropertyId } : {}),
           ...(leadIntent ? { leadIntentId: leadIntent } : {}),
           ...(intentLabel ? { leadIntent: intentLabel } : {}),
         }),
@@ -243,6 +294,19 @@ export function PropertyConsultaForm(props: { propertyId?: number; variant: Vari
       >
         {status === 'loading' ? 'Enviando…' : isPremier ? 'Enviar solicitud' : 'Enviar consulta'}
       </button>
+      {isProperty && whatsappHref ? (
+        <a
+          href={whatsappHref}
+          className={cn(
+            'block w-full border py-2.5 text-center text-xs font-semibold transition',
+            isPremier
+              ? 'border-brand-accent/60 text-brand-accent hover:bg-brand-accent/10'
+              : 'border-brand-primary/20 text-brand-primary hover:bg-brand-primary/5',
+          )}
+        >
+          WhatsApp
+        </a>
+      ) : null}
 
       {status === 'ok' ? (
         <p className={cn('text-sm', isPremier ? 'text-brand-accent' : 'text-green-700')}>

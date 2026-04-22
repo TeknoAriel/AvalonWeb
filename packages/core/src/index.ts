@@ -58,6 +58,14 @@ export {
 } from './kiteprop-api-mapper';
 export { postConsultaToKiteprop, type KitepropConsultaInput, type KitepropConsultaResult } from './kiteprop-consulta';
 export {
+  createOrUpsertLead,
+  attachPropertyInquiry,
+  assignLeadToUser,
+  submitConsultaViaLeadAdapters,
+  type CreateOrUpsertLeadInput,
+  type AttachPropertyInquiryInput,
+} from './kiteprop-leads-adapter';
+export {
   submitWebConsulta,
   submitWebConsultaWithOptionalAvalonProxy,
   type WebConsultaSource,
@@ -105,3 +113,11 @@ export {
   getPropertyMapsSearchUrl,
   propertyMapLocationNote,
 } from './property-map-embed';
+export {
+  getPropertyAssignedContact,
+  getPropertyCode,
+  resolvePropertyAssignedContact,
+  type PropertyAssignedContact,
+  type PropertyAssignedContactResolved,
+  type PropertyAssignedContactSource,
+} from './property-assigned-contact';
