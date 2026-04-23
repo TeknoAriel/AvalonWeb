@@ -18,6 +18,7 @@ export type AttachPropertyInquiryInput = {
   email: string;
   body: string;
   phone?: string;
+  name: string;
 };
 
 function apiKey(): string {
@@ -69,9 +70,6 @@ async function postJson(url: string, body: Record<string, unknown>): Promise<Lea
       body: JSON.stringify(body),
     });
     const raw = await res.text().catch(() => res.statusText);
-    if (!res.ok) {
-      return { ok: false, status: res.status, message: raw.slice(0, 500) };
-    }
     const json = (() => {
       try {
         return JSON.parse(raw) as Record<string, unknown>;
@@ -85,6 +83,9 @@ async function postJson(url: string, body: Record<string, unknown>): Promise<Lea
           ? json.errorMessage.trim()
           : 'KiteProp respondió success=false';
       return { ok: false, status: res.status, message: `${err} · ${raw.slice(0, 400)}` };
+    }
+    if (!res.ok) {
+      return { ok: false, status: res.status, message: raw.slice(0, 500) };
     }
     return {
       ok: true,
@@ -119,6 +120,7 @@ export async function attachPropertyInquiry(
 ): Promise<LeadAdapterResult> {
   const root = resolveKitepropApiRoot();
   const payload: Record<string, unknown> = {
+    name: input.name.trim(),
     email: input.email.trim(),
     body: input.body.trim(),
     property_id: input.propertyId,
@@ -148,6 +150,7 @@ export async function submitConsultaViaLeadAdapters(
       email: input.email.trim(),
       body: composedMessage,
       phone: input.phone,
+      name: input.name,
     });
     if (!attach.ok) return attach;
     const assign = await assignLeadToUser(input.assignedUserId ?? input.userId ?? undefined);

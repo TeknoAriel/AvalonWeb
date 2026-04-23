@@ -67,9 +67,6 @@ async function postJson(
     });
 
     const raw = await res.text().catch(() => res.statusText);
-    if (!res.ok) {
-      return { ok: false, status: res.status, message: raw.slice(0, 500) };
-    }
     const json = (() => {
       try {
         return JSON.parse(raw) as Record<string, unknown>;
@@ -83,6 +80,9 @@ async function postJson(
           ? json.errorMessage.trim()
           : 'KiteProp respondió success=false';
       return { ok: false, status: res.status, message: `${err} · ${raw.slice(0, 400)}` };
+    }
+    if (!res.ok) {
+      return { ok: false, status: res.status, message: raw.slice(0, 500) };
     }
     return { ok: true, status: res.status };
   } catch (e) {
