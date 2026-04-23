@@ -17,8 +17,7 @@ export function MediaGallery({ media, brand, className, layout = 'default' }: Me
   const [idx, setIdx] = useState(0);
   const images = media.images;
   const current = images[idx] ?? images[0];
-
-  const thumbs = useMemo(() => images.slice(0, 8), [images]);
+  const thumbs = useMemo(() => images, [images]);
 
   if (!current) {
     return (
@@ -97,14 +96,14 @@ export function MediaGallery({ media, brand, className, layout = 'default' }: Me
         />
       </div>
       {thumbs.length > 1 ? (
-        <div className="grid grid-cols-4 gap-2 sm:grid-cols-8">
+        <div className="flex gap-2 overflow-x-auto pb-1 sm:grid sm:grid-cols-8 sm:gap-2 sm:overflow-visible sm:pb-0">
           {thumbs.map((img, i) => (
             <button
-              key={img.url}
+              key={`${img.url}-${i}`}
               type="button"
               onClick={() => setIdx(i)}
               className={cn(
-                'relative aspect-[4/3] overflow-hidden rounded-lg border-2 transition',
+                'relative aspect-[4/3] w-24 shrink-0 overflow-hidden rounded-lg border-2 transition sm:w-auto',
                 i === idx
                   ? 'border-[color:var(--color-brand-accent)] opacity-100'
                   : 'border-transparent opacity-70 hover:opacity-100'

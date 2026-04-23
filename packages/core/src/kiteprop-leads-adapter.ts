@@ -17,6 +17,7 @@ export type AttachPropertyInquiryInput = {
   propertyId: number;
   email: string;
   body: string;
+  phone?: string;
 };
 
 function apiKey(): string {
@@ -97,11 +98,13 @@ export async function attachPropertyInquiry(
   input: AttachPropertyInquiryInput,
 ): Promise<LeadAdapterResult> {
   const root = resolveKitepropApiRoot();
-  return postJson(`${root}/api/v1/messages`, {
+  const payload: Record<string, unknown> = {
     email: input.email.trim(),
     body: input.body.trim(),
     property_id: input.propertyId,
-  });
+  };
+  if (input.phone?.trim()) payload.phone = input.phone.trim();
+  return postJson(`${root}/api/v1/messages`, payload);
 }
 
 /**
@@ -120,19 +123,11 @@ export async function submitConsultaViaLeadAdapters(
   const hasProperty = pid != null && Number.isFinite(pid) && typeof pid === 'number' && pid > 0;
 
   if (hasProperty) {
-    const footer = [
-      `Nombre: ${input.name.trim()}`,
-      input.phone?.trim() ? `Tel: ${input.phone.trim()}` : null,
-      input.propertyCode ? `Código: ${input.propertyCode}` : null,
-      input.pageUrl ? `URL: ${input.pageUrl}` : null,
-    ]
-      .filter(Boolean)
-      .join(' · ');
-
     const attach = await attachPropertyInquiry({
       propertyId: pid,
       email: input.email.trim(),
-      body: `${composedMessage}\n\n— ${footer}`.trim(),
+      body: composedMessage,
+      phone: input.phone,
     });
     if (!attach.ok) return attach;
     const assign = await assignLeadToUser(input.assignedUserId ?? input.userId ?? undefined);
