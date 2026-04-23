@@ -61,11 +61,24 @@ async function postJson(url: string, body: Record<string, unknown>): Promise<Lea
       },
       body: JSON.stringify(body),
     });
+    const raw = await res.text().catch(() => res.statusText);
     if (!res.ok) {
-      const text = await res.text().catch(() => res.statusText);
-      return { ok: false, status: res.status, message: text.slice(0, 500) };
+      return { ok: false, status: res.status, message: raw.slice(0, 500) };
     }
-    const json = (await res.json().catch(() => null)) as Record<string, unknown> | null;
+    const json = (() => {
+      try {
+        return JSON.parse(raw) as Record<string, unknown>;
+      } catch {
+        return null;
+      }
+    })();
+    if (json && typeof json === 'object' && 'success' in json && json.success === false) {
+      const err =
+        typeof json.errorMessage === 'string' && json.errorMessage.trim()
+          ? json.errorMessage.trim()
+          : 'KiteProp respondió success=false';
+      return { ok: false, status: res.status, message: `${err} · ${raw.slice(0, 400)}` };
+    }
     return {
       ok: true,
       status: res.status,
@@ -102,8 +115,8 @@ export async function attachPropertyInquiry(
     email: input.email.trim(),
     body: input.body.trim(),
     property_id: input.propertyId,
+    phone: (input.phone ?? '').trim(),
   };
-  if (input.phone?.trim()) payload.phone = input.phone.trim();
   return postJson(`${root}/api/v1/messages`, payload);
 }
 
