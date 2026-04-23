@@ -25,8 +25,15 @@ function apiKey(): string {
 }
 
 function resolveKitepropApiRoot(): string {
+  /**
+   * `KITEPROP_API_URL` suele ser `https://www.kiteprop.com/api/v1` (host + versión).
+   * Los POST van a `{host}/api/v1/...`, por eso hay que **sacar** `/api/v1` del final si viene duplicado.
+   */
   const direct = process.env.KITEPROP_API_URL?.trim();
-  if (direct) return direct.replace(/\/$/, '');
+  if (direct) {
+    const d = direct.replace(/\/$/, '');
+    return d.endsWith('/api/v1') ? d.slice(0, -'/api/v1'.length) : d;
+  }
 
   const base = process.env.KITEPROP_API_BASE_URL?.trim() ?? '';
   if (base) {
