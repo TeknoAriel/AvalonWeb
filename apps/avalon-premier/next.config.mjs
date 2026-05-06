@@ -9,6 +9,7 @@ const nextConfig = {
     '@avalon/utils',
   ],
   images: {
+    unoptimized: true,
     remotePatterns: [
       {
         protocol: 'https',
