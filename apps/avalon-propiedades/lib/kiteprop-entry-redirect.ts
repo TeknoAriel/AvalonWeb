@@ -20,8 +20,10 @@ function isAbsoluteHttpUrl(s: string): boolean {
 }
 
 /**
- * Destino Premier para redirects solo servidor: `PREMIER_SITE_URL` / `PREMIER_REDIRECT_URL`
- * (runtime en Vercel) evitan depender del bundle `NEXT_PUBLIC_*` del build.
+ * Destino Premier para redirects:
+ * - `PREMIER_SITE_URL` / `PREMIER_REDIRECT_URL` (servidor) tienen prioridad si están definidos.
+ * - Si `NEXT_PUBLIC_PEER_SITE_URL` quedó en `*.vercel.app`, la Location debe ser el dominio público
+ *   `www.avalonpremier.com.ar`, no la URL default del proyecto en Vercel.
  */
 function premierRedirectBase(peerFromBrand: string): string {
   if (typeof process !== 'undefined') {
@@ -29,8 +31,18 @@ function premierRedirectBase(peerFromBrand: string): string {
     if (raw) return baseNoSlash(raw);
   }
   const b = baseNoSlash(peerFromBrand);
-  if (b && isAbsoluteHttpUrl(b)) return b;
-  return FALLBACK_PREMIER_ORIGIN;
+  if (!b || !isAbsoluteHttpUrl(b)) {
+    return FALLBACK_PREMIER_ORIGIN;
+  }
+  try {
+    const host = new URL(b).hostname;
+    if (host.endsWith('.vercel.app')) {
+      return FALLBACK_PREMIER_ORIGIN;
+    }
+  } catch {
+    return FALLBACK_PREMIER_ORIGIN;
+  }
+  return b;
 }
 
 /** ID desde `508473` o slug `508473-propiedad` (también `parseInt` corta en el guion). */
