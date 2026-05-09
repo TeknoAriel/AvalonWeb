@@ -3,13 +3,14 @@ import {
   buildPropertySlug,
   buildRealEstateListingJsonLd,
   getPropertyAssignedContact,
-  getPropertyByIdFromRaw,
   getPropertyCode,
   getPropertyDetailSeo,
   getPropertyMapEmbedSrc,
   getPropertyMapsSearchUrl,
   getRelatedPropertiesFromRaw,
   getSitePropertiesFromRaw,
+  isPremierSiteListable,
+  normalizeProperty,
   parsePropertySlugParam,
   propertyMapLocationNote,
 } from '@avalon/core';
@@ -52,18 +53,7 @@ function serializeSearchParams(sp: PageProps['searchParams']): string {
   return s ? `?${s}` : '';
 }
 
-export async function generateMetadata({ params }: Pick<PageProps, 'params'>): Promise<Metadata> {
-  const id = parsePropertySlugParam(params.slug);
-  if (id == null) return { title: 'Propiedad' };
-  const raw = await getCachedRawProperties();
-  const rawRow = raw.find((r) => r.id === id);
-  const slugCanon = rawRow ? buildPropertySlug(rawRow) : params.slug;
-  const p = getPropertyByIdFromRaw(SITE, id, raw);
-  if (!p) return { title: 'Propiedad' };
-  const brand = getSiteBrandConfig(SITE);
-  const base = brand.urls.base.replace(/\/$/, '');
-  const listingUrl = `${base}/propiedades/${slugCanon}`;
-  const seo = getPropertyDetailSeo(p, listingUrl);
+function metadataFromSeo(seo: ReturnType<typeof getPropertyDetailSeo>): Metadata {
   return {
     title: seo.title,
     description: seo.description,
@@ -85,6 +75,19 @@ export async function generateMetadata({ params }: Pick<PageProps, 'params'>): P
   };
 }
 
+export async function generateMetadata({ params }: Pick<PageProps, 'params'>): Promise<Metadata> {
+  const id = parsePropertySlugParam(params.slug);
+  if (id == null) return { title: 'Propiedad' };
+  const raw = await getCachedRawProperties();
+  const rawRow = raw.find((r) => r.id === id);
+  if (!rawRow || !isPremierSiteListable(rawRow)) return { title: 'Propiedad' };
+  const slugCanon = rawRow ? buildPropertySlug(rawRow) : params.slug;
+  const brand = getSiteBrandConfig(SITE);
+  const base = brand.urls.base.replace(/\/$/, '');
+  const listingUrl = `${base}/propiedades/${slugCanon}`;
+  return metadataFromSeo(getPropertyDetailSeo(normalizeProperty(rawRow), listingUrl));
+}
+
 export default async function PropertyDetailPage({ params, searchParams }: PageProps) {
   const id = parsePropertySlugParam(params.slug);
   if (id == null) notFound();
@@ -96,8 +99,8 @@ export default async function PropertyDetailPage({ params, searchParams }: PageP
       redirect(`/propiedades/${canon}${serializeSearchParams(searchParams)}`);
     }
   }
-  const property = getPropertyByIdFromRaw(SITE, id, raw);
-  if (!property) notFound();
+  if (!rawRow || !isPremierSiteListable(rawRow)) notFound();
+  const property = normalizeProperty(rawRow);
 
   const related = getRelatedPropertiesFromRaw(SITE, property, raw, 3);
   const siteList = getSitePropertiesFromRaw(SITE, raw);
@@ -110,14 +113,13 @@ export default async function PropertyDetailPage({ params, searchParams }: PageP
   const brand = getSiteBrandConfig(SITE);
   const listingUrl = `${brand.urls.base.replace(/\/$/, '')}/propiedades/${params.slug}`;
   const listingJsonLd = buildRealEstateListingJsonLd(property, listingUrl, brand.name);
-  const rawProperty = raw.find((r) => r.id === property.id);
-  const assignedContact = getPropertyAssignedContact(rawProperty ?? property, {
+  const assignedContact = getPropertyAssignedContact(rawRow ?? property, {
     full_name: brand.contact.professionalName,
     phone: brand.contact.phoneTel,
     phone_whatsapp: brand.contact.whatsapp ?? null,
   });
   const contactName = assignedContact.full_name || brand.contact.professionalName;
-  const propertyCode = getPropertyCode(rawProperty ?? property) ?? String(property.id);
+  const propertyCode = getPropertyCode(rawRow ?? property) ?? String(property.id);
   const waDigits = (assignedContact.phone_whatsapp ?? assignedContact.phone ?? '').replace(/\D/g, '');
   const telRaw = (assignedContact.phone ?? brand.contact.phoneTel).replace(/\s/g, '');
   const telHref = `tel:${telRaw}`;

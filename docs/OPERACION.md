@@ -2,6 +2,8 @@
 
 **Deploy y comprobación automática:** ver [`docs/DEPLOY_VERIFICATION.md`](./DEPLOY_VERIFICATION.md) (post-deploy, BFF, doble deploy Git vs Actions).
 
+**Redirecciones KiteProp → Web/Premier, dominios, consultas, cron y mapa de archivos (resumen negocio + técnico):** ver [`docs/ESTADO_WEB_REDIRECCIONES_Y_CONSULTAS.md`](./ESTADO_WEB_REDIRECCIONES_Y_CONSULTAS.md).
+
 **Ingest KiteProp (URL + key, cabecera `X-API-Key`) y alinear Premier con `premierListableCount`:** ver [`docs/KITEPROP.md`](./KITEPROP.md) (secciones *variables que no usa el código*, *Ingest local*, *Checklist Premier*).
 
 **Modelo:** el ingest canónico vive en **Avalon Web**. **Avalon Premier** prioriza la **misma API KiteProp** si definís `KITEPROP_API_KEY` ahí; el **BFF** (`AVALON_CATALOG_INTERNAL_URL`) queda como respaldo. **Un solo secreto servidor** compartido: `CRON_SECRET` (cron Vercel **y** Bearer de `/api/internal/*`). Si ya tenías `INTERNAL_CATALOG_SECRET`, seguí usándolo; si no, **no hace falta crear otro**: usá solo `CRON_SECRET` en ambos proyectos.
