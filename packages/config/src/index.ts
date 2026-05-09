@@ -13,9 +13,9 @@ function env(name: string, fallback = ''): string {
 const defaultAvalonUrl = 'http://localhost:3000';
 const defaultPremierUrl = 'http://localhost:3001';
 
-/** Sitio hermano en producción (Vercel); usado como fallback de enlaces cruzados si no hay env. */
-const publicAvalonSite = 'https://avalonweb.vercel.app';
-const publicPremierSite = 'https://avalon-premier.vercel.app';
+/** Fallback público cuando no hay env (producción .com.ar; Vercel solo como respaldo explícito). */
+const publicAvalonSite = 'https://www.avalonpropiedades.com.ar';
+const publicPremierSite = 'https://www.avalonpremier.com.ar';
 
 export function getSiteBrandConfig(site: SiteType): SiteBrandConfig {
   const isAvalon = site === 'avalon';

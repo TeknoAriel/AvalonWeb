@@ -121,3 +121,8 @@ export {
   type PropertyAssignedContactResolved,
   type PropertyAssignedContactSource,
 } from './property-assigned-contact';
+export {
+  buildRealEstateListingJsonLd,
+  getPropertyDetailSeo,
+  type PropertyDetailSeo,
+} from './property-listing-seo';

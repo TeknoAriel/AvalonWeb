@@ -1,8 +1,11 @@
 import {
   buildMarketSummaryForCity,
+  buildPropertySlug,
+  buildRealEstateListingJsonLd,
   getPropertyAssignedContact,
   getPropertyByIdFromRaw,
   getPropertyCode,
+  getPropertyDetailSeo,
   getPropertyMapEmbedSrc,
   getPropertyMapsSearchUrl,
   getRelatedPropertiesFromRaw,
@@ -23,36 +26,76 @@ import {
 import { extractYouTubeVideoId, toYouTubeEmbedUrl } from '@avalon/utils';
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import { PropertyCardPremier } from '@/components/property-card-premier';
 import { PropertyCtaBar } from '@/components/property-cta-bar';
 import { premierEditorialLead } from '@/lib/premier-editorial-lead';
 import { getCachedRawProperties } from '@/lib/raw-properties';
 import { SITE } from '@/lib/site';
 
-type Props = { params: { slug: string } };
+type PageProps = {
+  params: { slug: string };
+  searchParams: Record<string, string | string[] | undefined>;
+};
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+function serializeSearchParams(sp: PageProps['searchParams']): string {
+  const u = new URLSearchParams();
+  for (const [key, value] of Object.entries(sp)) {
+    if (value === undefined) continue;
+    if (Array.isArray(value)) {
+      for (const v of value) u.append(key, v);
+    } else {
+      u.set(key, value);
+    }
+  }
+  const s = u.toString();
+  return s ? `?${s}` : '';
+}
+
+export async function generateMetadata({ params }: Pick<PageProps, 'params'>): Promise<Metadata> {
   const id = parsePropertySlugParam(params.slug);
   if (id == null) return { title: 'Propiedad' };
   const raw = await getCachedRawProperties();
+  const rawRow = raw.find((r) => r.id === id);
+  const slugCanon = rawRow ? buildPropertySlug(rawRow) : params.slug;
   const p = getPropertyByIdFromRaw(SITE, id, raw);
   if (!p) return { title: 'Propiedad' };
+  const brand = getSiteBrandConfig(SITE);
+  const base = brand.urls.base.replace(/\/$/, '');
+  const listingUrl = `${base}/propiedades/${slugCanon}`;
+  const seo = getPropertyDetailSeo(p, listingUrl);
   return {
-    title: p.title,
-    description: p.plainDescription.slice(0, 160),
+    title: seo.title,
+    description: seo.description,
+    alternates: { canonical: seo.canonicalUrl },
     openGraph: {
-      title: p.title,
-      description: p.plainDescription.slice(0, 160),
-      images: p.media.images[0] ? [p.media.images[0].url] : undefined,
+      title: seo.title,
+      description: seo.description,
+      url: seo.canonicalUrl,
+      type: 'article',
+      locale: 'es_AR',
+      images: seo.ogImageUrl ? [{ url: seo.ogImageUrl }] : undefined,
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: seo.title,
+      description: seo.description,
+      images: seo.ogImageUrl ? [seo.ogImageUrl] : undefined,
     },
   };
 }
 
-export default async function PropertyDetailPage({ params }: Props) {
+export default async function PropertyDetailPage({ params, searchParams }: PageProps) {
   const id = parsePropertySlugParam(params.slug);
   if (id == null) notFound();
   const raw = await getCachedRawProperties();
+  const rawRow = raw.find((r) => r.id === id);
+  if (rawRow) {
+    const canon = buildPropertySlug(rawRow);
+    if (params.slug !== canon) {
+      redirect(`/propiedades/${canon}${serializeSearchParams(searchParams)}`);
+    }
+  }
   const property = getPropertyByIdFromRaw(SITE, id, raw);
   if (!property) notFound();
 
@@ -65,6 +108,8 @@ export default async function PropertyDetailPage({ params }: Props) {
   const bucket =
     market && market.sampleSize >= 5 ? market.bucketForProperty(property) : null;
   const brand = getSiteBrandConfig(SITE);
+  const listingUrl = `${brand.urls.base.replace(/\/$/, '')}/propiedades/${params.slug}`;
+  const listingJsonLd = buildRealEstateListingJsonLd(property, listingUrl, brand.name);
   const rawProperty = raw.find((r) => r.id === property.id);
   const assignedContact = getPropertyAssignedContact(rawProperty ?? property, {
     full_name: brand.contact.professionalName,
@@ -99,6 +144,13 @@ export default async function PropertyDetailPage({ params }: Props) {
 
   return (
     <article className="pb-28 md:pb-0">
+      <script
+        type="application/ld+json"
+        // eslint-disable-next-line react/no-danger
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(listingJsonLd).replace(/</g, '\\u003c'),
+        }}
+      />
       <PropertyViewTracker site={SITE} property={property} />
       <nav className="mx-auto max-w-7xl px-6 py-8 text-[10px] uppercase tracking-caps text-brand-text/45 md:px-8">
         <Link href="/propiedades" className="transition hover:text-brand-accent">

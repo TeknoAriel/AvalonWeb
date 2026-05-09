@@ -1,10 +1,14 @@
 import {
+  buildRealEstateListingJsonLd,
   getPropertyAssignedContact,
   getPropertyByIdFromRaw,
   getPropertyCode,
+  getPropertyDetailSeo,
   getPropertyMapEmbedSrc,
   getPropertyMapsSearchUrl,
   getRelatedPropertiesFromRaw,
+  isPremierSiteListable,
+  normalizeProperty,
   parsePropertySlugParam,
   propertyMapLocationNote,
   queryToPropertyListFilters,
@@ -22,7 +26,7 @@ import {
 import { extractYouTubeVideoId, toYouTubeEmbedUrl } from '@avalon/utils';
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import { ListingFitInsight } from '@/components/listing-fit-insight';
 import { ListingSearchContextSummary } from '@/components/listing-search-context-summary';
 import { PropertyCardAvalon } from '@/components/property-card-avalon';
@@ -30,10 +34,25 @@ import { PropertyMobileCtaAvalon } from '@/components/property-mobile-cta-avalon
 import { decodeListingReturnTo } from '@/lib/listing-return-to';
 import { getCachedRawProperties } from '@/lib/raw-properties';
 import { listingFiltersHaveContext } from '@/lib/search-context-format';
+import { premierPropertyListingUrl } from '@/lib/kiteprop-entry-redirect';
 import { tagsForSimilarProperty } from '@/lib/similar-listing-tags';
 import { SITE } from '@/lib/site';
 
 type PageProps = { params: { slug: string }; searchParams: Record<string, string | string[] | undefined> };
+
+function serializeSearchParams(sp: PageProps['searchParams']): string {
+  const u = new URLSearchParams();
+  for (const [key, value] of Object.entries(sp)) {
+    if (value === undefined) continue;
+    if (Array.isArray(value)) {
+      for (const v of value) u.append(key, v);
+    } else {
+      u.set(key, value);
+    }
+  }
+  const s = u.toString();
+  return s ? `?${s}` : '';
+}
 
 function first(v: string | string[] | undefined): string | undefined {
   if (Array.isArray(v)) return v[0];
@@ -44,15 +63,57 @@ export async function generateMetadata({ params }: Pick<PageProps, 'params'>): P
   const id = parsePropertySlugParam(params.slug);
   if (id == null) return { title: 'Propiedad' };
   const raw = await getCachedRawProperties();
+  const rawRow = raw.find((r) => r.id === id);
+  /** Colección Premier: canonical siempre en el dominio Premier (antes que la ficha Avalon duplicada). */
+  if (rawRow && isPremierSiteListable(rawRow)) {
+    const listingUrl = premierPropertyListingUrl(rawRow);
+    if (listingUrl) {
+      const np = normalizeProperty(rawRow);
+      const seo = getPropertyDetailSeo(np, listingUrl);
+      return {
+        title: seo.title,
+        description: seo.description,
+        alternates: { canonical: seo.canonicalUrl },
+        openGraph: {
+          title: seo.title,
+          description: seo.description,
+          url: seo.canonicalUrl,
+          type: 'article',
+          locale: 'es_AR',
+          images: seo.ogImageUrl ? [{ url: seo.ogImageUrl }] : undefined,
+        },
+        twitter: {
+          card: 'summary_large_image',
+          title: seo.title,
+          description: seo.description,
+          images: seo.ogImageUrl ? [seo.ogImageUrl] : undefined,
+        },
+      };
+    }
+  }
   const p = getPropertyByIdFromRaw(SITE, id, raw);
   if (!p) return { title: 'Propiedad' };
+  const brand = getSiteBrandConfig(SITE);
+  const base = brand.urls.base.replace(/\/$/, '');
+  const listingUrl = `${base}/propiedades/${params.slug}`;
+  const seo = getPropertyDetailSeo(p, listingUrl);
   return {
-    title: p.title,
-    description: p.plainDescription.slice(0, 160),
+    title: seo.title,
+    description: seo.description,
+    alternates: { canonical: seo.canonicalUrl },
     openGraph: {
-      title: p.title,
-      description: p.plainDescription.slice(0, 160),
-      images: p.media.images[0] ? [p.media.images[0].url] : undefined,
+      title: seo.title,
+      description: seo.description,
+      url: seo.canonicalUrl,
+      type: 'article',
+      locale: 'es_AR',
+      images: seo.ogImageUrl ? [{ url: seo.ogImageUrl }] : undefined,
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: seo.title,
+      description: seo.description,
+      images: seo.ogImageUrl ? [seo.ogImageUrl] : undefined,
     },
   };
 }
@@ -61,8 +122,15 @@ export default async function PropertyDetailPage({ params, searchParams }: PageP
   const id = parsePropertySlugParam(params.slug);
   if (id == null) notFound();
   const raw = await getCachedRawProperties();
-  const property = getPropertyByIdFromRaw(SITE, id, raw);
-  if (!property) notFound();
+  const rawRow = raw.find((r) => r.id === id);
+  /** Enlace KiteProp → Avalon: si la pieza está en Colección Premier, la ficha canónica es siempre en avalonpremier.com.ar */
+  if (rawRow && isPremierSiteListable(rawRow)) {
+    const dest = premierPropertyListingUrl(rawRow);
+    if (dest) redirect(`${dest}${serializeSearchParams(searchParams)}`);
+  }
+  const maybeProperty = getPropertyByIdFromRaw(SITE, id, raw);
+  if (!maybeProperty) notFound();
+  const property = maybeProperty;
 
   const returnRaw = first(searchParams.returnTo)?.trim();
   const decodedQs = decodeListingReturnTo(returnRaw);
@@ -76,6 +144,8 @@ export default async function PropertyDetailPage({ params, searchParams }: PageP
 
   const related = getRelatedPropertiesFromRaw(SITE, property, raw, 3);
   const brand = getSiteBrandConfig(SITE);
+  const listingUrl = `${brand.urls.base.replace(/\/$/, '')}/propiedades/${params.slug}`;
+  const listingJsonLd = buildRealEstateListingJsonLd(property, listingUrl, brand.name);
   const rawProperty = raw.find((r) => r.id === property.id);
   const assignedContact = getPropertyAssignedContact(rawProperty ?? property, {
     full_name: brand.contact.professionalName,
@@ -111,6 +181,13 @@ export default async function PropertyDetailPage({ params, searchParams }: PageP
 
   return (
     <article className="mx-auto max-w-6xl px-4 py-10 pb-28 md:px-6 md:pb-10">
+      <script
+        type="application/ld+json"
+        // eslint-disable-next-line react/no-danger
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(listingJsonLd).replace(/</g, '\\u003c'),
+        }}
+      />
       <PropertyViewTracker site={SITE} property={property} />
       <nav className="text-sm text-brand-muted">
         <Link href="/propiedades" className="hover:text-brand-primary">
